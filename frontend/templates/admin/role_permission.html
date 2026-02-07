@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles & Permissions | Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .container {
+            padding: 24px 32px;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .save-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Roles Container */
+        .roles-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+        }
+
+        /* Role Card */
+        .role-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .role-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .role-header {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+        }
+
+        .role-header.admin {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .role-header.manager {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .role-header.employee {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .role-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .role-description {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .role-badge {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Permissions Section */
+        .permissions-section {
+            padding: 24px;
+        }
+
+        .permission-group {
+            margin-bottom: 24px;
+        }
+
+        .permission-group-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permission-group-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+
+        /* Permission Items */
+        .permission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+
+        .permission-info {
+            flex: 1;
+        }
+
+        .permission-name {
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .permission-description {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            margin-left: 16px;
+            flex-shrink: 0;
+        }
+
+        .toggle-checkbox {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #cbd5e1;
+            border-radius: 24px;
+            transition: .4s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
+
+        .toggle-checkbox:checked + .toggle-slider {
+            background: #3b82f6;
+        }
+
+        .toggle-checkbox:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-checkbox:disabled + .toggle-slider {
+            background: #e2e8f0;
+            cursor: not-allowed;
+        }
+
+        .toggle-checkbox:disabled + .toggle-slider:before {
+            background: #f8fafc;
+        }
+
+        /* Locked State */
+        .locked-permission {
+            opacity: 0.7;
+        }
+
+        .locked-badge {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .save-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .roles-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <div class="page-title">Roles & Permissions</div>
+                <div class="page-subtitle">Manage user roles and their access permissions</div>
+            </div>
+            <button class="save-btn" onclick="savePermissions()">
+                <span>💾</span>
+                Save Changes
+            </button>
+        </div>
+
+        <!-- Roles Container -->
+        <div class="roles-container">
+            <!-- Admin Role -->
+            <div class="role-card">
+                <div class="role-header admin">
+                    <div class="role-title">
+                        <div class="role-icon">👑</div>
+                        Administrator
+                    </div>
+                    <div class="role-description">
+                        Full system access with all permissions enabled
+                    </div>
+                    <div class="role-badge">Locked</div>
+                </div>
+                <div class="permissions-section">
+                    <div class="permission-group">
+                        <div class="permission-group-title">Project Management</div>
+                        <div class="permission-item locked-permission">
+                            <div class="permission-info">
+                                <div class="permission-name">Create projects</div>
+                                <div class="permission-description">Ability to create new projects</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" checked disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="locked-badge">Locked</span>
+                        </div>
+                        <div class="permission-item locked-permission">
+                            <div class="permission-info">
+                                <div class="permission-name">Assign tasks</div>
+                                <div class="permission-description">Assign tasks to team members</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" checked disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="permission-group-title">Approval System</div>
+                        <div class="permission-item locked-permission">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve tasks</div>
+                                <div class="permission-description">Review and approve completed tasks</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" checked disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item locked-permission">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve leaves</div>
+                                <div class="permission-description">Approve or reject leave requests</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" checked disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item locked-permission">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve timesheets</div>
+                                <div class="permission-description">Review and approve time entries</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" checked disabled>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manager Role -->
+            <div class="role-card">
+                <div class="role-header manager">
+                    <div class="role-title">
+                        <div class="role-icon">👨‍💼</div>
+                        Manager
+                    </div>
+                    <div class="role-description">
+                        Team management with limited administrative access
+                    </div>
+                </div>
+                <div class="permissions-section">
+                    <div class="permission-group">
+                        <div class="permission-group-title">Project Management</div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Create projects</div>
+                                <div class="permission-description">Ability to create new projects</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="manager-create-projects" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Assign tasks</div>
+                                <div class="permission-description">Assign tasks to team members</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="manager-assign-tasks" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="permission-group-title">Approval System</div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve tasks</div>
+                                <div class="permission-description">Review and approve completed tasks</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="manager-approve-tasks" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve leaves</div>
+                                <div class="permission-description">Approve or reject leave requests</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="manager-approve-leaves" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve timesheets</div>
+                                <div class="permission-description">Review and approve time entries</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="manager-approve-timesheets">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Role -->
+            <div class="role-card">
+                <div class="role-header employee">
+                    <div class="role-title">
+                        <div class="role-icon">👨‍💻</div>
+                        Employee
+                    </div>
+                    <div class="role-description">
+                        Basic access for daily operations and tasks
+                    </div>
+                </div>
+                <div class="permissions-section">
+                    <div class="permission-group">
+                        <div class="permission-group-title">Project Management</div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Create projects</div>
+                                <div class="permission-description">Ability to create new projects</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="employee-create-projects">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Assign tasks</div>
+                                <div class="permission-description">Assign tasks to team members</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="employee-assign-tasks">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-group">
+                        <div class="permission-group-title">Approval System</div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve tasks</div>
+                                <div class="permission-description">Review and approve completed tasks</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="employee-approve-tasks">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve leaves</div>
+                                <div class="permission-description">Approve or reject leave requests</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="employee-approve-leaves">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-info">
+                                <div class="permission-name">Approve timesheets</div>
+                                <div class="permission-description">Review and approve time entries</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox" id="employee-approve-timesheets">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span id="toast-message">Permissions saved successfully!</span>
+    </div>
+
+    <script>
+        // Load sidebar
+        fetch('../shared/sidebar_admin.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading sidebar:', error));
+
+        // Initialize default permissions
+        const defaultPermissions = {
+            manager: {
+                'create-projects': true,
+                'assign-tasks': true,
+                'approve-tasks': true,
+                'approve-leaves': true,
+                'approve-timesheets': false
+            },
+            employee: {
+                'create-projects': false,
+                'assign-tasks': false,
+                'approve-tasks': false,
+                'approve-leaves': false,
+                'approve-timesheets': false
+            }
+        };
+
+        // Set initial states
+        document.addEventListener('DOMContentLoaded', () => {
+            // Manager permissions
+            document.getElementById('manager-create-projects').checked = defaultPermissions.manager['create-projects'];
+            document.getElementById('manager-assign-tasks').checked = defaultPermissions.manager['assign-tasks'];
+            document.getElementById('manager-approve-tasks').checked = defaultPermissions.manager['approve-tasks'];
+            document.getElementById('manager-approve-leaves').checked = defaultPermissions.manager['approve-leaves'];
+            document.getElementById('manager-approve-timesheets').checked = defaultPermissions.manager['approve-timesheets'];
+            
+            // Employee permissions
+            document.getElementById('employee-create-projects').checked = defaultPermissions.employee['create-projects'];
+            document.getElementById('employee-assign-tasks').checked = defaultPermissions.employee['assign-tasks'];
+            document.getElementById('employee-approve-tasks').checked = defaultPermissions.employee['approve-tasks'];
+            document.getElementById('employee-approve-leaves').checked = defaultPermissions.employee['approve-leaves'];
+            document.getElementById('employee-approve-timesheets').checked = defaultPermissions.employee['approve-timesheets'];
+        });
+
+        // Save permissions function
+        function savePermissions() {
+            // Collect manager permissions
+            const managerPermissions = {
+                'create-projects': document.getElementById('manager-create-projects').checked,
+                'assign-tasks': document.getElementById('manager-assign-tasks').checked,
+                'approve-tasks': document.getElementById('manager-approve-tasks').checked,
+                'approve-leaves': document.getElementById('manager-approve-leaves').checked,
+                'approve-timesheets': document.getElementById('manager-approve-timesheets').checked
+            };
+
+            // Collect employee permissions
+            const employeePermissions = {
+                'create-projects': document.getElementById('employee-create-projects').checked,
+                'assign-tasks': document.getElementById('employee-assign-tasks').checked,
+                'approve-tasks': document.getElementById('employee-approve-tasks').checked,
+                'approve-leaves': document.getElementById('employee-approve-leaves').checked,
+                'approve-timesheets': document.getElementById('employee-approve-timesheets').checked
+            };
+
+            // In a real application, you would send this data to your backend
+            console.log('Saving permissions:', {
+                manager: managerPermissions,
+                employee: employeePermissions
+            });
+
+            // Show success toast
+            showToast('Permissions saved successfully!');
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Add click effect to toggles
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('toggle-checkbox') && !e.target.disabled) {
+                // Add visual feedback for toggle changes
+                const toggle = e.target.parentElement;
+                toggle.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    toggle.style.transform = '';
+                }, 150);
+            }
+        });
+
+        // Prevent clicking on locked Admin permissions
+        document.querySelectorAll('.locked-permission .toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showToast('Admin permissions cannot be modified');
+            });
+        });
+    </script>
+</body>
+</html>

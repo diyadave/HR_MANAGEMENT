@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees Management | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #073379;
+            --primary-blue-light: #1e40af;
+            --success-green: #059669;
+            --warning-red: #dc2626;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Sidebar */
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            z-index: 100;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--gray-500);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-blue);
+        }
+
+        .breadcrumb .separator {
+            margin: 0 6px;
+        }
+
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 24px;
+        }
+
+        /* Filters Bar */
+        .filters-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+            color: var(--gray-800);
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 14px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            background-color: white;
+            font-size: 14px;
+            color: var(--gray-700);
+            min-width: 160px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        /* Stats Cards */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            border: 1px solid var(--gray-200);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-info h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .stat-info p {
+            color: var(--gray-500);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: white;
+        }
+
+        /* Table Container */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Employee Table */
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .employee-table thead {
+            background-color: var(--gray-50);
+        }
+
+        .employee-table th {
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        .employee-table tbody tr {
+            border-bottom: 1px solid var(--gray-200);
+            transition: background-color 0.2s;
+        }
+
+        .employee-table tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        .employee-table td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        /* Employee Info Cell */
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .employee-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .employee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 14px;
+        }
+
+        .employee-id {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background-color: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .status-inactive {
+            background-color: #fee2e2;
+            color: var(--warning-red);
+        }
+
+        /* Collapsible Section */
+        .permission-section {
+            display: none;
+            background-color: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            padding: 20px;
+        }
+
+        .permission-section.active {
+            display: block;
+        }
+
+        .permission-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .permission-header i {
+            color: var(--primary-blue);
+        }
+
+        .permission-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 14px;
+        }
+
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .permission-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(7, 51, 121, 0.1);
+        }
+
+        /* Custom Checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-radius: 4px;
+            background-color: white;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 4px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .permission-label {
+            font-size: 14px;
+            color: var(--gray-700);
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        /* Action Button */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-btn:hover {
+            background-color: var(--gray-100);
+        }
+
+        .toggle-btn i {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-btn.active i {
+            transform: rotate(180deg);
+        }
+
+        /* Footer Actions */
+        .table-footer {
+            padding: 20px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-btn.active {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #sidebar-container {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 16px;
+            }
+            
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-select {
+                flex: 1;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .employee-table {
+                min-width: 800px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .permission-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="dashboard.html">Dashboard</a>
+                <span class="separator">/</span>
+                <span>Employees Management</span>
+            </div>
+                <div class="page-title">
+        <h1>Employees Management</h1>
+
+        <button id="addEmployeeBtn"
+            style="
+                padding: 10px 16px;
+                background: #073379;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            ">
+            <i class="fas fa-user-plus"></i>
+            Add Employee
+        </button>
+    </div>
+        </div>
+        
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Filters Bar -->
+            <div class="filters-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" placeholder="Search employees by name, email, or ID...">
+                </div>
+                
+                <div class="filter-group">
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">All Departments</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="design">Design</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="sales">Sales</option>
+                        <option value="hr">HR & Admin</option>
+                        <option value="operations">Operations</option>
+                    </select>
+                    
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3>1,284</h3>
+                            <p>Total Employees</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3>1,219</h3>
+                            <p>Active</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3>65</h3>
+                            <p>Inactive</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-slash"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Employee Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Employee Directory</h2>
+                    <div class="pagination-info">Showing 8 of 1,284 employees</div>
+                </div>
+                
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Status</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesBody">
+                        <!-- Employee 1 -->
+                        
+                    </tbody>
+                </table>
+                
+                <!-- Footer -->
+                <div class="table-footer">
+                    <div class="pagination-info">1-8 of 1,284 employees</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span style="padding: 0 4px; color: var(--gray-400); align-self: center;">...</span>
+                        <button class="page-btn">156</button>
+                        <button class="page-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <script>
+const API_BASE = "http://127.0.0.1:8000"; // adjust if needed
+
+let allEmployees = [];
+
+// 🔹 Load employees on page load
+document.addEventListener("DOMContentLoaded", () => {
+  loadEmployees();
+
+  document.querySelector(".search-input")
+    .addEventListener("input", applyFilters);
+
+  document.getElementById("departmentFilter")
+    .addEventListener("change", applyFilters);
+
+  document.getElementById("statusFilter")
+    .addEventListener("change", applyFilters);
+});
+
+async function loadEmployees() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/employees`, {
+      credentials: "include"
+    });
+
+    allEmployees = await res.json();
+    renderEmployees(allEmployees);
+    updateStats(allEmployees);
+
+  } catch (err) {
+    console.error("Failed to load employees", err);
+  }
+}
+
+addEmployeeBtn.addEventListener('click', function () {
+    window.location.href = "create_employee.html";
+});
+
+function renderEmployees(employees) {
+  const tbody = document.getElementById("employeesBody");
+  tbody.innerHTML = "";
+
+  if (!employees.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;padding:30px;color:#64748b">
+          No employees found
+        </td>
+      </tr>`;
+    return;
+  }
+
+  employees.forEach(emp => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <div class="employee-cell">
+          <div class="employee-avatar">
+            ${emp.name.slice(0,2).toUpperCase()}
+          </div>
+          <div class="employee-info">
+            <div class="employee-name">${emp.name}</div>
+            <div class="employee-id">${emp.employee_id || "EMP-" + emp.id}</div>
+          </div>
+        </div>
+      </td>
+      <td>${emp.department || "-"}</td>
+      <td>${emp.designation || "-"}</td>
+      <td>
+        <span class="status-badge ${
+          emp.is_active ? "status-active" : "status-inactive"
+        }">
+          ${emp.is_active ? "Active" : "Inactive"}
+        </span>
+      </td>
+      <td>
+        <button class="toggle-btn">Task & Project Permissions</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function applyFilters() {
+  const search = document.querySelector(".search-input").value.toLowerCase();
+  const dept = document.getElementById("departmentFilter").value.toLowerCase();
+  const status = document.getElementById("statusFilter").value.toLowerCase();
+
+  const filtered = allEmployees.filter(emp => {
+    const matchSearch =
+      emp.name.toLowerCase().includes(search) ||
+      emp.email.toLowerCase().includes(search) ||
+      (emp.employee_id || "").toLowerCase().includes(search);
+
+    const matchDept =
+      !dept || (emp.department || "").toLowerCase().includes(dept);
+
+    const matchStatus =
+      !status ||
+      (status === "active" && emp.is_active) ||
+      (status === "inactive" && !emp.is_active);
+
+    return matchSearch && matchDept && matchStatus;
+  });
+
+  renderEmployees(filtered);
+  updateStats(filtered);
+}
+
+function updateStats(list) {
+  const total = list.length;
+  const active = list.filter(e => e.is_active).length;
+  const inactive = total - active;
+
+  document.querySelectorAll(".stat-card h3")[0].textContent = total;
+  document.querySelectorAll(".stat-card h3")[1].textContent = active;
+  document.querySelectorAll(".stat-card h3")[2].textContent = inactive;
+}
+</script>
+
+    <script>
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

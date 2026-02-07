@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timesheet Management | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #F8FAFC;
+            color: #0F172A;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .container {
+            padding: 20px 24px;
+            margin-left: 260px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .breadcrumb {
+            color: #64748B;
+            font-size: 11px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0F172A;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: #64748B;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            width: 200px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #0F172A;
+            background-color: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #073379;
+            box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748B;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #073379;
+            color: white;
+            border-color: #073379;
+        }
+
+        .btn-primary:hover {
+            background-color: #052962;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #64748B;
+            border-color: #E5E7EB;
+        }
+
+        .btn-secondary:hover {
+            background-color: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748B;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: #0F172A;
+            background-color: #F8FAFC;
+        }
+
+        .tab.active {
+            color: #073379;
+            border-bottom-color: #073379;
+        }
+
+        .tab-badge {
+            background-color: #E5E7EB;
+            color: #64748B;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+
+        .tab.active .tab-badge {
+            background-color: #073379;
+            color: white;
+        }
+
+        /* Table */
+        .table-container {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .timesheets-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        .timesheets-table thead {
+            background-color: #F8FAFC;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .timesheets-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E7EB;
+            white-space: nowrap;
+        }
+
+        .timesheets-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #E5E7EB;
+            color: #0F172A;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .timesheets-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .timesheets-table tbody tr:hover {
+            background-color: #F8FAFC;
+        }
+
+        /* Employee */
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .user-department {
+            font-size: 10px;
+            color: #64748B;
+            margin-top: 2px;
+        }
+
+        /* Project */
+        .project-cell {
+            max-width: 150px;
+        }
+
+        .project-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-type {
+            font-size: 10px;
+            color: #64748B;
+            padding: 2px 6px;
+            background: #F8FAFC;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Task */
+        .task-cell {
+            max-width: 200px;
+        }
+
+        .task-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .task-description {
+            font-size: 10px;
+            color: #64748B;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Date */
+        .date-cell {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        /* Hours */
+        .hours-cell {
+            text-align: center;
+        }
+
+        .hours-value {
+            font-weight: 600;
+            color: #0F172A;
+            font-size: 13px;
+        }
+
+        .hours-label {
+            font-size: 10px;
+            color: #64748B;
+            margin-top: 2px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
+        }
+
+        .status-pending { 
+            background-color: #FEF3C7; 
+            color: #D97706; 
+            border: 1px solid #FBBF24;
+        }
+        .status-approved { 
+            background-color: #D1FAE5; 
+            color: #059669; 
+            border: 1px solid #34D399;
+        }
+        .status-rejected { 
+            background-color: #FEE2E2; 
+            color: #DC2626; 
+            border: 1px solid #F87171;
+        }
+
+        /* Actions */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-approve {
+            background-color: #D1FAE5;
+            color: #059669;
+            border-color: #34D399;
+        }
+
+        .btn-approve:hover {
+            background-color: #059669;
+            color: white;
+        }
+
+        .btn-reject {
+            background-color: #FEE2E2;
+            color: #DC2626;
+            border-color: #F87171;
+        }
+
+        .btn-reject:hover {
+            background-color: #DC2626;
+            color: white;
+        }
+
+        /* Locked State for Approved Timesheets */
+        .locked-row {
+            background-color: #F8FAFC;
+            opacity: 0.8;
+        }
+
+        .locked-row:hover {
+            background-color: #F1F5F9;
+        }
+
+        .locked-actions {
+            color: #94A3B8;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Rejection Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #64748B;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: #F1F5F9;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #0F172A;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #0F172A;
+            background-color: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #073379;
+            box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #059669;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+        }
+
+        /* Mobile */
+        @media (max-width: 1200px) {
+            .container {
+                margin-left: 0;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tabs-header {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 100px;
+                text-align: center;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+                gap: 6px;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .header-right {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="breadcrumb">Work / Timesheets</div>
+                <h1 class="page-title">Timesheet Management</h1>
+                <p class="page-subtitle">Review and approve employee work logs</p>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search timesheets..." id="searchInput">
+                </div>
+                <button class="btn btn-secondary" id="exportBtn">
+                    📤 Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <div class="tab active" data-tab="pending">
+                    Pending
+                    <span class="tab-badge" id="pendingBadge">5</span>
+                </div>
+                <div class="tab" data-tab="approved">
+                    Approved
+                    <span class="tab-badge" id="approvedBadge">2</span>
+                </div>
+                <div class="tab" data-tab="rejected">
+                    Rejected
+                    <span class="tab-badge" id="rejectedBadge">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timesheets Table -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="timesheets-table" id="timesheetsTable">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Project</th>
+                            <th>Date</th>
+                            <th>Hours</th>
+                            <th>Task</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timesheetsBody">
+                        <!-- Timesheet rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejectModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Reject Timesheet</div>
+                <button class="modal-close" onclick="closeRejectModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Reason for Rejection <span style="color: #DC2626">*</span></label>
+                    <textarea class="form-control" id="rejectionReason" placeholder="Provide a reason for rejecting this timesheet..."></textarea>
+                </div>
+                <div style="font-size: 11px; color: #64748B; margin-top: 8px;">
+                    This reason will be shared with the employee and stored for reference.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRejectModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="rejectTimesheet()">Submit Rejection</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Timesheet Data
+        const timesheetData = [
+            {
+                id: 1,
+                employee: { name: "Alex Johnson", department: "Engineering", initials: "AJ" },
+                project: { name: "Website Redesign", type: "Web Development" },
+                date: "Feb 20, 2026",
+                hours: { value: 8.0, label: "Full day" },
+                task: { name: "Design homepage hero section", description: "Create responsive hero with CTA buttons" },
+                status: "pending"
+            },
+            {
+                id: 2,
+                employee: { name: "Sarah Miller", department: "Marketing", initials: "SM" },
+                project: { name: "Marketing Campaign", type: "Marketing" },
+                date: "Feb 20, 2026",
+                hours: { value: 6.5, label: "Standard" },
+                task: { name: "Q4 campaign analysis", description: "Analyze performance metrics" },
+                status: "pending"
+            },
+            {
+                id: 3,
+                employee: { name: "Michael Chen", department: "Engineering", initials: "MC" },
+                project: { name: "Mobile App", type: "Mobile Development" },
+                date: "Feb 19, 2026",
+                hours: { value: 7.5, label: "Standard" },
+                task: { name: "User authentication API", description: "JWT-based auth with refresh tokens" },
+                status: "pending"
+            },
+            {
+                id: 4,
+                employee: { name: "David Wilson", department: "Engineering", initials: "DW" },
+                project: { name: "Website Redesign", type: "Web Development" },
+                date: "Feb 18, 2026",
+                hours: { value: 8.5, label: "Overtime" },
+                task: { name: "API documentation review", description: "Validate all endpoint documentation" },
+                status: "approved"
+            },
+            {
+                id: 5,
+                employee: { name: "Rebecca Jones", department: "HR", initials: "RJ" },
+                project: { name: "HR System", type: "HR Operations" },
+                date: "Feb 18, 2026",
+                hours: { value: 5.5, label: "Standard" },
+                task: { name: "Update employee handbook", description: "Include new remote work policies" },
+                status: "rejected"
+            },
+            {
+                id: 6,
+                employee: { name: "Alex Johnson", department: "Engineering", initials: "AJ" },
+                project: { name: "Website Redesign", type: "Web Development" },
+                date: "Feb 17, 2026",
+                hours: { value: 4.0, label: "Half day" },
+                task: { name: "Bug fixes and optimization", description: "Fix CSS issues and improve performance" },
+                status: "pending"
+            },
+            {
+                id: 7,
+                employee: { name: "Emma Davis", department: "Design", initials: "ED" },
+                project: { name: "Mobile App", type: "Mobile Development" },
+                date: "Feb 17, 2026",
+                hours: { value: 7.0, label: "Standard" },
+                task: { name: "Design system updates", description: "Update component library with new styles" },
+                status: "pending"
+            },
+            {
+                id: 8,
+                employee: { name: "John Smith", department: "Sales", initials: "JS" },
+                project: { name: "Q4 Sales Report", type: "Sales Operations" },
+                date: "Feb 16, 2026",
+                hours: { value: 8.0, label: "Full day" },
+                task: { name: "Sales data analysis", description: "Analyze quarterly sales performance" },
+                status: "approved"
+            }
+        ];
+
+        
+        // Current state
+        let currentTimesheetId = null;
+        let currentTab = 'pending';
+        let currentTimesheetRow = null;
+
+        // Initialize the page
+        function initPage() {
+            renderTimesheets();
+            updateTabBadges();
+            setupEventListeners();
+        }
+
+        // Render timesheets based on current tab
+        function renderTimesheets() {
+            const tbody = document.getElementById('timesheetsBody');
+            tbody.innerHTML = '';
+
+            const filteredData = timesheetData.filter(item => item.status === currentTab);
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #64748B;">
+                            No timesheets found in ${currentTab} status
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredData.forEach(timesheet => {
+                const row = document.createElement('tr');
+                const isLocked = timesheet.status === 'approved' || timesheet.status === 'rejected';
+                
+                if (isLocked) {
+                    row.classList.add('locked-row');
+                }
+
+                row.innerHTML = `
+                    <td class="employee-cell">
+                        <div class="user-avatar">${timesheet.employee.initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${timesheet.employee.name}</div>
+                            <div class="user-department">${timesheet.employee.department}</div>
+                        </div>
+                    </td>
+                    <td class="project-cell">
+                        <div class="project-name">${timesheet.project.name}</div>
+                        <div class="project-type">${timesheet.project.type}</div>
+                    </td>
+                    <td class="date-cell">${timesheet.date}</td>
+                    <td class="hours-cell">
+                        <div class="hours-value">${timesheet.hours.value}</div>
+                        <div class="hours-label">${timesheet.hours.label}</div>
+                    </td>
+                    <td class="task-cell">
+                        <div class="task-name">${timesheet.task.name}</div>
+                        <div class="task-description">${timesheet.task.description}</div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${timesheet.status}">
+                            ${timesheet.status.charAt(0).toUpperCase() + timesheet.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        ${isLocked ? 
+                            `<span class="locked-actions">${timesheet.status === 'approved' ? 'Approved' : 'Rejected'}</span>` :
+                            `<button class="action-btn btn-approve" onclick="approveTimesheet(${timesheet.id})">✔ Approve</button>
+                             <button class="action-btn btn-reject" onclick="openRejectModal(${timesheet.id})">✖ Reject</button>`
+                        }
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update tab badges
+        function updateTabBadges() {
+            const pendingCount = timesheetData.filter(item => item.status === 'pending').length;
+            const approvedCount = timesheetData.filter(item => item.status === 'approved').length;
+            const rejectedCount = timesheetData.filter(item => item.status === 'rejected').length;
+
+            document.getElementById('pendingBadge').textContent = pendingCount;
+            document.getElementById('approvedBadge').textContent = approvedCount;
+            document.getElementById('rejectedBadge').textContent = rejectedCount;
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Update active tab UI
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            renderTimesheets();
+        }
+
+        // Approve timesheet
+        function approveTimesheet(id) {
+            const timesheet = timesheetData.find(item => item.id === id);
+            if (!timesheet) return;
+
+            if (confirm(`Approve ${timesheet.hours.value} hours for ${timesheet.employee.name} on ${timesheet.date}?`)) {
+                timesheet.status = 'approved';
+                showToast(`Timesheet approved for ${timesheet.employee.name}`);
+                updateTabBadges();
+                if (currentTab === 'pending') {
+                    renderTimesheets();
+                }
+            }
+        }
+
+        // Open reject modal
+        function openRejectModal(id) {
+            currentTimesheetId = id;
+            document.getElementById('rejectModal').style.display = 'flex';
+            document.getElementById('rejectionReason').value = '';
+            document.getElementById('rejectionReason').focus();
+        }
+
+        // Close reject modal
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+            currentTimesheetId = null;
+        }
+
+        // Reject timesheet
+        function rejectTimesheet() {
+            const reason = document.getElementById('rejectionReason').value.trim();
+            
+            if (!reason) {
+                alert('Please provide a reason for rejection');
+                return;
+            }
+            
+            if (reason.length < 10) {
+                alert('Please provide a more detailed reason (minimum 10 characters)');
+                return;
+            }
+            
+            const timesheet = timesheetData.find(item => item.id === currentTimesheetId);
+            if (!timesheet) return;
+
+            timesheet.status = 'rejected';
+            showToast(`Timesheet rejected for ${timesheet.employee.name}`);
+            closeRejectModal();
+            updateTabBadges();
+            if (currentTab === 'pending') {
+                renderTimesheets();
+            }
+        }
+
+        // Search functionality
+        function searchTimesheets(searchTerm) {
+            const filteredData = timesheetData.filter(item => {
+                return item.employee.name.toLowerCase().includes(searchTerm) ||
+                       item.project.name.toLowerCase().includes(searchTerm) ||
+                       item.task.name.toLowerCase().includes(searchTerm) ||
+                       item.task.description.toLowerCase().includes(searchTerm);
+            });
+
+            const tbody = document.getElementById('timesheetsBody');
+            tbody.innerHTML = '';
+
+            filteredData.forEach(timesheet => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="employee-cell">
+                        <div class="user-avatar">${timesheet.employee.initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${timesheet.employee.name}</div>
+                            <div class="user-department">${timesheet.employee.department}</div>
+                        </div>
+                    </td>
+                    <td class="project-cell">
+                        <div class="project-name">${timesheet.project.name}</div>
+                        <div class="project-type">${timesheet.project.type}</div>
+                    </td>
+                    <td class="date-cell">${timesheet.date}</td>
+                    <td class="hours-cell">
+                        <div class="hours-value">${timesheet.hours.value}</div>
+                        <div class="hours-label">${timesheet.hours.label}</div>
+                    </td>
+                    <td class="task-cell">
+                        <div class="task-name">${timesheet.task.name}</div>
+                        <div class="task-description">${timesheet.task.description}</div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${timesheet.status}">
+                            ${timesheet.status.charAt(0).toUpperCase() + timesheet.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        ${timesheet.status === 'pending' ? 
+                            `<button class="action-btn btn-approve" onclick="approveTimesheet(${timesheet.id})">✔ Approve</button>
+                             <button class="action-btn btn-reject" onclick="openRejectModal(${timesheet.id})">✖ Reject</button>` :
+                            `<span class="locked-actions">${timesheet.status === 'approved' ? 'Approved' : 'Rejected'}</span>`
+                        }
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Export functionality
+        function exportTimesheets() {
+            const dataToExport = timesheetData.map(item => ({
+                Employee: item.employee.name,
+                Project: item.project.name,
+                Date: item.date,
+                Hours: item.hours.value,
+                Task: item.task.name,
+                Status: item.status.toUpperCase()
+            }));
+
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + [Object.keys(dataToExport[0]).join(",")]
+                .concat(dataToExport.map(row => Object.values(row).join(",")))
+                .join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "timesheets_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchTab(tab.dataset.tab);
+                });
+            });
+
+            // Search
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                if (searchTerm) {
+                    searchTimesheets(searchTerm);
+                } else {
+                    renderTimesheets();
+                }
+            });
+
+            // Export
+            document.getElementById('exportBtn').addEventListener('click', exportTimesheets);
+
+            // Close modal when clicking outside
+            document.addEventListener('click', (event) => {
+                const modal = document.getElementById('rejectModal');
+                if (event.target === modal) {
+                    closeRejectModal();
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeRejectModal();
+                }
+            });
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+    <script>
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notices - HRMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: #F8FAFC;
+      color: #0F172A;
+      line-height: 1.5;
+    }
+
+    .main-container {
+      margin-left: 230px;
+      padding: 24px;
+      padding-right: 228px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: #64748B;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-select {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      background: #FFFFFF;
+      color: #0F172A;
+      cursor: pointer;
+    }
+
+    .section {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 200px;
+    }
+
+    .notice-item {
+      padding: 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .notice-item:hover {
+      background: #F8FAFC;
+      border-color: #D1D5DB;
+    }
+
+    .notice-item.unread {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
+    }
+
+    .notice-item.unread:hover {
+      background: #DBEAFE;
+    }
+
+    .notice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .notice-title-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .unread-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #073379;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .notice-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .notice-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: #64748B;
+    }
+
+    .notice-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .notice-content {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+      margin-top: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .notice-category {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 3px;
+      background: #F3F4F6;
+      color: #6B7280;
+      margin-top: 8px;
+    }
+
+    .notice-category.general {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    .notice-category.policy {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .notice-category.event {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+
+    .notice-category.urgent {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+
+    .notice-category.holiday {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748B;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      color: #CBD5E1;
+      margin-bottom: 16px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748B;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid #F3F4F6;
+      border-radius: 50%;
+      border-top-color: #073379;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #991B1B;
+    }
+
+    .error-icon {
+      font-size: 48px;
+      color: #FCA5A5;
+      margin-bottom: 16px;
+    }
+
+    .retry-btn {
+      background: #073379;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .retry-btn:hover {
+      background: #0a4cb5;
+    }
+
+    @media (max-width: 1024px) {
+      .main-container {
+        padding-right: 24px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        margin-left: 60px;
+        padding: 16px;
+        padding-bottom: 80px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .filter-bar {
+        width: 100%;
+      }
+
+      .filter-select {
+        flex: 1;
+      }
+
+      .notice-header {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div id="tracker-container"></div>
+  <main class="main-container">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Notices</h1>
+        <p class="page-subtitle">Company announcements and updates</p>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-select" id="categoryFilter">
+          <option value="all">All Categories</option>
+          <option value="general">General</option>
+          <option value="policy">Policy</option>
+          <option value="event">Event</option>
+          <option value="urgent">Urgent</option>
+          <option value="holiday">Holiday</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section" id="noticesContainer">
+      <!-- Notices will be loaded here dynamically -->
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading notices...</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../static/js/api.js"></script>
+  <script src="../../static/js/employee.js"></script>
+  
+  <script>
+    // Function to escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Function to format date
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    // Function to get category display name
+    function getCategoryDisplayName(category) {
+      const categoryMap = {
+        'general': 'General',
+        'policy': 'Policy Update',
+        'event': 'Event',
+        'urgent': 'Urgent',
+        'holiday': 'Holiday'
+      };
+      return categoryMap[category] || 'General';
+    }
+
+    // Function to create notice HTML
+    function createNoticeHTML(notice) {
+      const category = notice.category || 'general';
+      const formattedDate = formatDate(notice.created_at);
+      
+      return `
+        <div class="notice-item" data-category="${category}">
+          <div class="notice-header">
+            <div class="notice-title-wrapper">
+              <span class="unread-indicator"></span>
+              <div>
+                <div class="notice-title">${escapeHtml(notice.title || 'Untitled Notice')}</div>
+                <div class="notice-meta">
+                  <span class="notice-meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    ${formattedDate}
+                  </span>
+                  <span class="notice-meta-item">
+                    <i class="fas fa-user"></i>
+                    Admin
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="notice-content">
+            ${escapeHtml(notice.description || 'No description available')}
+          </div>
+          <span class="notice-category ${category}">${getCategoryDisplayName(category)}</span>
+        </div>
+      `;
+    }
+
+    // Function to render notices
+    function renderNotices(notices) {
+      const container = document.getElementById('noticesContainer');
+      
+      if (!notices || notices.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-bullhorn"></i>
+            </div>
+            <h3>No Notices Available</h3>
+            <p>There are no notices at the moment. Check back later.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = '';
+      notices.forEach(notice => {
+        container.innerHTML += createNoticeHTML(notice);
+      });
+      
+      // Add click handlers to mark as read
+      container.querySelectorAll('.notice-item').forEach(item => {
+        item.addEventListener('click', function() {
+          this.classList.remove('unread');
+          const indicator = this.querySelector('.unread-indicator');
+          if (indicator) {
+            indicator.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    // Function to show error state
+    function showErrorState(error) {
+      const container = document.getElementById('noticesContainer');
+      container.innerHTML = `
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Failed to Load Notices</h3>
+          <p>${escapeHtml(error.message || 'Unable to load notices. Please try again.')}</p>
+          <button class="retry-btn" onclick="loadNotices()">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+        </div>
+      `;
+    }
+
+    // Function to show loading state
+    function showLoadingState() {
+      const container = document.getElementById('noticesContainer');
+      container.innerHTML = `
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading notices...</p>
+        </div>
+      `;
+    }
+
+    // Main function to load notices from API
+    async function loadNotices() {
+      try {
+        showLoadingState();
+        
+        // Check if apiRequest function exists
+        if (typeof apiRequest !== 'function') {
+          throw new Error('API request function not available');
+        }
+        
+        // Fetch notices from backend
+        const response = await apiRequest("/notices/", "GET");
+        
+        // Handle different response formats
+        let notices = [];
+        if (Array.isArray(response)) {
+          notices = response;
+        } else if (response && Array.isArray(response.data)) {
+          notices = response.data;
+        } else if (response && Array.isArray(response.notices)) {
+          notices = response.notices;
+        }
+        
+        // Render notices
+        renderNotices(notices);
+        
+      } catch (error) {
+        console.error('Error loading notices:', error);
+        showErrorState(error);
+      }
+    }
+
+    // Filter notices by category
+    function filterNotices() {
+      const category = document.getElementById('categoryFilter').value;
+      const notices = document.querySelectorAll('.notice-item');
+      let visibleCount = 0;
+
+      notices.forEach(notice => {
+        const noticeCategory = notice.getAttribute('data-category');
+        if (category === 'all' || noticeCategory === category) {
+          notice.style.display = '';
+          visibleCount++;
+        } else {
+          notice.style.display = 'none';
+        }
+      });
+
+      // Show empty state if no notices match the filter
+      const container = document.getElementById('noticesContainer');
+      const emptyState = container.querySelector('.empty-state');
+      
+      if (visibleCount === 0 && notices.length > 0) {
+        if (!emptyState || !container.contains(emptyState)) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fas fa-filter"></i>
+              </div>
+              <h3>No Notices Match This Filter</h3>
+              <p>Try selecting a different category.</p>
+            </div>
+          `;
+        }
+      } else if (emptyState && container.contains(emptyState)) {
+        // Remove empty state if notices are now visible
+        container.innerHTML = '';
+        renderNotices(Array.from(notices).filter(n => n.style.display !== 'none'));
+      }
+    }
+
+    // Load components and initialize page
+    async function loadComponent(url, containerId) {
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+      } catch (error) {
+        console.error(`Error loading ${url}:`, error);
+      }
+    }
+
+    // Initialize the page
+    async function init() {
+      try {
+        // Load sidebar and tracker components
+        await Promise.all([
+          loadComponent('../shared/sidebar_employee.html', 'sidebar-container'),
+          loadComponent('../shared/tracker_employee.html', 'tracker-container')
+        ]);
+
+        // Set up category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+          categoryFilter.addEventListener('change', filterNotices);
+        }
+
+        // Load notices from API
+        await loadNotices();
+
+      } catch (error) {
+        console.error('Error initializing page:', error);
+        showErrorState(error);
+      }
+    }
+
+    // Start initialization when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

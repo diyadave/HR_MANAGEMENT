@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Employee Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Sidebar Container */
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            margin-right: 260px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Today Status - Compact Single Card */
+        .status-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .status-item {
+            text-align: left;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .status-value.active {
+            color: #073379;
+        }
+
+        .status-subtext {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Section Container */
+        .section {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .section-link {
+            font-size: 12px;
+            color: #073379;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Tasks Table */
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tasks-table th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tasks-table td {
+            padding: 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .tasks-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tasks-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .task-name {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .task-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .task-status.in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .task-status.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .task-due {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .task-action {
+            padding: 4px 12px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .task-action:hover {
+            background: #052654;
+        }
+
+        .task-action:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        /* Notices List */
+        .notices-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notice-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .notice-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .notice-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .notice-date {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Leave Summary */
+        .leave-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .leave-item {
+            text-align: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .leave-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #073379;
+            margin-bottom: 4px;
+        }
+
+        .leave-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Two Column Layout for smaller sections */
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .leave-summary {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .tasks-table {
+                font-size: 12px;
+            }
+
+            .tasks-table th,
+            .tasks-table td {
+                padding: 8px 6px;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Container (loaded dynamically) -->
+    <div id="sidebar-container"></div>
+
+    <!-- Tracker Container (loaded dynamically) -->
+    <div id="tracker-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> • Today is <span id="current-date"></span></p>
+        </div>
+
+        <!-- Today Status - Compact Card -->
+        <div class="status-card">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Clock In</div>
+                    <div class="status-value" id="clockin-time">--:--</div>
+                    <div class="status-subtext">Not clocked in</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Hours Today</div>
+                    <div class="status-value" id="hours-today">00:00</div>
+                    <div class="status-subtext">Total time</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Active Task</div>
+                    <div class="status-value active" id="active-task-name" style="font-size: 14px; line-height: 1.3;">None</div>
+                    <div class="status-subtext" id="active-task-time">--:--:--</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Task Timer</div>
+                    <div class="status-value" id="task-timer">00:00:00</div>
+                    <div class="status-subtext">Current session</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Tasks Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">My Tasks</h2>
+                <a href="my_tasks.html" class="section-link">View all tasks →</a>
+            </div>
+            <table class="tasks-table">
+                <thead>
+                    <tr>
+                        <th>Task Name</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th style="text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="task-name">Update Employee Dashboard UI</td>
+                        <td><span class="task-status in-progress">In Progress</span></td>
+                        <td class="task-due">Feb 05, 2026</td>
+                        <td style="text-align: center;">
+                            <button class="task-action" onclick="startTask('Update Employee Dashboard UI')">Start</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="task-name">Review Q1 Performance Reports</td>
+                        <td><span class="task-status pending">Pending</span></td>
+                        <td class="task-due">Feb 08, 2026</td>
+                        <td style="text-align: center;">
+                            <button class="task-action" onclick="startTask('Review Q1 Performance Reports')">Start</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="task-name">Client Meeting Preparation</td>
+                        <td><span class="task-status pending">Pending</span></td>
+                        <td class="task-due">Feb 10, 2026</td>
+                        <td style="text-align: center;">
+                            <button class="task-action" onclick="startTask('Client Meeting Preparation')">Start</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="task-name">Submit Weekly Timesheet</td>
+                        <td><span class="task-status completed">Completed</span></td>
+                        <td class="task-due">Feb 01, 2026</td>
+                        <td style="text-align: center;">
+                            <button class="task-action" disabled>Start</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="task-name">Team Sync Meeting Notes</td>
+                        <td><span class="task-status completed">Completed</span></td>
+                        <td class="task-due">Jan 30, 2026</td>
+                        <td style="text-align: center;">
+                            <button class="task-action" disabled>Start</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Two Column Grid for Notices and Leave Summary -->
+        <div class="two-column-grid">
+            <!-- Notices Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Notices</h2>
+                    <a href="notices.html" class="section-link">View all →</a>
+                </div>
+                <div class="notices-list">
+                    <div class="notice-item">
+                        <div class="notice-title">Office Holiday - Republic Day Celebration</div>
+                        <div class="notice-date">Posted on January 24, 2026</div>
+                    </div>
+                    <div class="notice-item">
+                        <div class="notice-title">Q1 Performance Reviews Schedule Announced</div>
+                        <div class="notice-date">Posted on January 20, 2026</div>
+                    </div>
+                    <div class="notice-item">
+                        <div class="notice-title">New Employee Benefits Package Available</div>
+                        <div class="notice-date">Posted on January 15, 2026</div>
+                    </div>
+                    <div class="notice-item">
+                        <div class="notice-title">Updated Work From Home Policy</div>
+                        <div class="notice-date">Posted on January 10, 2026</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Summary Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Leave Summary</h2>
+                    <a href="leaves.html" class="section-link">Apply for leave →</a>
+                </div>
+                <div class="leave-summary">
+                    <div class="leave-item">
+                        <div class="leave-count">2</div>
+                        <div class="leave-label">Pending Approval</div>
+                    </div>
+                    <div class="leave-item">
+                        <div class="leave-count">3</div>
+                        <div class="leave-label">Approved This Month</div>
+                    </div>
+                    <div class="leave-item">
+                        <div class="leave-count">12</div>
+                        <div class="leave-label">Remaining Balance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Display current date
+        function updateCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            document.getElementById('current-date').textContent = today.toLocaleDateString('en-US', options);
+        }
+
+        // Load sidebar dynamically
+        function loadSidebar() {
+            fetch('../shared/sidebar_employee.html')
+                .then(response => {
+                    if (!response.ok) throw new Error('Sidebar not found');
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    highlightActivePage();
+                })
+                .catch(error => {
+                    console.error('Error loading sidebar:', error);
+                    document.getElementById('sidebar-container').innerHTML = '<div style="padding: 20px; color: #64748b; font-size: 12px;">Sidebar unavailable</div>';
+                });
+        }
+
+        // Load tracker dynamically
+        function loadTracker() {
+            fetch('../shared/tracker_employee.html')
+                .then(response => {
+                    if (!response.ok) throw new Error('Tracker not found');
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('tracker-container').innerHTML = data;
+                    initializeTracker();
+                })
+                .catch(error => {
+                    console.error('Error loading tracker:', error);
+                });
+        }
+
+        // Highlight active page in sidebar
+        function highlightActivePage() {
+            const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+            const pageName = currentPage.replace('.html', '');
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const itemPage = item.getAttribute('data-page');
+                if (itemPage === pageName) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize tracker functionality
+        function initializeTracker() {
+            // Load saved state from localStorage
+            const clockInTime = localStorage.getItem('clockInTime');
+            const activeTaskData = localStorage.getItem('activeTask');
+            const taskStartTime = localStorage.getItem('taskStartTime');
+
+            if (clockInTime) {
+                const time = new Date(clockInTime);
+                const hours = time.getHours().toString().padStart(2, '0');
+                const minutes = time.getMinutes().toString().padStart(2, '0');
+                document.getElementById('clockin-time').textContent = `${hours}:${minutes}`;
+                document.querySelector('.status-subtext').textContent = 'Clocked in';
+                updateHoursToday(clockInTime);
+            }
+
+            if (activeTaskData) {
+                try {
+                    // Try to parse if it's JSON
+                    const taskObj = JSON.parse(activeTaskData);
+                    const taskName = taskObj.name || taskObj.taskName || 'Unknown Task';
+                    document.getElementById('active-task-name').textContent = taskName;
+                } catch (e) {
+                    // If not JSON, use as plain text
+                    document.getElementById('active-task-name').textContent = activeTaskData;
+                }
+            }
+
+            if (taskStartTime) {
+                updateTaskTimer(taskStartTime);
+            }
+
+            // Update timers every second
+            setInterval(() => {
+                if (clockInTime) {
+                    updateHoursToday(clockInTime);
+                }
+                if (taskStartTime) {
+                    updateTaskTimer(taskStartTime);
+                }
+            }, 1000);
+        }
+
+        // Update hours today
+        function updateHoursToday(clockInTime) {
+            const startTime = new Date(clockInTime);
+            const now = new Date();
+            const diff = now - startTime;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('hours-today').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        // Update task timer
+        function updateTaskTimer(startTime) {
+            const start = new Date(startTime);
+            const now = new Date();
+            const diff = now - start;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('task-timer').textContent = timeStr;
+            document.getElementById('active-task-time').textContent = timeStr;
+        }
+
+        // Start task function
+        function startTask(taskName) {
+            const clockInTime = localStorage.getItem('clockInTime');
+            if (!clockInTime) {
+                alert('Please clock in first before starting a task.');
+                return;
+            }
+
+            // Save task info to localStorage
+            localStorage.setItem('activeTask', taskName);
+            localStorage.setItem('taskStartTime', new Date().toISOString());
+            
+            // Update UI
+            document.getElementById('active-task-name').textContent = taskName;
+            
+            alert(`Started task: ${taskName}`);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentDate();
+            loadSidebar();
+            loadTracker();
+        });
+    </script>
+</body>
+</html>

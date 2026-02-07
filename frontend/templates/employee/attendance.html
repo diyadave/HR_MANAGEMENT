@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - HRMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: #F8FAFC;
+      color: #0F172A;
+      line-height: 1.5;
+    }
+
+    .main-container {
+      margin-left: 230px;
+      padding: 24px;
+      padding-right: 228px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: #64748B;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-select {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      background: #FFFFFF;
+      color: #0F172A;
+      cursor: pointer;
+    }
+
+    .section {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0F172A;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      padding: 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0F172A;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #F8FAFC;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748B;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #E5E7EB;
+      font-size: 13px;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #F8FAFC;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-present .status-dot {
+      background: #10B981;
+    }
+
+    .status-late .status-dot {
+      background: #F59E0B;
+    }
+
+    .status-absent .status-dot {
+      background: #DC2626;
+    }
+
+    .status-halfday .status-dot {
+      background: #3B82F6;
+    }
+
+    @media (max-width: 1024px) {
+      .main-container {
+        padding-right: 24px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        margin-left: 60px;
+        padding: 16px;
+        padding-bottom: 80px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .filter-bar {
+        width: 100%;
+      }
+
+      .filter-select {
+        flex: 1;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div id="tracker-container"></div>
+
+  <main class="main-container">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Attendance</h1>
+        <p class="page-subtitle">Your attendance records</p>
+      </div>
+      <div class="filter-bar">
+        <select class="filter-select" id="monthFilter">
+          <option value="feb2026">February 2026</option>
+          <option value="jan2026">January 2026</option>
+          <option value="dec2025">December 2025</option>
+          <option value="nov2025">November 2025</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-label">Present Days</div>
+        <div class="stat-value">18</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Absent Days</div>
+        <div class="stat-value">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Late Arrivals</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Avg Hours/Day</div>
+        <div class="stat-value">8.2h</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Attendance History</h2>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Clock In</th>
+              <th>Clock Out</th>
+              <th>Total Hours</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Feb 03, 2026</td>
+              <td>Tuesday</td>
+              <td>09:02 AM</td>
+              <td>In Progress</td>
+              <td>-</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Feb 02, 2026</td>
+              <td>Monday</td>
+              <td>08:58 AM</td>
+              <td>06:05 PM</td>
+              <td>9h 7m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Feb 01, 2026</td>
+              <td>Sunday</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>
+                <span class="status-indicator">
+                  Weekend
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 31, 2026</td>
+              <td>Saturday</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>
+                <span class="status-indicator">
+                  Weekend
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 30, 2026</td>
+              <td>Friday</td>
+              <td>09:15 AM</td>
+              <td>06:00 PM</td>
+              <td>8h 45m</td>
+              <td>
+                <span class="status-indicator status-late">
+                  <span class="status-dot"></span>
+                  Late
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 29, 2026</td>
+              <td>Thursday</td>
+              <td>09:00 AM</td>
+              <td>06:10 PM</td>
+              <td>9h 10m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 28, 2026</td>
+              <td>Wednesday</td>
+              <td>08:55 AM</td>
+              <td>05:55 PM</td>
+              <td>9h 0m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 27, 2026</td>
+              <td>Tuesday</td>
+              <td>09:05 AM</td>
+              <td>01:00 PM</td>
+              <td>3h 55m</td>
+              <td>
+                <span class="status-indicator status-halfday">
+                  <span class="status-dot"></span>
+                  Half Day
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 26, 2026</td>
+              <td>Monday</td>
+              <td>09:00 AM</td>
+              <td>06:00 PM</td>
+              <td>9h 0m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 25, 2026</td>
+              <td>Sunday</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>
+                <span class="status-indicator">
+                  Weekend
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 24, 2026</td>
+              <td>Saturday</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>
+                <span class="status-indicator">
+                  Weekend
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 23, 2026</td>
+              <td>Friday</td>
+              <td>08:58 AM</td>
+              <td>06:05 PM</td>
+              <td>9h 7m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 22, 2026</td>
+              <td>Thursday</td>
+              <td>09:12 AM</td>
+              <td>06:15 PM</td>
+              <td>9h 3m</td>
+              <td>
+                <span class="status-indicator status-late">
+                  <span class="status-dot"></span>
+                  Late
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 21, 2026</td>
+              <td>Wednesday</td>
+              <td>09:00 AM</td>
+              <td>06:00 PM</td>
+              <td>9h 0m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Jan 20, 2026</td>
+              <td>Tuesday</td>
+              <td>08:55 AM</td>
+              <td>06:10 PM</td>
+              <td>9h 15m</td>
+              <td>
+                <span class="status-indicator status-present">
+                  <span class="status-dot"></span>
+                  Present
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadComponent(url, containerId) {
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+      } catch (error) {
+        console.error(`Error loading ${url}:`, error);
+      }
+    }
+
+    async function init() {
+      await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
+      await loadComponent('../shared/tracker_employee.html', 'tracker-container');
+    }
+
+    init();
+  </script>
+</body>
+</html>

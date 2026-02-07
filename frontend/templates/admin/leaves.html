@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Approval | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-size: 13px;
+        }
+
+        .container {
+            padding: 20px;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            min-width: 120px;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #334155;
+            background: white;
+            height: 34px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #073379;
+        }
+
+        .btn-apply {
+            padding: 8px 16px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            height: 34px;
+            white-space: nowrap;
+        }
+
+        .btn-apply:hover {
+            background: #073379;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .leave-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .leave-table thead {
+            background-color: #f1f5f9;
+        }
+
+        .leave-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .leave-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        .leave-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Column widths */
+        .leave-table th:nth-child(1), .leave-table td:nth-child(1) { width: 20%; } /* Employee */
+        .leave-table th:nth-child(2), .leave-table td:nth-child(2) { width: 12%; } /* Leave Date */
+        .leave-table th:nth-child(3), .leave-table td:nth-child(3) { width: 10%; } /* Duration */
+        .leave-table th:nth-child(4), .leave-table td:nth-child(4) { width: 28%; } /* Reason */
+        .leave-table th:nth-child(5), .leave-table td:nth-child(5) { width: 12%; } /* Status */
+        .leave-table th:nth-child(6), .leave-table td:nth-child(6) { width: 18%; } /* Actions */
+
+        /* Employee Cell */
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .employee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #073379 0%, #052962 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .employee-info {
+            min-width: 0;
+        }
+
+        .employee-name {
+            font-weight: 500;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .employee-role {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 1px;
+        }
+
+        /* Dates */
+        .date-cell {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        /* Duration */
+        .duration-cell {
+            color: #64748b;
+        }
+
+        /* Reason Preview */
+        .reason-preview {
+            color: #475569;
+            line-height: 1.5;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .view-reason-btn {
+            background: none;
+            border: none;
+            color: #073379;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 0;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .view-reason-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-approve {
+            background: #d1fae5;
+            color: #059669;
+            border-color: #a7f3d0;
+        }
+
+        .btn-approve:hover {
+            background: #a7f3d0;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+
+        .btn-reject:hover {
+            background: #fecaca;
+            transform: translateY(-1px);
+        }
+
+        /* Reason Modal (Compact) */
+        .reason-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .reason-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .reason-modal-header {
+            padding: 14px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reason-modal-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .reason-modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .reason-modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .reason-full {
+            color: #475569;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #059669;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .leave-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .leave-table th,
+            .leave-table td {
+                min-width: 120px;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <div class="page-title">Leave Approval</div>
+                <div class="page-subtitle">Review and manage employee leave requests</div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Pending Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">42</div>
+                <div class="stat-label">Approved This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Rejected This Month</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select class="filter-select" id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">From Date</label>
+                <input type="date" class="filter-select" id="fromDate">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">To Date</label>
+                <input type="date" class="filter-select" id="toDate">
+            </div>
+            <button class="btn-apply" onclick="applyFilters()">Apply Filters</button>
+        </div>
+
+        <!-- Leave Requests Table -->
+        <div class="table-container">
+            <table class="leave-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Leave Date</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leaveTableBody">
+                    <!-- Row 1 -->
+                    <tr>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="employee-avatar">AJ</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">Alex Johnson</div>
+                                    <div class="employee-role">Senior Developer</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell">Feb 15-18, 2026</td>
+                        <td class="duration-cell">4 days</td>
+                        <td>
+                            <div class="reason-preview">
+                                Family wedding out of state. Travel required for 2 days plus ceremony. All work delegated to team members.
+                            </div>
+                            <button class="view-reason-btn" onclick="viewFullReason(1)">View full reason</button>
+                        </td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-approve" onclick="approveLeave(1)">Approve</button>
+                                <button class="btn-action btn-reject" onclick="rejectLeave(1)">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 -->
+                    <tr>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="employee-avatar">SM</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">Sarah Miller</div>
+                                    <div class="employee-role">Sales Manager</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell">Feb 22, 2026</td>
+                        <td class="duration-cell">1 day</td>
+                        <td>
+                            <div class="reason-preview">
+                                Sudden fever and flu symptoms. Doctor advised rest. Client meetings rescheduled to next week.
+                            </div>
+                            <button class="view-reason-btn" onclick="viewFullReason(2)">View full reason</button>
+                        </td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-approve" onclick="approveLeave(2)">Approve</button>
+                                <button class="btn-action btn-reject" onclick="rejectLeave(2)">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 3 -->
+                    <tr>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="employee-avatar">MC</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">Michael Chen</div>
+                                    <div class="employee-role">Marketing Head</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell">Today (Feb 24)</td>
+                        <td class="duration-cell">1 day</td>
+                        <td>
+                            <div class="reason-preview">
+                                Family emergency requiring immediate attention. Will provide documentation upon return.
+                            </div>
+                            <button class="view-reason-btn" onclick="viewFullReason(3)">View full reason</button>
+                        </td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-approve" onclick="approveLeave(3)">Approve</button>
+                                <button class="btn-action btn-reject" onclick="rejectLeave(3)">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 4 -->
+                    <tr>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="employee-avatar">RJ</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">Rebecca Jones</div>
+                                    <div class="employee-role">UI/UX Designer</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell">Mar 1-2, 2026</td>
+                        <td class="duration-cell">2 days</td>
+                        <td>
+                            <div class="reason-preview">
+                                Mental health break. Need to recharge and reset. All design files are updated and shared with team.
+                            </div>
+                            <button class="view-reason-btn" onclick="viewFullReason(4)">View full reason</button>
+                        </td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-approve" disabled>Approved</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 5 -->
+                    <tr>
+                        <td>
+                            <div class="employee-cell">
+                                <div class="employee-avatar">DW</div>
+                                <div class="employee-info">
+                                    <div class="employee-name">David Wilson</div>
+                                    <div class="employee-role">HR Executive</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell">Feb 28, 2026</td>
+                        <td class="duration-cell">1 day</td>
+                        <td>
+                            <div class="reason-preview">
+                                Dental surgery scheduled. Doctor's note provided. Will be available for urgent calls only.
+                            </div>
+                            <button class="view-reason-btn" onclick="viewFullReason(5)">View full reason</button>
+                        </td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-approve" onclick="approveLeave(5)">Approve</button>
+                                <button class="btn-action btn-reject" onclick="rejectLeave(5)">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Reason Modal -->
+        <div class="reason-modal" id="reasonModal">
+            <div class="reason-modal-content">
+                <div class="reason-modal-header">
+                    <div class="reason-modal-title">Leave Reason</div>
+                    <button class="reason-modal-close" onclick="closeReasonModal()">×</button>
+                </div>
+                <div class="reason-modal-body">
+                    <div class="reason-full" id="fullReasonText">
+                        <!-- Full reason will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load sidebar
+        fetch('../shared/sidebar_admin.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading sidebar:', error));
+
+        // Sample data for full reasons
+        const leaveReasons = {
+            1: "Family wedding out of state. Travel required for 2 days plus ceremony.\n\nAll urgent work has been completed and handed over to the team lead. Project timelines have been adjusted accordingly. Will be available for emergencies via phone during the leave period.\n\nAll necessary documentation has been uploaded to the system.",
+            2: "Sudden fever and flu symptoms. Doctor's note provided.\n\nClient meetings scheduled for Feb 22 have been rescheduled to next week. Team has been briefed about ongoing deals.\n\nWill check emails periodically but will be mostly resting as per doctor's advice.",
+            3: "Family emergency requiring immediate attention.\n\nUrgent tasks have been delegated to team members. Will provide proper documentation upon return.\n\nAvailable for critical decisions via phone if absolutely necessary.",
+            4: "Mental health break. Need to recharge and reset.\n\nAll design files are updated and shared with the team. Current projects are at a stable point.\n\nWill be completely offline during this period to ensure proper rest.",
+            5: "Dental surgery scheduled. Doctor's note attached.\n\nAll HR tasks for the day have been delegated. Will be available for urgent calls only.\n\nRecovery time expected: 1-2 days as per dentist's advice."
+        };
+
+        // Modal functions
+        function viewFullReason(leaveId) {
+            document.getElementById('fullReasonText').textContent = leaveReasons[leaveId] || 'No reason provided.';
+            document.getElementById('reasonModal').style.display = 'flex';
+        }
+
+        function closeReasonModal() {
+            document.getElementById('reasonModal').style.display = 'none';
+        }
+
+        // Approval functions
+        function approveLeave(leaveId) {
+            const row = document.querySelector(`tr:nth-child(${leaveId})`);
+            if (row) {
+                // Update status
+                const statusCell = row.cells[4];
+                statusCell.innerHTML = '<span class="status-badge status-approved">Approved</span>';
+                
+                // Update actions
+                const actionCell = row.cells[5];
+                actionCell.innerHTML = '<div class="action-buttons"><button class="btn-action btn-approve" disabled>Approved</button></div>';
+                
+                // Update stats
+                updateStats('approved');
+                
+                // Show toast
+                showToast('Leave request approved successfully');
+            }
+        }
+
+        function rejectLeave(leaveId) {
+            const row = document.querySelector(`tr:nth-child(${leaveId})`);
+            if (row) {
+                // Update status
+                const statusCell = row.cells[4];
+                statusCell.innerHTML = '<span class="status-badge status-rejected">Rejected</span>';
+                
+                // Update actions
+                const actionCell = row.cells[5];
+                actionCell.innerHTML = '<div class="action-buttons"><button class="btn-action btn-reject" disabled>Rejected</button></div>';
+                
+                // Update stats
+                updateStats('rejected');
+                
+                // Show toast
+                showToast('Leave request rejected');
+            }
+        }
+
+        // Filter functions
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            
+            // In a real application, you would filter the data here
+            showToast('Filters applied');
+        }
+
+        // Stats update function
+        function updateStats(action) {
+            // In a real application, you would update the stats here
+            console.log(`Leave ${action}`);
+        }
+
+        // Toast notification
+        function showToast(message) {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            // Create new toast
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('reasonModal');
+            if (event.target === modal) {
+                closeReasonModal();
+            }
+        });
+
+        // Set default date values
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fromDate').value = today;
+            
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('toDate').value = nextWeek.toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>

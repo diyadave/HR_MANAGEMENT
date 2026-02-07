@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects Management | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #073379;
+            --primary-blue-light: #1e40af;
+            --success-green: #059669;
+            --warning-orange: #d97706;
+            --completed-blue: #0369a1;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Sidebar */
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            z-index: 100;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--gray-500);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-blue);
+        }
+
+        .breadcrumb .separator {
+            margin: 0 6px;
+        }
+
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 24px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+            color: var(--gray-800);
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-blue-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(7, 51, 121, 0.15);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        /* Projects Table */
+        .projects-table {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-50);
+        }
+
+        .table-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .table-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .table-filter {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            background: white;
+            color: var(--gray-700);
+            font-size: 13px;
+            min-width: 120px;
+            cursor: pointer;
+        }
+
+        .table-filter:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        /* Table Styles */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: var(--gray-50);
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        /* Project Name Cell */
+        .project-name-cell {
+            min-width: 200px;
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .project-description {
+            font-size: 13px;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        /* Owner Cell */
+        .owner-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 150px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--gray-900);
+            font-size: 13px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .status-active {
+            background-color: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .status-onhold {
+            background-color: #fef3c7;
+            color: var(--warning-orange);
+        }
+
+        .status-completed {
+            background-color: #e0f2fe;
+            color: var(--completed-blue);
+        }
+
+        /* Progress Bar */
+        .progress-cell {
+            min-width: 120px;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Stats Cells */
+        .stats-cell {
+            text-align: center;
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 14px;
+        }
+
+        .stats-label {
+            display: block;
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* Actions */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            min-width: 100px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray-600);
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .action-view:hover {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .action-edit:hover {
+            color: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        /* Footer */
+        .table-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--gray-500);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--gray-800);
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Team Members Section */
+        .team-members-section {
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .team-members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .team-member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .team-member-item:hover {
+            background-color: var(--gray-50);
+        }
+
+        .member-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--gray-300);
+            background: white;
+            flex-shrink: 0;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .member-checkbox.checked {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .member-checkbox.checked:after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .member-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            position: sticky;
+            bottom: 0;
+            background: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #sidebar-container {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 16px;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+            
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .table-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .actions-cell {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="dashboard.html">Dashboard</a>
+                <span class="separator">/</span>
+                <span>Projects Management</span>
+            </div>
+            <div class="page-title">
+                <h1>Projects Management</h1>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" placeholder="Search projects by name, owner, or description...">
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-filter"></i>
+                        Filter
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                    <button class="btn btn-primary" onclick="openCreateProjectModal()">
+                        <i class="fas fa-plus"></i>
+                        Create Project
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Projects Table -->
+            <div class="projects-table">
+                <div class="table-header">
+                    <h2>Active Projects</h2>
+                    <div class="table-controls">
+                        <select class="table-filter" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="onhold">On Hold</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <div class="pagination-info">8 projects</div>
+                    </div>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Owner</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Tasks</th>
+                                <th>Hours</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Project 1 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Website Redesign</div>
+                                    <div class="project-description">Complete website overhaul with new design system</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">AJ</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Alex Johnson</div>
+                                        <div class="user-role">Project Manager</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Active</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 85%"></div>
+                                        </div>
+                                        <div class="progress-text">85%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    42
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    320
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 2 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Mobile App Launch</div>
+                                    <div class="project-description">New customer-facing mobile application development</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">MC</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Michael Chen</div>
+                                        <div class="user-role">Senior Developer</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Active</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 62%"></div>
+                                        </div>
+                                        <div class="progress-text">62%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    28
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    420
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 3 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Q2 Marketing Campaign</div>
+                                    <div class="project-description">Digital marketing campaign for product launch</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">SM</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Sarah Miller</div>
+                                        <div class="user-role">Marketing Director</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-onhold">On Hold</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 45%"></div>
+                                        </div>
+                                        <div class="progress-text">45%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    18
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    180
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 4 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">CRM Implementation</div>
+                                    <div class="project-description">Sales CRM system implementation and training</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">DW</div>
+                                    <div class="user-info">
+                                        <div class="user-name">David Wilson</div>
+                                        <div class="user-role">Sales Manager</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-completed">Completed</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%"></div>
+                                        </div>
+                                        <div class="progress-text">100%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    56
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    560
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 5 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Data Analytics Dashboard</div>
+                                    <div class="project-description">Real-time business intelligence dashboard development</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">RJ</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Rebecca Jones</div>
+                                        <div class="user-role">Data Analyst</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Active</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 78%"></div>
+                                        </div>
+                                        <div class="progress-text">78%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    34
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    380
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 6 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">HR System Upgrade</div>
+                                    <div class="project-description">Migration to new HR management platform</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">ED</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Emma Davis</div>
+                                        <div class="user-role">HR Manager</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Active</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 92%"></div>
+                                        </div>
+                                        <div class="progress-text">92%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    24
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    290
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 7 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Office Relocation</div>
+                                    <div class="project-description">Moving to new corporate headquarters</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">JW</div>
+                                    <div class="user-info">
+                                        <div class="user-name">James Wilson</div>
+                                        <div class="user-role">Operations Manager</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-onhold">On Hold</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 30%"></div>
+                                        </div>
+                                        <div class="progress-text">30%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    16
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    120
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Project 8 -->
+                            <tr>
+                                <td class="project-name-cell">
+                                    <div class="project-name">Product Documentation</div>
+                                    <div class="project-description">Complete product documentation and user guides</div>
+                                </td>
+                                <td class="owner-cell">
+                                    <div class="user-avatar">LM</div>
+                                    <div class="user-info">
+                                        <div class="user-name">Lisa Martinez</div>
+                                        <div class="user-role">Technical Writer</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Active</span>
+                                </td>
+                                <td class="progress-cell">
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 55%"></div>
+                                        </div>
+                                        <div class="progress-text">55%</div>
+                                    </div>
+                                </td>
+                                <td class="stats-cell">
+                                    22
+                                    <span class="stats-label">Tasks</span>
+                                </td>
+                                <td class="stats-cell">
+                                    210
+                                    <span class="stats-label">Hours</span>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn action-view" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn action-edit" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Table Footer -->
+                <div class="table-footer">
+                    <div class="pagination-info">Showing 8 of 24 projects</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span style="padding: 0 4px; color: var(--gray-400); align-self: center;">...</span>
+                        <button class="page-btn">12</button>
+                        <button class="page-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Create New Project</div>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="form-control" id="projectName" placeholder="Enter project name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="projectDescription" placeholder="Describe the project scope and objectives..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="projectStartDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="projectEndDate">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Project Owner</label>
+                    <select class="form-control" id="projectOwner">
+                        <option value="">Select project owner</option>
+                        <option value="AJ">Alex Johnson</option>
+                        <option value="MC">Michael Chen</option>
+                        <option value="SM">Sarah Miller</option>
+                        <option value="DW">David Wilson</option>
+                        <option value="RJ">Rebecca Jones</option>
+                        <option value="ED">Emma Davis</option>
+                        <option value="JW">James Wilson</option>
+                        <option value="LM">Lisa Martinez</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Assign Team Members</label>
+                    <div class="team-members-section">
+                        <div class="team-members-list">
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">AJ</div>
+                                    <div>
+                                        <div style="font-weight: 500;">Alex Johnson</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">Project Manager</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">MC</div>
+                                    <div>
+                                        <div style="font-weight: 500;">Michael Chen</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">Senior Developer</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">SM</div>
+                                    <div>
+                                        <div style="font-weight: 500;">Sarah Miller</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">Marketing Director</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">RJ</div>
+                                    <div>
+                                        <div style="font-weight: 500;">Rebecca Jones</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">Data Analyst</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">DW</div>
+                                    <div>
+                                        <div style="font-weight: 500;">David Wilson</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">Sales Manager</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="team-member-item" onclick="toggleTeamMember(this)">
+                                <div class="member-checkbox"></div>
+                                <div class="member-info">
+                                    <div class="user-avatar">ED</div>
+                                    <div>
+                                        <div style="font-weight: 500;">Emma Davis</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">HR Manager</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProject()">Create Project</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       
+        // Modal functions
+        function openCreateProjectModal() {
+            document.getElementById('createProjectModal').style.display = 'flex';
+            // Set default dates
+            const today = new Date();
+            const nextMonth = new Date(today);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            
+            document.getElementById('projectStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('projectEndDate').value = nextMonth.toISOString().split('T')[0];
+        }
+
+        function closeModal() {
+            document.getElementById('createProjectModal').style.display = 'none';
+        }
+
+        // Team member selection
+        function toggleTeamMember(element) {
+            const checkbox = element.querySelector('.member-checkbox');
+            checkbox.classList.toggle('checked');
+        }
+
+        // Save project
+        function saveProject() {
+            const projectName = document.getElementById('projectName').value.trim();
+            const description = document.getElementById('projectDescription').value.trim();
+            const startDate = document.getElementById('projectStartDate').value;
+            const endDate = document.getElementById('projectEndDate').value;
+            const owner = document.getElementById('projectOwner').value;
+
+            if (!projectName) {
+                alert('Please enter a project name');
+                return;
+            }
+
+            if (!owner) {
+                alert('Please select a project owner');
+                return;
+            }
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            if (new Date(endDate) < new Date(startDate)) {
+                alert('End date must be after start date');
+                return;
+            }
+
+            // Get selected team members
+            const selectedMembers = [];
+            document.querySelectorAll('.team-member-item').forEach(item => {
+                const checkbox = item.querySelector('.member-checkbox');
+                if (checkbox.classList.contains('checked')) {
+                    const name = item.querySelector('div[style*="font-weight: 500"]').textContent;
+                    selectedMembers.push(name);
+                }
+            });
+
+            // Show success message
+            alert(`Project "${projectName}" created successfully!`);
+            closeModal();
+            resetModalForm();
+        }
+
+        function resetModalForm() {
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDescription').value = '';
+            document.getElementById('projectStartDate').value = '';
+            document.getElementById('projectEndDate').value = '';
+            document.getElementById('projectOwner').value = '';
+            
+            // Clear team member selections
+            document.querySelectorAll('.member-checkbox').forEach(checkbox => {
+                checkbox.classList.remove('checked');
+            });
+        }
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const projectName = row.querySelector('.project-name').textContent.toLowerCase();
+                const description = row.querySelector('.project-description').textContent.toLowerCase();
+                const ownerName = row.querySelector('.user-name').textContent.toLowerCase();
+                
+                if (projectName.includes(searchTerm) || description.includes(searchTerm) || ownerName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Status filter
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            const status = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const statusBadge = row.querySelector('.status-badge');
+                if (!statusBadge) return;
+                
+                const rowStatus = statusBadge.textContent.toLowerCase().replace(' ', '');
+                
+                if (!status || rowStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Action buttons
+        document.querySelectorAll('.action-view').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const projectName = row.querySelector('.project-name').textContent;
+                alert(`View project: ${projectName}`);
+            });
+        });
+
+        document.querySelectorAll('.action-edit').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const projectName = row.querySelector('.project-name').textContent;
+                alert(`Edit project: ${projectName}`);
+            });
+        });
+
+        // Close modal on outside click
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('createProjectModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Prevent modal close on inside click
+        document.querySelector('.modal-content').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        // Initialize table interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates for new projects
+            const today = new Date();
+            const nextMonth = new Date(today);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            
+            document.getElementById('projectStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('projectEndDate').value = nextMonth.toISOString().split('T')[0];
+        });
+    </script>
+    <script>
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

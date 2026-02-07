@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+    /* GLOBAL SIDEBAR RULES */
+    #sidebar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      z-index: 999;
+    }
+
+    .main-content,
+    .container {
+      margin-left: 260px;
+    }
+
+    /* Hover & active ALWAYS work */
+    .sidebar a {
+      display: flex;
+      align-items: center;
+    }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background: #0F172A;
+            color: #94A3B8;
+            overflow-y: auto;
+            z-index: 1000;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 3px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-role {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 0 20px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #1F2937;
+            color: #ffffff;
+            border-left: 3px solid #073379;
+            padding-left: 17px;
+        }
+
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .nav-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+        }
+      .nav-parent:hover .submenu {
+        max-height: 200px;
+      }
+
+      .nav-parent:hover .expand-arrow {
+        transform: rotate(90deg);
+      }
+
+        .nav-text {
+            flex: 1;
+        }
+
+        /* Submenu Styles */
+        .nav-parent {
+            position: relative;
+        }
+
+        .expand-arrow {
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .nav-parent.expanded .expand-arrow {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.expanded {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px 8px 50px;
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .submenu-item:hover {
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .submenu-item.active {
+            color: #ffffff;
+            background: rgba(7, 51, 121, 0.2);
+            border-left: 2px solid #073379;
+            padding-left: 48px;
+        }
+
+        .submenu-icon {
+            width: 4px;
+            height: 4px;
+            background: currentColor;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Mobile Toggle */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #0F172A;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="sidebar" id="adminSidebar">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-logo">DooOn</div>
+            <div class="sidebar-role">Admin Panel</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            <!-- MAIN Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+
+            <!-- WORK Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Work</div>
+                <a href="projects.html" class="nav-item" data-page="projects">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Projects</span>
+                </a>
+                <a href="tasks.html" class="nav-item" data-page="tasks">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 11 12 14 22 4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Tasks</span>
+                </a>
+                <a href="timesheet.html" class="nav-item" data-page="timesheet">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Timesheet</span>
+                </a>
+            </div>
+
+            <!-- HR Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">HR</div>
+                <a href="employees.html" class="nav-item" data-page="employees">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Employees</span>
+                </a>
+                <a href="attendance.html" class="nav-item" data-page="attendance">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Attendance</span>
+                </a>
+                
+                <!-- Leaves with submenu -->
+                <div class="nav-parent" id="leavesParent">
+                    <a class="nav-item nav-parent-trigger" data-page="leaves" onclick="toggleSubmenu(event, 'leavesSubmenu')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                                <path d="M8 14h.01"></path>
+                                <path d="M12 14h.01"></path>
+                                <path d="M16 14h.01"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Leaves</span>
+                        <span class="expand-arrow">›</span>
+                    </a>
+                    <div class="submenu" id="leavesSubmenu">
+                        <a href="leaves.html" class="submenu-item" data-page="leave_requests">
+                            <span class="submenu-icon"></span>
+                            <span>Leave Requests</span>
+                        </a>
+                        <a href="all_leaves.html" class="submenu-item" data-page="leave_history">
+                            <span class="submenu-icon"></span>
+                            <span>Leave History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMUNICATION Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Communication</div>
+                <a href="notices.html" class="nav-item" data-page="notices">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Notices</span>
+                </a>
+            </div>
+
+            <!-- ACCOUNT Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="admin_profile.html" class="nav-item" data-page="admin_profile">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Admin Profile</span>
+                </a>
+              
+                <a href="#" class="nav-item" data-page="logout" onclick="handleLogout(event)">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Toggle submenu
+        
+
+        // Handle logout
+        function handleLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                // In real app, handle logout
+                alert('Logout functionality would be implemented here');
+                // window.location.href = 'login.html';
+            }
+        }
+
+        // Highlight active page
+        function highlightActivePage() {
+            const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
+            
+            // Remove all active classes
+            document.querySelectorAll('.nav-item, .submenu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            document.querySelectorAll('[data-page]').forEach(item => {
+                const itemPage = item.getAttribute('data-page');
+                
+                if (itemPage === currentPage) {
+                    item.classList.add('active');
+                    
+                    // If it's a submenu item, expand parent
+                    if (item.classList.contains('submenu-item')) {
+                        const parent = item.closest('.nav-parent');
+                        const submenu = item.closest('.submenu');
+                        
+                        if (parent) {
+                            parent.classList.add('expanded');
+                            parent.querySelector('.nav-item').classList.add('active');
+                        }
+                        if (submenu) {
+                            submenu.classList.add('expanded');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            highlightActivePage();
+            
+            // Close sidebar on mobile when clicking outside
+            document.addEventListener('click', function(event) {
+                const sidebar = document.getElementById('adminSidebar');
+                const toggle = document.querySelector('.sidebar-toggle');
+                
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(event.target) && 
+                    event.target !== toggle) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+
+        // Re-highlight on page change (for SPA-like behavior)
+        window.addEventListener('popstate', highlightActivePage);
+    </script>
+</body>
+</html>
+

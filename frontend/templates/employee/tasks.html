@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks - Employee Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout */
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        #tracker-container {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 260px;
+            height: 100vh;
+            z-index: 999;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            margin-right: 260px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .header-filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Filters */
+        .filter-select {
+            padding: 7px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            color: #1e293b;
+            min-width: 140px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #073379;
+        }
+
+        .btn-toggle {
+            padding: 7px 14px;
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle:hover {
+            background: #f8fafc;
+        }
+
+        .btn-toggle.active {
+            background: #073379;
+            color: white;
+            border-color: #073379;
+        }
+
+        /* Table Container */
+        .table-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tasks-table thead {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tasks-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tasks-table td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .tasks-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tasks-table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .tasks-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .task-name {
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 3px;
+        }
+
+        .task-project {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Priority Dot */
+        .priority-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .priority-dot.high {
+            background: #ef4444;
+        }
+
+        .priority-dot.medium {
+            background: #f59e0b;
+        }
+
+        .priority-dot.low {
+            background: #10b981;
+        }
+
+        .priority-text {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.on-hold {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        /* Due Date */
+        .due-date {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .due-date.overdue {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        /* Hours */
+        .hours-logged {
+            font-size: 13px;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        /* Action Button */
+        .task-action-btn {
+            padding: 5px 14px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .task-action-btn:hover {
+            background: #052654;
+        }
+
+        .task-action-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .task-action-btn.resume {
+            background: #059669;
+        }
+
+        .task-action-btn.resume:hover {
+            background: #047857;
+        }
+
+        /* Project Group View */
+        .project-group {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .project-group:last-child {
+            border-bottom: none;
+        }
+
+        .project-header {
+            background: #f8fafc;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .project-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .project-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                margin-right: 0;
+            }
+
+            #tracker-container {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-filters {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .filter-select {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .tasks-table {
+                font-size: 12px;
+            }
+
+            .tasks-table th,
+            .tasks-table td {
+                padding: 10px 12px;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Tracker Container -->
+    <div id="tracker-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">My Tasks</h1>
+                <p class="page-subtitle">Manage your assigned work</p>
+            </div>
+            <div class="header-filters">
+                <select class="filter-select" id="filterProject" onchange="applyFilters()">
+                    <option value="">All Projects</option>
+                    <option value="hr-system">HR System Upgrade</option>
+                    <option value="q1-reports">Q1 Reports</option>
+                    <option value="admin-tools">Admin Tools</option>
+                    <option value="internal-portal">Internal Portal</option>
+                </select>
+                <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="on-hold">On Hold</option>
+                </select>
+                <select class="filter-select" id="filterPriority" onchange="applyFilters()">
+                    <option value="">All Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <button class="btn-toggle" id="btnGroupToggle" onclick="toggleGrouping()">
+                    Group by Project
+                </button>
+            </div>
+        </div>
+
+        <!-- Tasks Table (Flat View) -->
+        <div class="table-section" id="flatView">
+            <table class="tasks-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Task Name</th>
+                        <th style="width: 15%;">Priority</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 12%;">Due Date</th>
+                        <th style="width: 10%;">Hours Logged</th>
+                        <th style="width: 10%; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tasks Grouped by Project -->
+        <div class="table-section hidden" id="groupedView">
+            <div id="groupedTasksContainer">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data - Tasks
+        const tasks = [
+            {
+                id: 1,
+                name: "Update Employee Dashboard UI",
+                project: "hr-system",
+                projectName: "HR System Upgrade",
+                priority: "high",
+                status: "in-progress",
+                dueDate: "2026-02-05",
+                hoursLogged: 8.5,
+                isActive: true
+            },
+            {
+                id: 2,
+                name: "Review Q1 Performance Reports",
+                project: "q1-reports",
+                projectName: "Q1 Reports",
+                priority: "medium",
+                status: "pending",
+                dueDate: "2026-02-08",
+                hoursLogged: 0,
+                isActive: false
+            },
+            {
+                id: 3,
+                name: "Fix Login Authentication Bug",
+                project: "hr-system",
+                projectName: "HR System Upgrade",
+                priority: "high",
+                status: "in-progress",
+                dueDate: "2026-02-04",
+                hoursLogged: 3.5,
+                isActive: false
+            },
+            {
+                id: 4,
+                name: "Prepare Quarterly Financial Summary",
+                project: "q1-reports",
+                projectName: "Q1 Reports",
+                priority: "high",
+                status: "pending",
+                dueDate: "2026-02-10",
+                hoursLogged: 1.0,
+                isActive: false
+            },
+            {
+                id: 5,
+                name: "Admin Panel User Guide Documentation",
+                project: "admin-tools",
+                projectName: "Admin Tools",
+                priority: "medium",
+                status: "in-progress",
+                dueDate: "2026-02-12",
+                hoursLogged: 5.0,
+                isActive: false
+            },
+            {
+                id: 6,
+                name: "Update Employee Database Schema",
+                project: "hr-system",
+                projectName: "HR System Upgrade",
+                priority: "low",
+                status: "on-hold",
+                dueDate: "2026-02-15",
+                hoursLogged: 2.5,
+                isActive: false
+            },
+            {
+                id: 7,
+                name: "Submit Weekly Timesheet",
+                project: "internal-portal",
+                projectName: "Internal Portal",
+                priority: "medium",
+                status: "completed",
+                dueDate: "2026-02-01",
+                hoursLogged: 0.5,
+                isActive: false
+            },
+            {
+                id: 8,
+                name: "Team Sync Meeting Notes",
+                project: "internal-portal",
+                projectName: "Internal Portal",
+                priority: "low",
+                status: "completed",
+                dueDate: "2026-01-30",
+                hoursLogged: 0.25,
+                isActive: false
+            },
+            {
+                id: 9,
+                name: "Implement Role-Based Access Control",
+                project: "admin-tools",
+                projectName: "Admin Tools",
+                priority: "high",
+                status: "pending",
+                dueDate: "2026-02-14",
+                hoursLogged: 0,
+                isActive: false
+            },
+            {
+                id: 10,
+                name: "Create Leave Management Module",
+                project: "hr-system",
+                projectName: "HR System Upgrade",
+                priority: "medium",
+                status: "pending",
+                dueDate: "2026-02-18",
+                hoursLogged: 0,
+                isActive: false
+            }
+        ];
+
+        let allTasks = [...tasks];
+        let isGrouped = false;
+
+        // Load Components
+        function loadSidebar() {
+            fetch('../shared/sidebar_employee.html')
+                .then(response => {
+                    if (!response.ok) throw new Error('Sidebar not found');
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    highlightActivePage();
+                })
+                .catch(error => console.error('Error loading sidebar:', error));
+        }
+
+        function loadTracker() {
+            fetch('../shared/tracker_employee.html')
+                .then(response => {
+                    if (!response.ok) throw new Error('Tracker not found');
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('tracker-container').innerHTML = data;
+                })
+                .catch(error => console.error('Error loading tracker:', error));
+        }
+
+        function highlightActivePage() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.getAttribute('data-page') === 'my_tasks') {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Render Tasks
+        function renderTasks(tasksToRender) {
+            const tbody = document.getElementById('tasksTableBody');
+            
+            if (tasksToRender.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-title">No tasks found</div>
+                                <div class="empty-state-text">Try adjusting your filters</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = tasksToRender.map(task => {
+                const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                const actionButton = getActionButton(task);
+                
+                return `
+                    <tr>
+                        <td>
+                            <div class="task-name">${task.name}</div>
+                            <div class="task-project">${task.projectName}</div>
+                        </td>
+                        <td>
+                            <div class="priority-indicator">
+                                <span class="priority-dot ${task.priority}"></span>
+                                <span class="priority-text">${capitalize(task.priority)}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+                        </td>
+                        <td>
+                            <span class="due-date ${isOverdue ? 'overdue' : ''}">${formatDate(task.dueDate)}</span>
+                        </td>
+                        <td>
+                            <span class="hours-logged">${task.hoursLogged}h</span>
+                        </td>
+                        <td style="text-align: center;">
+                            ${actionButton}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Render Grouped Tasks
+        function renderGroupedTasks(tasksToRender) {
+            const container = document.getElementById('groupedTasksContainer');
+            
+            if (tasksToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-title">No tasks found</div>
+                        <div class="empty-state-text">Try adjusting your filters</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group tasks by project
+            const grouped = tasksToRender.reduce((acc, task) => {
+                if (!acc[task.project]) {
+                    acc[task.project] = {
+                        name: task.projectName,
+                        tasks: [],
+                        totalHours: 0
+                    };
+                }
+                acc[task.project].tasks.push(task);
+                acc[task.project].totalHours += task.hoursLogged;
+                return acc;
+            }, {});
+
+            container.innerHTML = Object.entries(grouped).map(([projectKey, projectData]) => {
+                return `
+                    <div class="project-group">
+                        <div class="project-header">
+                            <div class="project-info">
+                                <span class="project-name">${projectData.name}</span>
+                            </div>
+                            <div class="project-meta">
+                                <span>${projectData.tasks.length} task${projectData.tasks.length !== 1 ? 's' : ''}</span>
+                                <span>${projectData.totalHours.toFixed(1)}h logged</span>
+                            </div>
+                        </div>
+                        <table class="tasks-table">
+                            <tbody>
+                                ${projectData.tasks.map(task => {
+                                    const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                                    const actionButton = getActionButton(task);
+                                    
+                                    return `
+                                        <tr>
+                                            <td style="width: 40%;">
+                                                <div class="task-name">${task.name}</div>
+                                            </td>
+                                            <td style="width: 15%;">
+                                                <div class="priority-indicator">
+                                                    <span class="priority-dot ${task.priority}"></span>
+                                                    <span class="priority-text">${capitalize(task.priority)}</span>
+                                                </div>
+                                            </td>
+                                            <td style="width: 12%;">
+                                                <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+                                            </td>
+                                            <td style="width: 12%;">
+                                                <span class="due-date ${isOverdue ? 'overdue' : ''}">${formatDate(task.dueDate)}</span>
+                                            </td>
+                                            <td style="width: 10%;">
+                                                <span class="hours-logged">${task.hoursLogged}h</span>
+                                            </td>
+                                            <td style="width: 10%; text-align: center;">
+                                                ${actionButton}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Get Action Button
+        function getActionButton(task) {
+            if (task.status === 'completed') {
+                return '<button class="task-action-btn" disabled>Completed</button>';
+            } else if (task.isActive) {
+                return '<button class="task-action-btn resume" onclick="stopTask(' + task.id + ')">Stop</button>';
+            } else if (task.status === 'in-progress') {
+                return '<button class="task-action-btn resume" onclick="startTask(' + task.id + ')">Resume</button>';
+            } else {
+                return '<button class="task-action-btn" onclick="startTask(' + task.id + ')">Start</button>';
+            }
+        }
+
+        // Start Task
+        function startTask(taskId) {
+            // Check if already clocked in
+            const clockInTime = localStorage.getItem('clockInTime');
+            if (!clockInTime) {
+                alert('Please clock in first before starting a task.');
+                return;
+            }
+
+            // Stop any currently active task
+            allTasks.forEach(t => t.isActive = false);
+            
+            // Start this task
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+                task.isActive = true;
+                task.status = 'in-progress';
+                
+                // Save to localStorage
+                localStorage.setItem('activeTask', task.name);
+                localStorage.setItem('taskStartTime', new Date().toISOString());
+                
+                // Re-render
+                if (isGrouped) {
+                    renderGroupedTasks(getFilteredTasks());
+                } else {
+                    renderTasks(getFilteredTasks());
+                }
+            }
+        }
+
+        // Stop Task
+        function stopTask(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+                task.isActive = false;
+                
+                // Clear from localStorage
+                localStorage.removeItem('activeTask');
+                localStorage.removeItem('taskStartTime');
+                
+                // Re-render
+                if (isGrouped) {
+                    renderGroupedTasks(getFilteredTasks());
+                } else {
+                    renderTasks(getFilteredTasks());
+                }
+            }
+        }
+
+        // Toggle Grouping
+        function toggleGrouping() {
+            isGrouped = !isGrouped;
+            const flatView = document.getElementById('flatView');
+            const groupedView = document.getElementById('groupedView');
+            const btnToggle = document.getElementById('btnGroupToggle');
+
+            if (isGrouped) {
+                flatView.classList.add('hidden');
+                groupedView.classList.remove('hidden');
+                btnToggle.classList.add('active');
+                renderGroupedTasks(getFilteredTasks());
+            } else {
+                flatView.classList.remove('hidden');
+                groupedView.classList.add('hidden');
+                btnToggle.classList.remove('active');
+                renderTasks(getFilteredTasks());
+            }
+        }
+
+        // Apply Filters
+        function applyFilters() {
+            const filteredTasks = getFilteredTasks();
+            
+            if (isGrouped) {
+                renderGroupedTasks(filteredTasks);
+            } else {
+                renderTasks(filteredTasks);
+            }
+        }
+
+        // Get Filtered Tasks
+        function getFilteredTasks() {
+            const projectFilter = document.getElementById('filterProject').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+
+            return allTasks.filter(task => {
+                if (projectFilter && task.project !== projectFilter) return false;
+                if (statusFilter && task.status !== statusFilter) return false;
+                if (priorityFilter && task.priority !== priorityFilter) return false;
+                return true;
+            });
+        }
+
+        // Helper Functions
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function formatStatus(status) {
+            return status.split('-').map(word => capitalize(word)).join(' ');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSidebar();
+            loadTracker();
+            renderTasks(allTasks);
+        });
+    </script>
+</body>
+</html>

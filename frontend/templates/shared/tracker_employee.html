@@ -1,0 +1,347 @@
+<div class="tracker-widget">
+  <div class="tracker-header">
+    <span class="tracker-status" id="trackerStatus">Clocked Out</span>
+  </div>
+  
+  <div class="tracker-timer" id="trackerTimer">00:00:00</div>
+  
+  <div class="tracker-actions">
+    <button class="tracker-btn tracker-btn-primary" id="clockBtn">Clock In</button>
+  </div>
+  
+  <div class="tracker-divider"></div>
+  
+  <div class="tracker-task">
+    <div class="tracker-task-label">Active Task</div>
+    <div class="tracker-task-name" id="activeTaskName">No task running</div>
+    <button class="tracker-btn tracker-btn-secondary" id="taskTimerBtn">Start Task Timer</button>
+  </div>
+</div>
+
+<style>
+  .tracker-widget {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 4px;
+    padding: 16px;
+    z-index: 900;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .tracker-widget:hover {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 6px 16px rgba(59, 130, 246, 0.15);
+  }
+
+  .tracker-status.clocked-in {
+    background: #ECFDF5;
+    color: #059669;
+  }
+
+  .tracker-header {
+    margin-bottom: 12px;
+  }
+
+  .tracker-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: #FEF2F2;
+    color: #DC2626;
+  }
+
+  .tracker-timer {
+    font-size: 24px;
+    font-weight: 500;
+    color: #0F172A;
+    margin-bottom: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+  }
+
+  .tracker-actions {
+    margin-bottom: 12px;
+  }
+
+  .tracker-btn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tracker-btn-primary {
+    background: red;
+    color: #FFFFFF;
+  }
+
+  .tracker-btn-primary:hover {
+    background: #052557;
+  }
+
+  .tracker-btn-primary.clock-out {
+    background: #DC2626;
+  }
+
+  .tracker-btn-primary.clock-out:hover {
+    background: #B91C1C;
+  }
+
+  .tracker-btn-secondary {
+    background: #F8FAFC;
+    color: #0F172A;
+    border: 1px solid #E5E7EB;
+    margin-top: 8px;
+  }
+
+  .tracker-btn-secondary:hover {
+    background: #F1F5F9;
+  }
+
+  .tracker-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .tracker-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 12px 0;
+  }
+
+  .tracker-task {
+    font-size: 12px;
+  }
+
+  .tracker-task-label {
+    color: #64748B;
+    font-size: 11px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .tracker-task-name {
+    color: #0F172A;
+    margin-bottom: 8px;
+    min-height: 16px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 1024px) {
+    .tracker-widget {
+      position: fixed;
+      right: auto;
+      left: 0;
+      bottom: 0;
+      top: auto;
+      transform: none;
+      width: 100%;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1), 0 -4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .tracker-widget:hover {
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 -6px 16px rgba(59, 130, 246, 0.15);
+    }
+
+    .tracker-header {
+      margin-bottom: 0;
+    }
+
+    .tracker-timer {
+      font-size: 18px;
+      margin-bottom: 0;
+      flex: 1;
+    }
+
+    .tracker-actions {
+      margin-bottom: 0;
+    }
+
+    .tracker-btn {
+      padding: 6px 12px;
+      width: auto;
+    }
+
+    .tracker-divider {
+      display: none;
+    }
+
+    .tracker-task {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    let clockedIn = false;
+    let startTime = null;
+    let timerInterval = null;
+    let taskStartTime = null;
+    let activeTask = null;
+
+    const clockBtn = document.getElementById('clockBtn');
+    const taskTimerBtn = document.getElementById('taskTimerBtn');
+    const trackerStatus = document.getElementById('trackerStatus');
+    const trackerTimer = document.getElementById('trackerTimer');
+    const activeTaskName = document.getElementById('activeTaskName');
+
+    // Load state from localStorage
+    const savedState = localStorage.getItem('trackerState');
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      clockedIn = state.clockedIn;
+      startTime = state.startTime ? new Date(state.startTime) : null;
+      taskStartTime = state.taskStartTime ? new Date(state.taskStartTime) : null;
+      activeTask = state.activeTask;
+
+      if (clockedIn && startTime) {
+        updateClockInState();
+        startTimer();
+      }
+
+      if (activeTask) {
+        updateTaskState();
+      }
+    }
+
+    function updateClockInState() {
+      trackerStatus.textContent = 'Clocked In';
+      trackerStatus.classList.add('clocked-in');
+      clockBtn.textContent = 'Clock Out';
+      clockBtn.classList.add('clock-out');
+      taskTimerBtn.disabled = false;
+    }
+
+    function updateClockOutState() {
+      trackerStatus.textContent = 'Clocked Out';
+      trackerStatus.classList.remove('clocked-in');
+      clockBtn.textContent = 'Clock In';
+      clockBtn.classList.remove('clock-out');
+      taskTimerBtn.disabled = true;
+      trackerTimer.textContent = '00:00:00';
+    }
+
+    function updateTaskState() {
+      if (activeTask) {
+        activeTaskName.textContent = activeTask;
+        taskTimerBtn.textContent = 'Stop Task Timer';
+      } else {
+        activeTaskName.textContent = 'No task running';
+        taskTimerBtn.textContent = 'Start Task Timer';
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('trackerState', JSON.stringify({
+        clockedIn,
+        startTime: startTime ? startTime.toISOString() : null,
+        taskStartTime: taskStartTime ? taskStartTime.toISOString() : null,
+        activeTask
+      }));
+    }
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+      if (startTime) {
+        const elapsed = Date.now() - startTime.getTime();
+        trackerTimer.textContent = formatTime(elapsed);
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+      updateTimer();
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    clockBtn.addEventListener('click', function() {
+      if (!clockedIn) {
+        // Clock in
+        clockedIn = true;
+        startTime = new Date();
+        updateClockInState();
+        startTimer();
+      } else {
+        // Clock out
+        clockedIn = false;
+        startTime = null;
+        activeTask = null;
+        taskStartTime = null;
+        updateClockOutState();
+        updateTaskState();
+        stopTimer();
+      }
+      saveState();
+    });
+
+    taskTimerBtn.addEventListener('click', function() {
+      if (!activeTask) {
+        // Start task timer
+        activeTask = 'Current Task';
+        taskStartTime = new Date();
+        updateTaskState();
+      } else {
+        // Stop task timer
+        activeTask = null;
+        taskStartTime = null;
+        updateTaskState();
+      }
+      saveState();
+    });
+
+    // Expose functions for task pages to use
+    window.trackerAPI = {
+      startTask: function(taskName) {
+        if (clockedIn) {
+          activeTask = taskName;
+          taskStartTime = new Date();
+          updateTaskState();
+          saveState();
+        }
+      },
+      stopTask: function() {
+        activeTask = null;
+        taskStartTime = null;
+        updateTaskState();
+        saveState();
+      },
+      isClockedIn: function() {
+        return clockedIn;
+      }
+    };
+  })();
+</script>

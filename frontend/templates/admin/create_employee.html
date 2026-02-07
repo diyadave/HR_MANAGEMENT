@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Management SaaS - Create Employee</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #073379;
+            --secondary-blue: #4f7cff;
+            --background: #f5f7fb;
+            --card-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border: #e1e5eb;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            box-shadow: 2px 0 10px var(--shadow);
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background-color: var(--primary-blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            padding: 24px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(7, 51, 121, 0.05);
+            color: var(--primary-blue);
+        }
+
+        .nav-item.active {
+            background-color: rgba(7, 51, 121, 0.08);
+            color: var(--primary-blue);
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .nav-item i {
+            width: 20px;
+            font-size: 16px;
+        }
+
+        .nav-text {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* Card Container */
+        .card-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 32px;
+            border: 1px solid var(--border);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #a0a0a0;
+        }
+
+        .helper-text {
+            display: block;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 24px;
+            padding: 16px;
+            background-color: rgba(79, 124, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        /* Button Styles */
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #05245e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(7, 51, 121, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(7, 51, 121, 0.05);
+            border-color: var(--primary-blue);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .card-container {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+            }
+            
+            .logo-text, .nav-text {
+                display: none;
+            }
+            
+            .logo-icon {
+                margin: 0 auto;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 18px 0;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .page-title {
+                font-size: 24px;
+            }
+            
+            .form-card {
+                padding: 24px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 16px;
+            }
+            
+            .form-card {
+                padding: 20px;
+            }
+            
+            .page-title {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Create Employee</h1>
+            <p class="page-subtitle">Add a new employee to the organization</p>
+        </div>
+        
+        <div class="card-container">
+            <div class="form-card">
+                <form id="createEmployeeForm">
+                    <div class="form-group">
+                        <label for="fullName" class="form-label">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            class="form-input" 
+                            placeholder="Enter employee full name"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="workEmail" class="form-label">Work Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-input" 
+                            placeholder="employee@company.com"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department" class="form-label">Department</label>
+                        <select id="department" class="form-input" required>
+                            <option value="" disabled selected>Select department</option>
+                            <option value="hr">Human Resources</option>
+                            <option value="engineering">Engineering</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="sales">Sales</option>
+                            <option value="finance">Finance</option>
+                            <option value="operations">Operations</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="designation" class="form-label">Designation</label>
+                        <input 
+                            type="text" 
+                            id="designation" 
+                            class="form-input" 
+                            placeholder="e.g. Software Engineer"
+                            required
+                        >
+                    </div>
+                    
+                    <span class="helper-text">
+                        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                        Employee ID and temporary password will be generated automatically and sent via email.
+                    </span>
+                    
+                    <div class="button-group">
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+<script src="../../static/js/api.js"></script>
+
+
+
+    <script>
+     // frontend/static/js/admin.js
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("createEmployeeForm");
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            department: document.getElementById("department").value,
+            designation: document.getElementById("designation").value
+        };
+
+        try {
+            const res = await apiRequest("/admin/employees", "POST", data);
+
+            alert(
+                `Employee Created!\n\nEmployee ID: ${res.employee_id}`
+            );
+
+            form.reset();
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+});
+
+</script>
+
+     <script>
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+</script>
+</body>
+</html>

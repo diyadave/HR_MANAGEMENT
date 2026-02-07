@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaves - HRMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: #F8FAFC;
+      color: #0F172A;
+      line-height: 1.5;
+    }
+
+    .main-container {
+      margin-left: 230px;
+      padding: 24px;
+      padding-right: 228px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: #64748B;
+    }
+
+    .section {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0F172A;
+    }
+
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .balance-item {
+      padding: 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+    }
+
+    .balance-label {
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 8px;
+    }
+
+    .balance-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #0F172A;
+    }
+
+    .balance-subtext {
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 4px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #0F172A;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      padding: 8px 12px;
+      font-size: 13px;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      color: #0F172A;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #073379;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      background: #FFFFFF;
+      color: #0F172A;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #F8FAFC;
+      border-color: #073379;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #073379;
+      border-color: #073379;
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #052557;
+      border-color: #052557;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #F8FAFC;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748B;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #E5E7EB;
+      font-size: 13px;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #F8FAFC;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 3px;
+    }
+
+    .badge-pending {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .badge-approved {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .badge-rejected {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+
+    .badge-cancelled {
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+
+    @media (max-width: 1024px) {
+      .main-container {
+        padding-right: 24px;
+      }
+
+      .balance-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        margin-left: 60px;
+        padding: 16px;
+        padding-bottom: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div id="tracker-container"></div>
+
+  <main class="main-container">
+    <div class="page-header">
+      <h1 class="page-title">Leaves</h1>
+      <p class="page-subtitle">Apply for leave and view your leave balance</p>
+    </div>
+
+    <div class="balance-grid">
+      <div class="balance-item">
+        <div class="balance-label">Available</div>
+        <div class="balance-value">18</div>
+        <div class="balance-subtext">days remaining this year</div>
+      </div>
+      <div class="balance-item">
+        <div class="balance-label">Pending</div>
+        <div class="balance-value">2</div>
+        <div class="balance-subtext">awaiting approval</div>
+      </div>
+      <div class="balance-item">
+        <div class="balance-label">Used</div>
+        <div class="balance-value">7</div>
+        <div class="balance-subtext">days used this year</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Apply for Leave</h2>
+      </div>
+      <form id="leaveForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Leave Type</label>
+            <select class="form-select" required>
+              <option value="">Select leave type</option>
+              <option value="casual">Casual Leave</option>
+              <option value="sick">Sick Leave</option>
+              <option value="annual">Annual Leave</option>
+              <option value="unpaid">Unpaid Leave</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <select class="form-select" required>
+              <option value="">Select duration</option>
+              <option value="full">Full Day</option>
+              <option value="half">Half Day</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input type="date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input type="date" class="form-input" required>
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Reason</label>
+            <textarea class="form-textarea" placeholder="Please provide a reason for your leave" required></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" onclick="resetForm()">Reset</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Leave History</h2>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Leave Type</th>
+              <th>From Date</th>
+              <th>To Date</th>
+              <th>Days</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Applied On</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Casual Leave</td>
+              <td>Feb 10, 2026</td>
+              <td>Feb 11, 2026</td>
+              <td>2</td>
+              <td>Personal work</td>
+              <td><span class="badge badge-pending">Pending</span></td>
+              <td>Feb 02, 2026</td>
+            </tr>
+            <tr>
+              <td>Sick Leave</td>
+              <td>Jan 27, 2026</td>
+              <td>Jan 27, 2026</td>
+              <td>0.5</td>
+              <td>Medical appointment</td>
+              <td><span class="badge badge-approved">Approved</span></td>
+              <td>Jan 26, 2026</td>
+            </tr>
+            <tr>
+              <td>Annual Leave</td>
+              <td>Jan 20, 2026</td>
+              <td>Jan 22, 2026</td>
+              <td>3</td>
+              <td>Family vacation</td>
+              <td><span class="badge badge-approved">Approved</span></td>
+              <td>Jan 10, 2026</td>
+            </tr>
+            <tr>
+              <td>Casual Leave</td>
+              <td>Jan 15, 2026</td>
+              <td>Jan 15, 2026</td>
+              <td>1</td>
+              <td>Attending wedding</td>
+              <td><span class="badge badge-approved">Approved</span></td>
+              <td>Jan 08, 2026</td>
+            </tr>
+            <tr>
+              <td>Sick Leave</td>
+              <td>Jan 08, 2026</td>
+              <td>Jan 09, 2026</td>
+              <td>2</td>
+              <td>Flu symptoms</td>
+              <td><span class="badge badge-approved">Approved</span></td>
+              <td>Jan 08, 2026</td>
+            </tr>
+            <tr>
+              <td>Casual Leave</td>
+              <td>Dec 28, 2025</td>
+              <td>Dec 30, 2025</td>
+              <td>3</td>
+              <td>Year-end break</td>
+              <td><span class="badge badge-cancelled">Cancelled</span></td>
+              <td>Dec 20, 2025</td>
+            </tr>
+            <tr>
+              <td>Annual Leave</td>
+              <td>Dec 23, 2025</td>
+              <td>Dec 27, 2025</td>
+              <td>5</td>
+              <td>Holiday travel</td>
+              <td><span class="badge badge-rejected">Rejected</span></td>
+              <td>Dec 15, 2025</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function resetForm() {
+      document.getElementById('leaveForm').reset();
+    }
+
+    async function loadComponent(url, containerId) {
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+      } catch (error) {
+        console.error(`Error loading ${url}:`, error);
+      }
+    }
+
+    async function init() {
+      await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
+      await loadComponent('../shared/tracker_employee.html', 'tracker-container');
+
+      document.getElementById('leaveForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Leave application submitted successfully! You will be notified once it is reviewed.');
+        resetForm();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .breadcrumb a {
+            color: #073379;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Compact KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .kpi-trend {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: #059669;
+        }
+
+        .trend-down {
+            color: #dc2626;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+
+        .card.compact {
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .card-link {
+            font-size: 13px;
+            color: #073379;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Activity List */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #073379;
+            font-size: 14px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .activity-description {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Employee List */
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .employee-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            transition: background-color 0.2s;
+        }
+
+        .employee-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .employee-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .employee-role {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge-leave {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-remote {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-appreciation {
+            background: #f0f9ff;
+            color: #073379;
+        }
+
+        .badge-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* New Content Styles */
+        .progress-item {
+            margin-bottom: 12px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .progress-label {
+            font-size: 13px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .progress-percent {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #073379 0%, #1e40af 100%);
+        }
+
+        /* Task List */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            transition: background-color 0.2s;
+        }
+
+        .task-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid #cbd5e1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .task-project {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .task-due {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Department Stats */
+        .department-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .department-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .department-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .department-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #073379;
+            font-size: 14px;
+        }
+
+        .department-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .department-count {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .action-icon {
+            font-size: 18px;
+            color: #073379;
+        }
+
+        /* Notice List */
+        .notice-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .notice-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 14px;
+            border-left: 3px solid #073379;
+        }
+
+        .notice-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .notice-date {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+
+            #sidebar-container {
+                transform: translateX(-100%);
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .notice-list {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .chart-placeholder {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Dashboard Overview</h1>
+            <div class="breadcrumb">
+                <a href="#">Home</a> / Dashboard
+            </div>
+        </div>
+
+        <!-- Compact KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value">1,284</div>
+                <div class="kpi-label">Total Employees</div>
+                <div class="kpi-trend trend-up">+12% from last month</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">$892.4K</div>
+                <div class="kpi-label">Monthly Revenue</div>
+                <div class="kpi-trend trend-up">+8.5% from last month</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">94.2%</div>
+                <div class="kpi-label">Attendance Rate</div>
+                <div class="kpi-trend trend-up">+2% from average</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">78%</div>
+                <div class="kpi-label">Project Completion</div>
+                <div class="kpi-trend trend-down">-3% from target</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <a href="#" class="card-link">View All</a>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">New Employee Registration</div>
+                            <div class="activity-description">Sarah Jenkins joined Marketing</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Leave Request Approved</div>
+                            <div class="activity-description">Michael Chen's vacation approved</div>
+                            <div class="activity-time">4 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Performance Review</div>
+                            <div class="activity-description">Q4 reviews for Engineering team</div>
+                            <div class="activity-time">Yesterday at 4:30 PM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Quick Stats -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Department Headcount</h2>
+                </div>
+                <div class="department-stats">
+                    <div class="department-item">
+                        <div class="department-info">
+                            <div class="department-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="department-name">Engineering</div>
+                        </div>
+                        <div class="department-count">428</div>
+                    </div>
+                    <div class="department-item">
+                        <div class="department-info">
+                            <div class="department-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="department-name">Marketing</div>
+                        </div>
+                        <div class="department-count">216</div>
+                    </div>
+                    <div class="department-item">
+                        <div class="department-info">
+                            <div class="department-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="department-name">Sales</div>
+                        </div>
+                        <div class="department-count">342</div>
+                    </div>
+                    <div class="department-item">
+                        <div class="department-info">
+                            <div class="department-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="department-name">HR & Admin</div>
+                        </div>
+                        <div class="department-count">98</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Column - Performance -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Project Progress</h2>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <div class="progress-label">Website Redesign</div>
+                        <div class="progress-percent">85%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <div class="progress-label">Mobile App Launch</div>
+                        <div class="progress-percent">62%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 62%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <div class="progress-label">CRM Implementation</div>
+                        <div class="progress-percent">45%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 45%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Upcoming Tasks -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Upcoming Tasks</h2>
+                    <a href="#" class="card-link">View All</a>
+                </div>
+                <div class="task-list">
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-info">
+                            <div class="task-name">Submit Q1 Reports</div>
+                            <div class="task-project">Finance Department</div>
+                        </div>
+                        <div class="task-due">Tomorrow</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-info">
+                            <div class="task-name">Team Performance Review</div>
+                            <div class="task-project">Engineering</div>
+                        </div>
+                        <div class="task-due">Feb 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-info">
+                            <div class="task-name">Budget Planning Meeting</div>
+                            <div class="task-project">All Departments</div>
+                        </div>
+                        <div class="task-due">Feb 18</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Actions</h2>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn">
+                        <i class="fas fa-user-plus action-icon"></i>
+                        Add Employee
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-file-invoice-dollar action-icon"></i>
+                        Process Payroll
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-calendar-alt action-icon"></i>
+                        Schedule Meeting
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-chart-pie action-icon"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Employee Status -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Employee Status</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">On Leave</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">42</div>
+                        <div class="stat-label">Remote</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Training</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Onboarding</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row - Company Notices -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Latest Company Notices</h2>
+                <a href="notices.html" class="card-link">View All Notices</a>
+            </div>
+            <div class="notice-list">
+                <div class="notice-item">
+                    <div class="notice-title">Office Holiday - Republic Day Celebration</div>
+                    <div class="notice-date">Posted on January 24, 2026</div>
+                </div>
+                <div class="notice-item">
+                    <div class="notice-title">Q1 Performance Reviews Schedule Announced</div>
+                    <div class="notice-date">Posted on January 20, 2026</div>
+                </div>
+                <div class="notice-item">
+                    <div class="notice-title">New Employee Benefits Package Available</div>
+                    <div class="notice-date">Posted on January 15, 2026</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Font Awesome for icons -->
+    <script>
+        // Add Font Awesome if not already loaded
+        if (!document.querySelector('link[href*="font-awesome"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // Load sidebar
+        
+            
+
+            // Quick action buttons
+            const actionBtns = document.querySelectorAll('.action-btn');
+            actionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.textContent.trim();
+                    alert(`Action: ${action}\nThis would trigger the respective functionality.`);
+                });
+            });
+        
+    </script>
+    <script>
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

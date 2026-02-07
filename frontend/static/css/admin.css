@@ -1,0 +1,341 @@
+/* ============================================
+   WorkHub Admin - Normalized Layout System
+   ============================================ */
+
+/* Global Reset & Base */
+:root {
+    --sidebar-bg: #F8FAFC;
+    --sidebar-border: #E2E8F0;
+    --primary-blue: #2563EB;
+    --hover-bg: #EFF6FF;
+    --active-bg: #DBEAFE;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --badge-red: #EF4444;
+    --content-bg: #F9FAFB;
+    --card-bg: #FFFFFF;
+    --card-border: #E5E7EB;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--content-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Fixed Layout Structure */
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Fixed Sidebar */
+.admin-sidebar {
+  width: 240px;
+  background-color: #171f29 !important;
+  color: #e5e7eb;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+
+/* Main Content Area */
+.main-content {
+    margin-left: 240px;
+    flex: 1;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+/* Header Container */
+#headerContainer {
+    margin-bottom: 24px;
+}
+
+/* Content Cards */
+.dashboard-card,
+.table-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Table Styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--card-border);
+    background-color: #F9FAFB;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-present {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.status-absent {
+    background-color: #FEE2E2;
+    color: #991B1B;
+}
+
+.status-late {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+.status-complete {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1D4ED8;
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--text-primary);
+    border-color: var(--card-border);
+}
+
+.btn-secondary:hover {
+    background-color: #F9FAFB;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon.blue { background-color: #DBEAFE; color: var(--primary-blue); }
+.card-icon.green { background-color: #D1FAE5; color: #059669; }
+.card-icon.orange { background-color: #FEF3C7; color: #D97706; }
+.card-icon.red { background-color: #FEE2E2; color: var(--badge-red); }
+
+.card-content h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.card-content p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.card-trend {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+/* Alert Card */
+.alert-card {
+    background-color: #FEF3C7;
+    border-color: #FBBF24;
+}
+
+.alert-item {
+    padding: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.alert-item:last-child {
+    border-bottom: none;
+}
+
+/* Employee Table Styles (for employees.html) */
+.employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.employee-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--primary-blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.employee-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.employee-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.employee-id {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Card Headers */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Card Footer */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
+    font-size: 14px;
+}
+
+.footer-text {
+    color: var(--text-secondary);
+}
+
+.footer-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+}
