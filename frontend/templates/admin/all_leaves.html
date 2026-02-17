@@ -570,283 +570,14 @@
                             <th>Duration</th>
                             <th>Leave Type</th>
                             <th>Status</th>
-                            <th>Paid / Unpaid</th>
-                            <th>Approved By</th>
+                            <!--<th>Paid / Unpaid</th>
+                            <th>Approved By</th>-->
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="leaveTableBody">
                         <!-- Row 1 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">AJ</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Alex Johnson</div>
-                                    <div class="employee-id">EMP-1001</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Feb 15-18, 2026</div>
-                                <div class="date-details">4 working days</div>
-                            </td>
-                            <td class="duration-cell">4 days</td>
-                            <td>
-                                <span class="leave-type type-annual">Annual Leave</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-approved">Approved</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-yes">Paid</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">Sarah Wilson</div>
-                                <div class="approver-date">Feb 10, 2026</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="8">
-                                <div class="details-expanded">
-                                    <div class="details-grid">
-                                        <div class="detail-item">
-                                            <div class="detail-label">Employee ID</div>
-                                            <div class="detail-value">EMP-1001</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Department</div>
-                                            <div class="detail-value">Engineering</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Applied On</div>
-                                            <div class="detail-value">Feb 8, 2026</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Approved On</div>
-                                            <div class="detail-value">Feb 10, 2026</div>
-                                        </div>
-                                        <div class="detail-item detail-reason">
-                                            <div class="detail-label">Reason</div>
-                                            <div class="detail-value">Family wedding out of state. Need to travel for ceremony and related events. All urgent work completed and handed over to team.</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Contact During Leave</div>
-                                            <div class="detail-value">Available for emergencies</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Documentation</div>
-                                            <div class="detail-value">Wedding invitation attached</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">SM</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Sarah Miller</div>
-                                    <div class="employee-id">EMP-1002</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Feb 22, 2026</div>
-                                <div class="date-details">1 working day</div>
-                            </td>
-                            <td class="duration-cell">1 day</td>
-                            <td>
-                                <span class="leave-type type-sick">Sick Leave</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-pending">Pending</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-yes">Paid</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">—</div>
-                                <div class="approver-date">—</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="8">
-                                <div class="details-expanded">
-                                    <div class="details-grid">
-                                        <div class="detail-item">
-                                            <div class="detail-label">Employee ID</div>
-                                            <div class="detail-value">EMP-1002</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Department</div>
-                                            <div class="detail-value">Sales</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Applied On</div>
-                                            <div class="detail-value">Feb 21, 2026</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Status</div>
-                                            <div class="detail-value">Awaiting HR approval</div>
-                                        </div>
-                                        <div class="detail-item detail-reason">
-                                            <div class="detail-label">Reason</div>
-                                            <div class="detail-value">Sudden fever and flu symptoms. Doctor's note provided. Client meetings rescheduled to next week.</div>
-                                        </div>
-                                        <div class="detail-item">
-                                            <div class="detail-label">Medical Certificate</div>
-                                            <div class="detail-value">Yes (attached)</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 3 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">MC</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Michael Chen</div>
-                                    <div class="employee-id">EMP-1003</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Feb 10-14, 2026</div>
-                                <div class="date-details">5 working days</div>
-                            </td>
-                            <td class="duration-cell">5 days</td>
-                            <td>
-                                <span class="leave-type type-personal">Personal Leave</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-approved">Approved</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-no">Unpaid</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">David Wilson</div>
-                                <div class="approver-date">Feb 5, 2026</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 4 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">DW</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">David Wilson</div>
-                                    <div class="employee-id">EMP-1004</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Jan 25-29, 2026</div>
-                                <div class="date-details">5 working days</div>
-                            </td>
-                            <td class="duration-cell">5 days</td>
-                            <td>
-                                <span class="leave-type type-annual">Annual Leave</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-rejected">Rejected</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-no">—</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">HR Manager</div>
-                                <div class="approver-date">Jan 20, 2026</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 5 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">RJ</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Rebecca Jones</div>
-                                    <div class="employee-id">EMP-1005</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Mar 1-31, 2026</div>
-                                <div class="date-details">22 working days</div>
-                            </td>
-                            <td class="duration-cell">22 days</td>
-                            <td>
-                                <span class="leave-type type-maternity">Maternity Leave</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-approved">Approved</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-yes">Paid</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">HR Director</div>
-                                <div class="approver-date">Jan 15, 2026</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 6 -->
-                        <tr>
-                            <td class="employee-cell">
-                                <div class="employee-avatar">TK</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Thomas Kim</div>
-                                    <div class="employee-id">EMP-1006</div>
-                                </div>
-                            </td>
-                            <td class="leave-dates">
-                                <div class="date-range">Feb 5, 2026</div>
-                                <div class="date-details">1 working day</div>
-                            </td>
-                            <td class="duration-cell">1 day</td>
-                            <td>
-                                <span class="leave-type type-emergency">Emergency</span>
-                            </td>
-                            <td class="status-cell">
-                                <span class="status-badge status-cancelled">Cancelled</span>
-                            </td>
-                            <td class="paid-cell">
-                                <span class="paid-badge paid-no">—</span>
-                            </td>
-                            <td class="approved-by">
-                                <div class="approver-name">—</div>
-                                <div class="approver-date">—</div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn-view" onclick="toggleDetails(this)">
-                                    <span>👁</span> View Details
-                                </button>
-                            </td>
-                        </tr>
+                       
                     </tbody>
                 </table>
             </div>
@@ -932,6 +663,66 @@
             }
             });
         });
+        async function loadAllLeaves() {
+  const res = await fetch("http://127.0.0.1:8000/leaves", {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
+
+  const data = await res.json();
+  const tbody = document.getElementById("leaveTableBody");
+  tbody.innerHTML = "";
+
+  data.forEach(leave => {
+    const row = `
+      <tr>
+        <td>${leave.employee?.name || "-"}</td>
+        <td>${leave.start_date} - ${leave.end_date}</td>
+        <td>${leave.total_days}</td>
+        <td>${leave.reason}</td>
+        <td>
+          <span class="status-badge status-${leave.status}">
+            ${leave.status}
+          </span>
+        </td>
+        <td>
+            ${
+              leave.status === "pending"
+                ? `
+                <button onclick="approveLeave(${leave.id})">Approve</button>
+                <button onclick="rejectLeave(${leave.id})">Reject</button>
+              `
+                : "-"
+            }
+        </td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
+}
+document.addEventListener("DOMContentLoaded", function () {
+  loadAllLeaves();
+});
+async function approveLeave(id) {
+  await fetch(`http://127.0.0.1:8000/leaves/${id}/approve`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
+  loadAllLeaves();
+}
+
+async function rejectLeave(id) {
+  await fetch(`http://127.0.0.1:8000/leaves/${id}/reject`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
+  loadAllLeaves();
+}
         </script>
 
 </body>

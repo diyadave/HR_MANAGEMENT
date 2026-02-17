@@ -742,6 +742,12 @@
                 width: 100%;
             }
         }
+        .modal-overlay {
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
     </style>
 </head>
 <body>
@@ -816,340 +822,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Project 1 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Website Redesign</div>
-                                    <div class="project-description">Complete website overhaul with new design system</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">AJ</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Alex Johnson</div>
-                                        <div class="user-role">Project Manager</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-active">Active</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 85%"></div>
-                                        </div>
-                                        <div class="progress-text">85%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    42
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    320
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 2 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Mobile App Launch</div>
-                                    <div class="project-description">New customer-facing mobile application development</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">MC</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Michael Chen</div>
-                                        <div class="user-role">Senior Developer</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-active">Active</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 62%"></div>
-                                        </div>
-                                        <div class="progress-text">62%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    28
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    420
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 3 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Q2 Marketing Campaign</div>
-                                    <div class="project-description">Digital marketing campaign for product launch</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">SM</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Sarah Miller</div>
-                                        <div class="user-role">Marketing Director</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-onhold">On Hold</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 45%"></div>
-                                        </div>
-                                        <div class="progress-text">45%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    18
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    180
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 4 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">CRM Implementation</div>
-                                    <div class="project-description">Sales CRM system implementation and training</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">DW</div>
-                                    <div class="user-info">
-                                        <div class="user-name">David Wilson</div>
-                                        <div class="user-role">Sales Manager</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-completed">Completed</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 100%"></div>
-                                        </div>
-                                        <div class="progress-text">100%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    56
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    560
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 5 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Data Analytics Dashboard</div>
-                                    <div class="project-description">Real-time business intelligence dashboard development</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">RJ</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Rebecca Jones</div>
-                                        <div class="user-role">Data Analyst</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-active">Active</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 78%"></div>
-                                        </div>
-                                        <div class="progress-text">78%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    34
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    380
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 6 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">HR System Upgrade</div>
-                                    <div class="project-description">Migration to new HR management platform</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">ED</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Emma Davis</div>
-                                        <div class="user-role">HR Manager</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-active">Active</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 92%"></div>
-                                        </div>
-                                        <div class="progress-text">92%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    24
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    290
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 7 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Office Relocation</div>
-                                    <div class="project-description">Moving to new corporate headquarters</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">JW</div>
-                                    <div class="user-info">
-                                        <div class="user-name">James Wilson</div>
-                                        <div class="user-role">Operations Manager</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-onhold">On Hold</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 30%"></div>
-                                        </div>
-                                        <div class="progress-text">30%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    16
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    120
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Project 8 -->
-                            <tr>
-                                <td class="project-name-cell">
-                                    <div class="project-name">Product Documentation</div>
-                                    <div class="project-description">Complete product documentation and user guides</div>
-                                </td>
-                                <td class="owner-cell">
-                                    <div class="user-avatar">LM</div>
-                                    <div class="user-info">
-                                        <div class="user-name">Lisa Martinez</div>
-                                        <div class="user-role">Technical Writer</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-active">Active</span>
-                                </td>
-                                <td class="progress-cell">
-                                    <div class="progress-container">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 55%"></div>
-                                        </div>
-                                        <div class="progress-text">55%</div>
-                                    </div>
-                                </td>
-                                <td class="stats-cell">
-                                    22
-                                    <span class="stats-label">Tasks</span>
-                                </td>
-                                <td class="stats-cell">
-                                    210
-                                    <span class="stats-label">Hours</span>
-                                </td>
-                                <td class="actions-cell">
-                                    <button class="action-btn action-view" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn action-edit" title="Edit Project">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </td>
+                        
                             </tr>
                         </tbody>
                     </table>
@@ -1210,88 +883,24 @@
                 
                 <div class="form-group">
                     <label class="form-label">Project Owner</label>
-                    <select class="form-control" id="projectOwner">
-                        <option value="">Select project owner</option>
-                        <option value="AJ">Alex Johnson</option>
-                        <option value="MC">Michael Chen</option>
-                        <option value="SM">Sarah Miller</option>
-                        <option value="DW">David Wilson</option>
-                        <option value="RJ">Rebecca Jones</option>
-                        <option value="ED">Emma Davis</option>
-                        <option value="JW">James Wilson</option>
-                        <option value="LM">Lisa Martinez</option>
-                    </select>
+                    <select class="form-control" id="projectOwner" onchange="onOwnerChange(this.value)">
+                    <option value="">Select Owner</option>
+                </select>
+
+       
+                
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Assign Team Members</label>
                     <div class="team-members-section">
-                        <div class="team-members-list">
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">AJ</div>
-                                    <div>
-                                        <div style="font-weight: 500;">Alex Johnson</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">Project Manager</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="team-members-list" id="teamMembersList"></div>
+
+                            <div class="team-member-item"
+                            data-id="EMPLOYEE_ID"
+                            onclick="toggleTeamMember(this)">
+
                             
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">MC</div>
-                                    <div>
-                                        <div style="font-weight: 500;">Michael Chen</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">Senior Developer</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">SM</div>
-                                    <div>
-                                        <div style="font-weight: 500;">Sarah Miller</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">Marketing Director</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">RJ</div>
-                                    <div>
-                                        <div style="font-weight: 500;">Rebecca Jones</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">Data Analyst</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">DW</div>
-                                    <div>
-                                        <div style="font-weight: 500;">David Wilson</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">Sales Manager</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="team-member-item" onclick="toggleTeamMember(this)">
-                                <div class="member-checkbox"></div>
-                                <div class="member-info">
-                                    <div class="user-avatar">ED</div>
-                                    <div>
-                                        <div style="font-weight: 500;">Emma Davis</div>
-                                        <div style="font-size: 12px; color: var(--gray-500);">HR Manager</div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1303,165 +912,217 @@
         </div>
     </div>
 
-    <script>
-       
-        // Modal functions
-        function openCreateProjectModal() {
-            document.getElementById('createProjectModal').style.display = 'flex';
-            // Set default dates
-            const today = new Date();
-            const nextMonth = new Date(today);
-            nextMonth.setMonth(nextMonth.getMonth() + 1);
-            
-            document.getElementById('projectStartDate').value = today.toISOString().split('T')[0];
-            document.getElementById('projectEndDate').value = nextMonth.toISOString().split('T')[0];
+   <script>
+const API_BASE = "http://127.0.0.1:8000";
+let selectedTeamMembers = new Set();
+let currentOwnerId = null;
+
+function getToken() {
+    return localStorage.getItem("access_token");
+}
+
+async function apiRequest(url, method = "GET", body = null) {
+    const options = {
+        method,
+        headers: {
+            "Authorization": `Bearer ${getToken()}`,
+            "Content-Type": "application/json"
+        }
+    };
+
+    if (body) options.body = JSON.stringify(body);
+
+    const res = await fetch(API_BASE + url, options);
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "API error");
+    }
+    return res.json();
+}
+function openCreateProjectModal() {
+    document.getElementById("createProjectModal").style.display = "flex";
+    loadProjectOwners();
+    loadTeamMembers();
+}
+
+async function saveProject() {
+    const name = projectName.value.trim();
+    const description = projectDescription.value.trim();
+    const start_date = projectStartDate.value;
+    const end_date = projectEndDate.value;
+    const owner_id = parseInt(projectOwner.value);
+
+    if (!name || !start_date || !end_date || !owner_id) {
+        alert("Fill all required fields");
+        return;
+    }
+
+    await apiRequest("/admin/projects/", "POST", {
+        name,
+        description,
+        start_date,
+        end_date,
+        owner_id,
+        team_members: Array.from(selectedTeamMembers)
+    });
+
+    closeModal();
+    resetModalForm();
+    loadProjects();
+}
+
+
+function onOwnerChange(ownerId) {
+    currentOwnerId = ownerId || null;
+
+    // Remove owner from selected team members if present
+    if (selectedTeamMembers.has(ownerId)) {
+        selectedTeamMembers.delete(ownerId);
+    }
+
+    // Reload team members list
+    loadTeamMembers();
+}
+
+function closeModal() {
+    document.getElementById("createProjectModal").style.display = "none";
+}
+async function loadTeamMembers() {
+    const list = document.getElementById("teamMembersList");
+    list.innerHTML = "";
+
+    const employees = await apiRequest("/admin/employees");
+
+    employees.forEach(emp => {
+        // ❌ Skip owner
+        if (currentOwnerId && String(emp.id) === String(currentOwnerId)) {
+            return;
         }
 
-        function closeModal() {
-            document.getElementById('createProjectModal').style.display = 'none';
-        }
+        const item = document.createElement("div");
+        item.className = "team-member-item";
+        item.dataset.id = emp.id;
+        item.onclick = () => toggleTeamMember(item);
 
-        // Team member selection
-        function toggleTeamMember(element) {
-            const checkbox = element.querySelector('.member-checkbox');
-            checkbox.classList.toggle('checked');
-        }
+        const isSelected = selectedTeamMembers.has(String(emp.id));
 
-        // Save project
-        function saveProject() {
-            const projectName = document.getElementById('projectName').value.trim();
-            const description = document.getElementById('projectDescription').value.trim();
-            const startDate = document.getElementById('projectStartDate').value;
-            const endDate = document.getElementById('projectEndDate').value;
-            const owner = document.getElementById('projectOwner').value;
+        item.innerHTML = `
+            <div class="member-checkbox ${isSelected ? "checked" : ""}"></div>
+            <div class="member-info">
+                <div class="user-avatar">
+                    ${emp.name.slice(0,2).toUpperCase()}
+                </div>
+                <div>
+                    <div style="font-weight:500">${emp.name}</div>
+                    <div style="font-size:12px;color:#64748b">
+                        ${emp.designation || ""}
+                    </div>
+                </div>
+            </div>
+        `;
 
-            if (!projectName) {
-                alert('Please enter a project name');
-                return;
-            }
+        list.appendChild(item);
+    });
+}
 
-            if (!owner) {
-                alert('Please select a project owner');
-                return;
-            }
 
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return;
-            }
+async function loadProjects() {
+    const tbody = document.querySelector("tbody");
+    tbody.innerHTML = "";
 
-            if (new Date(endDate) < new Date(startDate)) {
-                alert('End date must be after start date');
-                return;
-            }
+    try {
+        const projects = await apiRequest("/admin/projects");
 
-            // Get selected team members
-            const selectedMembers = [];
-            document.querySelectorAll('.team-member-item').forEach(item => {
-                const checkbox = item.querySelector('.member-checkbox');
-                if (checkbox.classList.contains('checked')) {
-                    const name = item.querySelector('div[style*="font-weight: 500"]').textContent;
-                    selectedMembers.push(name);
-                }
-            });
+        projects.forEach(p => {
+            const row = document.createElement("tr");
 
-            // Show success message
-            alert(`Project "${projectName}" created successfully!`);
-            closeModal();
-            resetModalForm();
-        }
+            row.innerHTML = `
+                <td class="project-name-cell">
+                    <div class="project-name">${p.name}</div>
+                    <div class="project-description">${p.description || ""}</div>
+                </td>
+                <td>
+                <div class="user-name">${p.owner?.name || "-"}</div>
+                </td>
 
-        function resetModalForm() {
-            document.getElementById('projectName').value = '';
-            document.getElementById('projectDescription').value = '';
-            document.getElementById('projectStartDate').value = '';
-            document.getElementById('projectEndDate').value = '';
-            document.getElementById('projectOwner').value = '';
-            
-            // Clear team member selections
-            document.querySelectorAll('.member-checkbox').forEach(checkbox => {
-                checkbox.classList.remove('checked');
-            });
-        }
+                <td>
+                    <span class="status-badge status-${p.status}">
+                        ${p.status}
+                    </span>
+                </td>
+                <td>0%</td>
+                <td class="stats-cell">0</td>
+                <td class="stats-cell">0</td>
+                <td class="actions-cell">
+                    <button class="action-btn action-view"
+                    onclick="viewProject(${p.id})">
+                <i class="fas fa-eye"></i>
+            </button>
 
-        // Search functionality
-        document.querySelector('.search-input').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                const projectName = row.querySelector('.project-name').textContent.toLowerCase();
-                const description = row.querySelector('.project-description').textContent.toLowerCase();
-                const ownerName = row.querySelector('.user-name').textContent.toLowerCase();
-                
-                if (projectName.includes(searchTerm) || description.includes(searchTerm) || ownerName.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+                </td>
+            `;
+
+            tbody.appendChild(row);
         });
 
-        // Status filter
-        document.getElementById('statusFilter').addEventListener('change', function() {
-            const status = this.value;
-            const rows = document.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                const statusBadge = row.querySelector('.status-badge');
-                if (!statusBadge) return;
-                
-                const rowStatus = statusBadge.textContent.toLowerCase().replace(' ', '');
-                
-                if (!status || rowStatus === status) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+    } catch (err) {
+        console.error("Failed to load projects", err);
+    }
+}
+function viewProject(projectId) {
+    window.location.href = `project_details.html?id=${projectId}`;
+}
+
+
+function toggleTeamMember(element) {
+    const checkbox = element.querySelector(".member-checkbox");
+    const employeeId = element.dataset.id;
+
+    if (selectedTeamMembers.has(employeeId)) {
+        selectedTeamMembers.delete(employeeId);
+        checkbox.classList.remove("checked");
+    } else {
+        selectedTeamMembers.add(employeeId);
+        checkbox.classList.add("checked");
+    }
+}
+
+function resetModalForm() {
+    projectName.value = "";
+    projectDescription.value = "";
+    projectStartDate.value = "";
+    projectEndDate.value = "";
+    projectOwner.selectedIndex = 0;
+
+    selectedTeamMembers.clear();
+    document.querySelectorAll(".member-checkbox")
+        .forEach(cb => cb.classList.remove("checked"));
+}
+
+
+
+document.addEventListener("DOMContentLoaded", loadProjects);
+async function loadProjectOwners() {
+    try {
+        const employees = await apiRequest("/admin/employees");
+
+        const select = document.getElementById("projectOwner");
+        select.innerHTML = `<option value="">Select Project Owner</option>`;
+
+        employees.forEach(emp => {
+            const option = document.createElement("option");
+            option.value = emp.id;
+            option.textContent = emp.name;
+            select.appendChild(option);
         });
 
-        // Action buttons
-        document.querySelectorAll('.action-view').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const projectName = row.querySelector('.project-name').textContent;
-                alert(`View project: ${projectName}`);
-            });
-        });
+    } catch (err) {
+        console.error("Failed to load employees", err);
+    }
+}
 
-        document.querySelectorAll('.action-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const projectName = row.querySelector('.project-name').textContent;
-                alert(`Edit project: ${projectName}`);
-            });
-        });
+</script>
 
-        // Close modal on outside click
-        document.addEventListener('click', function(event) {
-            const modal = document.getElementById('createProjectModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-
-        // Prevent modal close on inside click
-        document.querySelector('.modal-content').addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-
-        // Initialize table interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set default dates for new projects
-            const today = new Date();
-            const nextMonth = new Date(today);
-            nextMonth.setMonth(nextMonth.getMonth() + 1);
-            
-            document.getElementById('projectStartDate').value = today.toISOString().split('T')[0];
-            document.getElementById('projectEndDate').value = nextMonth.toISOString().split('T')[0];
-        });
-    </script>
     <script>
 fetch("../shared/sidebar_admin.html")
   .then(res => res.text())

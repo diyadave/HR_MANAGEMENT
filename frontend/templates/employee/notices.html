@@ -312,6 +312,8 @@
   </main>
 
   <script src="../../static/js/api.js"></script>
+<script src="../../static/js/tracker.js"></script>
+<script src="../../static/js/loadTracker.js"></script>
   <script src="../../static/js/employee.js"></script>
   
   <script>
@@ -528,7 +530,7 @@
         // Load sidebar and tracker components
         await Promise.all([
           loadComponent('../shared/sidebar_employee.html', 'sidebar-container'),
-          loadComponent('../shared/tracker_employee.html', 'tracker-container')
+          
         ]);
 
         // Set up category filter

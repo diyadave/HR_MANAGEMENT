@@ -235,19 +235,43 @@
     <div class="stats-grid">
       <div class="stat-item">
         <div class="stat-label">Present Days</div>
-        <div class="stat-value">18</div>
+        <div class="stat-value" id="presentDays">-</div>
       </div>
       <div class="stat-item">
         <div class="stat-label">Absent Days</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="absentDays">-</div>
       </div>
       <div class="stat-item">
         <div class="stat-label">Late Arrivals</div>
-        <div class="stat-value">2</div>
+        <div class="stat-value" id="lateDays">-</div>
       </div>
       <div class="stat-item">
         <div class="stat-label">Avg Hours/Day</div>
-        <div class="stat-value">8.2h</div>
+        <div class="stat-value" id="avgHours">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Attendance Summary</h2>
+      </div>
+      <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+        <div class="stat-item">
+          <div class="stat-label">Total Work</div>
+          <div class="stat-value" id="totalWork">00:00:00</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Task Time</div>
+          <div class="stat-value" id="taskTime">00:00:00</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Idle Time</div>
+          <div class="stat-value" id="idleTime">00:00:00</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Overtime</div>
+          <div class="stat-value" id="overtime">00:00:00</div>
+        </div>
       </div>
     </div>
 
@@ -267,197 +291,9 @@
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="attendanceHistory">
             <tr>
-              <td>Feb 03, 2026</td>
-              <td>Tuesday</td>
-              <td>09:02 AM</td>
-              <td>In Progress</td>
-              <td>-</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Feb 02, 2026</td>
-              <td>Monday</td>
-              <td>08:58 AM</td>
-              <td>06:05 PM</td>
-              <td>9h 7m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Feb 01, 2026</td>
-              <td>Sunday</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                <span class="status-indicator">
-                  Weekend
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 31, 2026</td>
-              <td>Saturday</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                <span class="status-indicator">
-                  Weekend
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 30, 2026</td>
-              <td>Friday</td>
-              <td>09:15 AM</td>
-              <td>06:00 PM</td>
-              <td>8h 45m</td>
-              <td>
-                <span class="status-indicator status-late">
-                  <span class="status-dot"></span>
-                  Late
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 29, 2026</td>
-              <td>Thursday</td>
-              <td>09:00 AM</td>
-              <td>06:10 PM</td>
-              <td>9h 10m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 28, 2026</td>
-              <td>Wednesday</td>
-              <td>08:55 AM</td>
-              <td>05:55 PM</td>
-              <td>9h 0m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 27, 2026</td>
-              <td>Tuesday</td>
-              <td>09:05 AM</td>
-              <td>01:00 PM</td>
-              <td>3h 55m</td>
-              <td>
-                <span class="status-indicator status-halfday">
-                  <span class="status-dot"></span>
-                  Half Day
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 26, 2026</td>
-              <td>Monday</td>
-              <td>09:00 AM</td>
-              <td>06:00 PM</td>
-              <td>9h 0m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 25, 2026</td>
-              <td>Sunday</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                <span class="status-indicator">
-                  Weekend
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 24, 2026</td>
-              <td>Saturday</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                <span class="status-indicator">
-                  Weekend
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 23, 2026</td>
-              <td>Friday</td>
-              <td>08:58 AM</td>
-              <td>06:05 PM</td>
-              <td>9h 7m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 22, 2026</td>
-              <td>Thursday</td>
-              <td>09:12 AM</td>
-              <td>06:15 PM</td>
-              <td>9h 3m</td>
-              <td>
-                <span class="status-indicator status-late">
-                  <span class="status-dot"></span>
-                  Late
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 21, 2026</td>
-              <td>Wednesday</td>
-              <td>09:00 AM</td>
-              <td>06:00 PM</td>
-              <td>9h 0m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>Jan 20, 2026</td>
-              <td>Tuesday</td>
-              <td>08:55 AM</td>
-              <td>06:10 PM</td>
-              <td>9h 15m</td>
-              <td>
-                <span class="status-indicator status-present">
-                  <span class="status-dot"></span>
-                  Present
-                </span>
-              </td>
+              <td colspan="6" style="text-align: center; padding: 40px;">Loading attendance records...</td>
             </tr>
           </tbody>
         </table>
@@ -465,23 +301,207 @@
     </div>
   </main>
 
+<script src="../../static/js/api.js"></script>
   <script>
+    // Ensure API is available
+    if (!window.API) {
+      console.error("API helper not loaded");
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      window.location.href = "/login.html";
+    }
+
+    // Format time helper
+    function formatTime(seconds) {
+      if (!seconds || seconds < 0) seconds = 0;
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    }
+
+    // Format hours for display
+    function formatHours(seconds) {
+      if (!seconds) return "0h";
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      return `${hrs}h ${mins}m`;
+    }
+
+    // Load summary data
+    async function loadSummary() {
+      try {
+        const data = await API.getAttendanceSummary();
+        
+        document.getElementById("totalWork").textContent = formatTime(data.attendance_seconds || 0);
+        document.getElementById("taskTime").textContent = formatTime(data.task_seconds || 0);
+        document.getElementById("idleTime").textContent = formatTime(data.idle_seconds || 0);
+        document.getElementById("overtime").textContent = formatTime(data.overtime_seconds || 0);
+        
+        // Update stats if available
+        if (data.stats) {
+          document.getElementById("presentDays").textContent = data.stats.present_days || "0";
+          document.getElementById("absentDays").textContent = data.stats.absent_days || "0";
+          document.getElementById("lateDays").textContent = data.stats.late_days || "0";
+          document.getElementById("avgHours").textContent = data.stats.avg_hours || "0h";
+        }
+      } catch (error) {
+        console.error("Summary load error:", error);
+      }
+    }
+
+    // Load attendance history (mock data - replace with real API)
+    async function loadHistory() {
+      // This would be replaced with actual API call
+      // For now, keeping the static data from original
+      const tbody = document.getElementById("attendanceHistory");
+      tbody.innerHTML = `
+        <tr>
+          <td>Feb 03, 2026</td>
+          <td>Tuesday</td>
+          <td>09:02 AM</td>
+          <td>In Progress</td>
+          <td>-</td>
+          <td>
+            <span class="status-indicator status-present">
+              <span class="status-dot"></span>
+              Present
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Feb 02, 2026</td>
+          <td>Monday</td>
+          <td>08:58 AM</td>
+          <td>06:05 PM</td>
+          <td>9h 7m</td>
+          <td>
+            <span class="status-indicator status-present">
+              <span class="status-dot"></span>
+              Present
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Feb 01, 2026</td>
+          <td>Sunday</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>
+            <span class="status-indicator">
+              Weekend
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 31, 2026</td>
+          <td>Saturday</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>
+            <span class="status-indicator">
+              Weekend
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 30, 2026</td>
+          <td>Friday</td>
+          <td>09:15 AM</td>
+          <td>06:00 PM</td>
+          <td>8h 45m</td>
+          <td>
+            <span class="status-indicator status-late">
+              <span class="status-dot"></span>
+              Late
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 29, 2026</td>
+          <td>Thursday</td>
+          <td>09:00 AM</td>
+          <td>06:10 PM</td>
+          <td>9h 10m</td>
+          <td>
+            <span class="status-indicator status-present">
+              <span class="status-dot"></span>
+              Present
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 28, 2026</td>
+          <td>Wednesday</td>
+          <td>08:55 AM</td>
+          <td>05:55 PM</td>
+          <td>9h 0m</td>
+          <td>
+            <span class="status-indicator status-present">
+              <span class="status-dot"></span>
+              Present
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 27, 2026</td>
+          <td>Tuesday</td>
+          <td>09:05 AM</td>
+          <td>01:00 PM</td>
+          <td>3h 55m</td>
+          <td>
+            <span class="status-indicator status-halfday">
+              <span class="status-dot"></span>
+              Half Day
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Jan 26, 2026</td>
+          <td>Monday</td>
+          <td>09:00 AM</td>
+          <td>06:00 PM</td>
+          <td>9h 0m</td>
+          <td>
+            <span class="status-indicator status-present">
+              <span class="status-dot"></span>
+              Present
+            </span>
+          </td>
+        </tr>
+      `;
+    }
+
+    // Load shared components
     async function loadComponent(url, containerId) {
       try {
         const response = await fetch(url);
         const html = await response.text();
         document.getElementById(containerId).innerHTML = html;
       } catch (error) {
-        console.error(`Error loading ${url}:`, error);
+        console.error(`Failed to load ${url}:`, error);
       }
     }
 
+    // Initialize page
     async function init() {
       await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
-      await loadComponent('../shared/tracker_employee.html', 'tracker-container');
+        loadGlobalTracker(); 
+      
+      await loadSummary();
+      await loadHistory();
+      
+      // Refresh summary every 30 seconds
+      setInterval(loadSummary, 30000);
     }
 
-    init();
+    window.onload = init;
   </script>
+<script src="../../static/js/tracker.js"></script>
+<script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>

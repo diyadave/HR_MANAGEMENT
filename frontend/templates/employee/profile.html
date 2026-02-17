@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - Employee Panel</title>
+    <title>My Profile · Employee Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -20,7 +20,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Layout */
+        /* layout */
         #sidebar-container {
             position: fixed;
             top: 0;
@@ -42,13 +42,12 @@
         .main-content {
             margin-left: 240px;
             margin-right: 260px;
-            padding: 20px;
+            padding: 24px;
             min-height: 100vh;
         }
 
-        /* Page Header */
         .page-header {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .page-title {
@@ -64,42 +63,73 @@
             color: #64748b;
         }
 
-        /* Profile Layout */
+        /* profile layout */
         .profile-grid {
             display: grid;
             grid-template-columns: 320px 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 24px;
+            margin-bottom: 24px;
         }
 
-        /* Profile Card */
+        /* left card */
         .profile-card {
             background: white;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 28px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            border: 1px solid #e9edf2;
             text-align: center;
         }
 
         .profile-photo-wrapper {
-            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
         }
 
         .profile-photo {
             width: 140px;
             height: 140px;
             border-radius: 50%;
-            margin: 0 auto 16px;
-            background: linear-gradient(135deg, #073379 0%, #0a4da8 100%);
+            margin: 0 auto 12px;
+            background: linear-gradient(145deg, #073379, #0a4da8);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 48px;
             font-weight: 600;
-            border: 4px solid #f8fafc;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 4px solid #ffffff;
+            box-shadow: 0 8px 16px -6px rgba(7,51,121,0.2);
+            object-fit: cover;
+        }
+
+        .upload-btn {
+            background: white;
+            border: 1px solid #cdd9e6;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            margin-top: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .upload-btn:hover {
+            background: #f1f5f9;
+            border-color: #a6c0db;
+        }
+
+        #profileImageInput {
+            display: none;
         }
 
         .profile-name {
@@ -111,13 +141,13 @@
 
         .profile-position {
             font-size: 13px;
-            color: #64748b;
+            color: #475569;
             margin-bottom: 4px;
         }
 
         .profile-employee-id {
             font-size: 11px;
-            color: #94a3b8;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 16px;
@@ -125,40 +155,39 @@
 
         .profile-status {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 4px 14px;
             background: #d1fae5;
             color: #065f46;
-            border-radius: 20px;
+            border-radius: 30px;
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
 
         .profile-divider {
             height: 1px;
-            background: #e2e8f0;
-            margin: 20px 0;
+            background: #e9edf2;
+            margin: 22px 0 20px;
         }
 
         .profile-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            text-align: center;
+            gap: 14px;
         }
 
         .stat-item {
-            padding: 12px;
             background: #f8fafc;
-            border-radius: 6px;
+            border-radius: 10px;
+            padding: 12px 8px;
         }
 
         .stat-value {
             font-size: 20px;
             font-weight: 700;
             color: #073379;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-label {
@@ -167,29 +196,60 @@
             font-weight: 500;
         }
 
-        /* Info Section */
+        /* info sections */
         .info-section {
             background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
+            border: 1px solid #e9edf2;
             margin-bottom: 20px;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
         .section-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: #0f172a;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .btn-edit, .btn-save {
+            padding: 8px 20px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(7,51,121,0.1);
+        }
+
+        .btn-save {
+            background: #0f5b2e;
+        }
+        .btn-save:hover { background: #0b4a25; }
+        .btn-edit:hover { background: #052654; }
+
+        .edit-controls {
+            display: flex;
+            gap: 8px;
         }
 
         .info-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 20px 28px;
         }
 
         .info-item {
@@ -202,540 +262,430 @@
             color: #64748b;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            letter-spacing: 0.4px;
+            margin-bottom: 5px;
         }
 
         .info-value {
-            font-size: 13px;
+            font-size: 14px;
             color: #0f172a;
             font-weight: 500;
+            word-break: break-word;
         }
 
         .info-value.full-width {
             grid-column: 1 / -1;
         }
 
-        /* Salary Package */
-        .salary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .salary-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .salary-label {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .salary-amount {
-            font-size: 22px;
-            font-weight: 700;
-            color: #073379;
-            margin-bottom: 2px;
-        }
-
-        .salary-period {
-            font-size: 11px;
-            color: #64748b;
-        }
-
-        .salary-breakdown {
-            margin-top: 20px;
-        }
-
-        .breakdown-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .breakdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .breakdown-label {
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .breakdown-value {
-            font-size: 13px;
-            color: #0f172a;
-            font-weight: 600;
-        }
-
-        .breakdown-value.positive {
-            color: #059669;
-        }
-
-        .breakdown-value.negative {
-            color: #ef4444;
-        }
-
-        .breakdown-total {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 2px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .breakdown-total .breakdown-label {
+        /* editable inputs */
+        .editable-input {
+            width: 100%;
+            padding: 8px 12px;
             font-size: 14px;
-            font-weight: 600;
+            border: 1px solid #cdd9e6;
+            border-radius: 8px;
+            background: white;
             color: #0f172a;
+            transition: 0.2s;
+        }
+        .editable-input:focus {
+            outline: none;
+            border-color: #073379;
+            box-shadow: 0 0 0 3px rgba(7,51,121,0.12);
+        }
+        select.editable-input {
+            background-color: white;
         }
 
-        .breakdown-total .breakdown-value {
-            font-size: 18px;
-            color: #073379;
-        }
-
-        /* Benefits Section */
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .benefit-icon {
-            width: 32px;
-            height: 32px;
-            background: #073379;
-            color: white;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .benefit-content {
-            flex: 1;
-        }
-
-        .benefit-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 2px;
-        }
-
-        .benefit-description {
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.4;
-        }
-
-        /* Edit Button */
-        .btn-edit {
-            padding: 8px 16px;
-            background: #073379;
-            color: white;
-            border: none;
-            border-radius: 6px;
+        .readonly-badge {
+            background: #f1f4f9;
+            color: #334155;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-block;
+            border: 1px solid #e2e8f0;
         }
 
-        .btn-edit:hover {
-            background: #052654;
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
-            .main-content {
-                margin-right: 0;
-            }
-
-            #tracker-container {
-                display: none;
-            }
+            .main-content { margin-right: 0; }
+            #tracker-container { display: none; }
         }
-
         @media (max-width: 968px) {
-            .profile-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .salary-grid {
-                grid-template-columns: 1fr;
-            }
+            .profile-grid { grid-template-columns: 1fr; }
+            .bank-grid { grid-template-columns: 1fr; }
         }
-
         @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-                padding: 16px;
-            }
-
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .benefits-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-photo {
-                width: 120px;
-                height: 120px;
-                font-size: 40px;
-            }
+            .main-content { margin-left: 0; padding: 16px; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <!-- Load API.js first -->
+    <script src="../../static/js/api.js"></script>
 </head>
 <body>
-    <!-- Sidebar Container -->
     <div id="sidebar-container"></div>
-
-    <!-- Tracker Container -->
     <div id="tracker-container"></div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">My Profile</h1>
-            <p class="page-subtitle">View and manage your profile information</p>
+            <h1 class="page-title">My profile</h1>
+            <p class="page-subtitle">View and update your personal information</p>
         </div>
 
-        <!-- Profile Grid -->
+        <!-- profile row -->
         <div class="profile-grid">
-            <!-- Left Column - Profile Card -->
+            <!-- left card -->
             <div class="profile-card">
                 <div class="profile-photo-wrapper">
-                    <div class="profile-photo" id="profilePhoto">JD</div>
+                    <img id="profileImage" class="profile-photo" style="display:none; object-fit:cover;" alt="profile">
+                    <div id="profileInitials" class="profile-photo">--</div>
+                    <label for="profileImageInput" class="upload-btn">
+                        <span>📷</span> Change photo
+                    </label>
+                    <input type="file" id="profileImageInput" accept="image/*">
                 </div>
-                <h2 class="profile-name">John Doe</h2>
-                <p class="profile-position">Senior Software Engineer</p>
-                <p class="profile-employee-id">EMP-2024-1547</p>
-                <span class="profile-status">Active</span>
+                <div class="profile-name" id="displayName">-</div>
+                <div class="profile-position" id="displayDesignation">-</div>
+                <div class="profile-employee-id" id="displayEmployeeId">-</div>
+                <span class="profile-status" id="displayStatus">active</span>
 
                 <div class="profile-divider"></div>
-
                 <div class="profile-stats">
                     <div class="stat-item">
-                        <div class="stat-value">2.5</div>
-                        <div class="stat-label">Years</div>
+                        <div class="stat-value" id="statTenure">-</div>
+                        <div class="stat-label">Years with us</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">12</div>
-                        <div class="stat-label">Leaves Remaining</div>
+                        <div class="stat-value" id="statLeaveBalance">-</div>
+                        <div class="stat-label">Leave balance</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column - Contact Information -->
+            <!-- right column: contact (always visible) -->
             <div class="info-section">
-                <div class="section-title">Contact Information</div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Email Address</div>
-                        <div class="info-value">john.doe@company.com</div>
+                <div class="section-header">
+                    <div class="section-title">Contact & emergency</div>
+                    <div class="edit-controls">
+                        <button id="editBtn" class="btn-edit">✎ Edit profile</button>
+                        <button id="saveBtn" class="btn-save" style="display:none;">✓ Save changes</button>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Phone Number</div>
-                        <div class="info-value">+91 98765 43210</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Emergency Contact</div>
-                        <div class="info-value">+91 98765 43211</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Emergency Contact Name</div>
-                        <div class="info-value">Jane Doe (Spouse)</div>
-                    </div>
-                    <div class="info-item" style="grid-column: 1 / -1;">
-                        <div class="info-label">Residential Address</div>
-                        <div class="info-value">A-204, Green Valley Apartments, Near City Mall, Vesu, Surat, Gujarat - 395007, India</div>
-                    </div>
+                </div>
+                <div id="contactView" class="info-grid">
+                    <!-- static view mode for contact (populated later) -->
+                    <div class="info-item"><span class="info-label">Email</span><span class="info-value" id="viewEmail">-</span></div>
+                    <div class="info-item"><span class="info-label">Phone</span><span class="info-value" id="viewPhone">-</span></div>
+                    <div class="info-item"><span class="info-label">Emergency name</span><span class="info-value" id="viewEmergencyName">-</span></div>
+                    <div class="info-item"><span class="info-label">Emergency phone</span><span class="info-value" id="viewEmergencyPhone">-</span></div>
+                    <div class="info-item full-width"><span class="info-label">Address</span><span class="info-value" id="viewAddress">-</span></div>
+                </div>
+                <!-- edit mode contact form (hidden initially) -->
+                <div id="contactEdit" style="display:none;" class="info-grid">
+                    <div class="info-item"><span class="info-label">Email (read only)</span><input class="editable-input" id="editEmail" readonly disabled></div>
+                    <div class="info-item"><span class="info-label">Phone</span><input type="text" class="editable-input" id="editPhone" placeholder="Phone"></div>
+                    <div class="info-item"><span class="info-label">Emergency name</span><input class="editable-input" id="editEmergencyName"></div>
+                    <div class="info-item"><span class="info-label">Emergency phone</span><input class="editable-input" id="editEmergencyPhone"></div>
+                    <div class="info-item full-width"><span class="info-label">Address</span><input class="editable-input" id="editAddress"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Employment Details -->
+        <!-- Employment details – read only -->
         <div class="info-section">
-            <div class="section-title">Employment Details</div>
+            <div class="section-title">Employment details</div>
             <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Department</div>
-                    <div class="info-value">Engineering</div>
+                <div class="info-item"><span class="info-label">Department</span><span class="info-value" id="viewDepartment">-</span></div>
+                <div class="info-item"><span class="info-label">Designation</span><span class="info-value" id="viewDesignation">-</span></div>
+                <div class="info-item"><span class="info-label">Joining date</span><span class="info-value" id="viewJoiningDate">-</span></div>
+                <div class="info-item"><span class="info-label">Salary (fixed)</span><span class="info-value" id="viewSalary">-</span></div>
+            </div>
+        </div>
+
+        <!-- Personal info – editable -->
+        <div class="info-section" id="personalSection">
+            <div class="section-title">Personal details</div>
+            <div id="personalView" class="info-grid">
+                <div class="info-item"><span class="info-label">Date of birth</span><span class="info-value" id="viewDob">-</span></div>
+                <div class="info-item"><span class="info-label">Gender</span><span class="info-value" id="viewGender">-</span></div>
+                <div class="info-item"><span class="info-label">Marital status</span><span class="info-value" id="viewMarital">-</span></div>
+                <div class="info-item"><span class="info-label">Blood group</span><span class="info-value" id="viewBlood">-</span></div>
+            </div>
+            <div id="personalEdit" style="display:none;" class="info-grid">
+                <div class="info-item"><span class="info-label">Date of birth</span><input type="date" class="editable-input" id="editDob"></div>
+                <div class="info-item"><span class="info-label">Gender</span>
+                    <select class="editable-input" id="editGender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Designation</div>
-                    <div class="info-value">Senior Software Engineer</div>
+                <div class="info-item"><span class="info-label">Marital status</span>
+                    <select class="editable-input" id="editMarital">
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                    </select>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Date of Joining</div>
-                    <div class="info-value">July 15, 2023</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Employment Type</div>
-                    <div class="info-value">Full-Time Permanent</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Reporting Manager</div>
-                    <div class="info-value">Sarah Johnson</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Work Location</div>
-                    <div class="info-value">Surat Office</div>
+                <div class="info-item"><span class="info-label">Blood group</span>
+                    <select class="editable-input" id="editBlood">
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <!-- Personal Information -->
+        <!-- Bank details – editable -->
         <div class="info-section">
-            <div class="section-title">Personal Information</div>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Date of Birth</div>
-                    <div class="info-value">March 15, 1995</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Gender</div>
-                    <div class="info-value">Male</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Marital Status</div>
-                    <div class="info-value">Married</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Blood Group</div>
-                    <div class="info-value">O+</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">PAN Number</div>
-                    <div class="info-value">ABCDE1234F</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Aadhaar Number</div>
-                    <div class="info-value">XXXX-XXXX-5678</div>
-                </div>
+            <div class="section-title">Bank account</div>
+            <div id="bankView" class="bank-grid">
+                <div class="info-item"><span class="info-label">Bank name</span><span class="info-value" id="viewBankName">-</span></div>
+                <div class="info-item"><span class="info-label">Account number</span><span class="info-value" id="viewAccount">-</span></div>
+                <div class="info-item"><span class="info-label">IFSC code</span><span class="info-value" id="viewIfsc">-</span></div>
             </div>
-        </div>
-
-        <!-- Salary Package -->
-        <div class="info-section">
-            <div class="section-title">Salary Package</div>
-            
-            <div class="salary-grid">
-                <div class="salary-card">
-                    <div class="salary-label">Annual CTC</div>
-                    <div class="salary-amount">₹12,00,000</div>
-                    <div class="salary-period">Per Year</div>
-                </div>
-                <div class="salary-card">
-                    <div class="salary-label">Monthly Gross</div>
-                    <div class="salary-amount">₹1,00,000</div>
-                    <div class="salary-period">Per Month</div>
-                </div>
-                <div class="salary-card">
-                    <div class="salary-label">Net Take Home</div>
-                    <div class="salary-amount">₹82,500</div>
-                    <div class="salary-period">Per Month (Approx.)</div>
-                </div>
-            </div>
-
-            <div class="salary-breakdown">
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Basic Salary</span>
-                    <span class="breakdown-value">₹50,000</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">House Rent Allowance (HRA)</span>
-                    <span class="breakdown-value">₹25,000</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Special Allowance</span>
-                    <span class="breakdown-value">₹15,000</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Transport Allowance</span>
-                    <span class="breakdown-value">₹2,000</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Medical Allowance</span>
-                    <span class="breakdown-value">₹1,250</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Performance Bonus</span>
-                    <span class="breakdown-value">₹6,750</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Provident Fund (Employee)</span>
-                    <span class="breakdown-value negative">- ₹6,000</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Professional Tax</span>
-                    <span class="breakdown-value negative">- ₹200</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Income Tax (TDS)</span>
-                    <span class="breakdown-value negative">- ₹11,300</span>
-                </div>
-                <div class="breakdown-total">
-                    <span class="breakdown-label">Net Monthly Salary</span>
-                    <span class="breakdown-value">₹82,500</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Benefits & Perks -->
-        <div class="info-section">
-            <div class="section-title">Benefits & Perks</div>
-            <div class="benefits-grid">
-                <div class="benefit-item">
-                    <div class="benefit-icon">🏥</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Health Insurance</div>
-                        <div class="benefit-description">Coverage up to ₹5,00,000 for self and family</div>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🏖️</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Paid Time Off</div>
-                        <div class="benefit-description">24 days annual leave + 12 public holidays</div>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">💰</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Provident Fund</div>
-                        <div class="benefit-description">12% employee + 12% employer contribution</div>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">📚</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Learning & Development</div>
-                        <div class="benefit-description">₹50,000 annual training budget</div>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🍽️</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Meal Allowance</div>
-                        <div class="benefit-description">Subsidized cafeteria and snacks</div>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🚗</div>
-                    <div class="benefit-content">
-                        <div class="benefit-title">Transport Facility</div>
-                        <div class="benefit-description">Company shuttle or transport reimbursement</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bank Details -->
-        <div class="info-section">
-            <div class="section-title">Bank Details</div>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Bank Name</div>
-                    <div class="info-value">HDFC Bank</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Account Number</div>
-                    <div class="info-value">XXXX-XXXX-4567</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">IFSC Code</div>
-                    <div class="info-value">HDFC0001234</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Branch</div>
-                    <div class="info-value">Vesu, Surat</div>
-                </div>
+            <div id="bankEdit" style="display:none;" class="bank-grid">
+                <div class="info-item"><span class="info-label">Bank name</span><input class="editable-input" id="editBankName"></div>
+                <div class="info-item"><span class="info-label">Account number</span><input class="editable-input" id="editAccount"></div>
+                <div class="info-item"><span class="info-label">IFSC code</span><input class="editable-input" id="editIfsc"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Load Components
-        function loadSidebar() {
-            fetch('../shared/sidebar_employee.html')
-                .then(response => {
-                    if (!response.ok) throw new Error('Sidebar not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('sidebar-container').innerHTML = data;
-                    highlightActivePage();
-                })
-                .catch(error => console.error('Error loading sidebar:', error));
-        }
+        (function() {
+            // Wait for API to be loaded from external file
+            function waitForAPI() {
+                return new Promise((resolve) => {
+                    if (window.API && window.API.getProfile) {
+                        resolve(window.API);
+                    } else {
+                        // Check again after a short delay
+                        setTimeout(() => {
+                            if (window.API && window.API.getProfile) {
+                                resolve(window.API);
+                            } else {
+                                console.error('API not loaded properly');
+                                alert('Failed to load API. Please refresh the page.');
+                            }
+                        }, 100);
+                    }
+                });
+            }
 
-        function loadTracker() {
-            fetch('../shared/tracker_employee.html')
-                .then(response => {
-                    if (!response.ok) throw new Error('Tracker not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('tracker-container').innerHTML = data;
-                })
-                .catch(error => console.error('Error loading tracker:', error));
-        }
+            // DOM elements
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const contactView = document.getElementById('contactView');
+            const contactEdit = document.getElementById('contactEdit');
+            const personalView = document.getElementById('personalView');
+            const personalEdit = document.getElementById('personalEdit');
+            const bankView = document.getElementById('bankView');
+            const bankEdit = document.getElementById('bankEdit');
 
-        function highlightActivePage() {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                if (item.getAttribute('data-page') === 'profile') {
-                    item.classList.add('active');
+            let currentProfile = {};
+
+            // ---------- load profile ----------
+            async function loadProfile() {
+                try {
+                    const api = await waitForAPI();
+                    const data = await api.getProfile();
+                    currentProfile = data;
+
+                    // --- left card ---
+                    document.getElementById('displayName').innerText = data.name || '—';
+                    document.getElementById('displayDesignation').innerText = data.designation || '—';
+                    document.getElementById('displayEmployeeId').innerText = data.employee_id || '—';
+                    document.getElementById('displayStatus').innerText = data.is_active ? 'active' : 'inactive';
+
+                    // initials
+                    const name = data.name || '';
+                    const initials = name.split(' ').map(n => n[0]).filter(c=>c).join('').toUpperCase() || 'U';
+                    document.getElementById('profileInitials').innerText = initials;
+
+                    // profile image
+                    const imgEl = document.getElementById('profileImage');
+                    const initEl = document.getElementById('profileInitials');
+                    if (data.profile_image) {
+                        imgEl.src = `http://127.0.0.1:8000/${data.profile_image}`;
+                        imgEl.style.display = 'block';
+                        initEl.style.display = 'none';
+                    } else {
+                        imgEl.style.display = 'none';
+                        initEl.style.display = 'flex';
+                    }
+
+                    // stats (if available from backend, otherwise show placeholder)
+                    document.getElementById('statTenure').innerText = data.years_of_service || '2';
+                    document.getElementById('statLeaveBalance').innerText = data.leave_balance || '18';
+
+                    // --- contact view ---
+                    document.getElementById('viewEmail').innerText = data.email || '-';
+                    document.getElementById('viewPhone').innerText = data.phone || '-';
+                    document.getElementById('viewEmergencyName').innerText = data.emergency_contact_name || '-';
+                    document.getElementById('viewEmergencyPhone').innerText = data.emergency_contact_phone || '-';
+                    document.getElementById('viewAddress').innerText = data.address || '-';
+
+                    // --- employment (read only) ---
+                    document.getElementById('viewDepartment').innerText = data.department || '-';
+                    document.getElementById('viewDesignation').innerText = data.designation || '-';
+                    document.getElementById('viewJoiningDate').innerText = data.created_at ? new Date(data.created_at).toLocaleDateString() : '-';
+                    document.getElementById('viewSalary').innerText = data.salary ? `$${data.salary}` : '-';
+
+                    // --- personal view ---
+                    document.getElementById('viewDob').innerText = data.date_of_birth || '-';
+                    document.getElementById('viewGender').innerText = data.gender || '-';
+                    document.getElementById('viewMarital').innerText = data.marital_status || '-';
+                    document.getElementById('viewBlood').innerText = data.blood_group || '-';
+
+                    // --- bank view ---
+                    document.getElementById('viewBankName').innerText = data.bank_name || '-';
+                    document.getElementById('viewAccount').innerText = data.account_number || '-';
+                    document.getElementById('viewIfsc').innerText = data.ifsc_code || '-';
+
+                    // prefill edit fields with current values
+                    document.getElementById('editEmail').value = data.email || '';
+                    document.getElementById('editPhone').value = data.phone || '';
+                    document.getElementById('editEmergencyName').value = data.emergency_contact_name || '';
+                    document.getElementById('editEmergencyPhone').value = data.emergency_contact_phone || '';
+                    document.getElementById('editAddress').value = data.address || '';
+                    document.getElementById('editDob').value = data.date_of_birth || '';
+                    document.getElementById('editGender').value = data.gender || 'Male';
+                    document.getElementById('editMarital').value = data.marital_status || 'Single';
+                    document.getElementById('editBlood').value = data.blood_group || 'O+';
+                    document.getElementById('editBankName').value = data.bank_name || '';
+                    document.getElementById('editAccount').value = data.account_number || '';
+                    document.getElementById('editIfsc').value = data.ifsc_code || '';
+
+                } catch (err) {
+                    console.error('loadProfile error:', err);
+                    alert('Could not load profile. Please check your connection.');
+                }
+            }
+
+            // toggle edit mode
+            function enableEditMode(enable) {
+                const showEdit = enable;
+                contactView.style.display = showEdit ? 'none' : 'grid';
+                contactEdit.style.display = showEdit ? 'grid' : 'none';
+                personalView.style.display = showEdit ? 'none' : 'grid';
+                personalEdit.style.display = showEdit ? 'grid' : 'none';
+                bankView.style.display = showEdit ? 'none' : 'grid';
+                bankEdit.style.display = showEdit ? 'grid' : 'none';
+                editBtn.style.display = showEdit ? 'none' : 'inline-flex';
+                saveBtn.style.display = showEdit ? 'inline-flex' : 'none';
+            }
+
+            editBtn.addEventListener('click', () => enableEditMode(true));
+
+            saveBtn.addEventListener('click', async () => {
+                // build payload with only editable fields
+                const payload = {
+                    phone: document.getElementById('editPhone').value || null,
+                    address: document.getElementById('editAddress').value || null,
+                    date_of_birth: document.getElementById('editDob').value || null,
+                    gender: document.getElementById('editGender').value || null,
+                    marital_status: document.getElementById('editMarital').value || null,
+                    blood_group: document.getElementById('editBlood').value || null,
+                    emergency_contact_name: document.getElementById('editEmergencyName').value || null,
+                    emergency_contact_phone: document.getElementById('editEmergencyPhone').value || null,
+                    bank_name: document.getElementById('editBankName').value || null,
+                    account_number: document.getElementById('editAccount').value || null,
+                    ifsc_code: document.getElementById('editIfsc').value || null,
+                };
+
+                try {
+                    const api = await waitForAPI();
+                    await api.updateProfile(payload);
+                    await loadProfile();                 // reload fresh data
+                    enableEditMode(false);
+                } catch (err) {
+                    console.error('save failed', err);
+                    alert('Update failed. Please try again.');
                 }
             });
-        }
 
-        // Initialize profile photo with initials
-        function initializeProfile() {
-            const name = "John Doe";
-            const initials = name.split(' ').map(n => n[0]).join('');
-            document.getElementById('profilePhoto').textContent = initials;
-        }
+            // image upload
+            document.getElementById('profileImageInput').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                // Validate file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB');
+                    return;
+                }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSidebar();
-            loadTracker();
-            initializeProfile();
-        });
+                try {
+                    const api = await waitForAPI();
+                    await api.uploadProfileImage(file);
+                    await loadProfile();  // refresh shows new image
+                } catch (err) {
+                    console.error(err);
+                    alert('Image upload failed');
+                }
+            });
+
+            // load sidebar and tracker
+            function loadSidebar() {
+                fetch('../shared/sidebar_employee.html')
+                    .then(r => {
+                        if (!r.ok) throw new Error('sidebar not found');
+                        return r.text();
+                    })
+                    .then(html => {
+                        document.getElementById('sidebar-container').innerHTML = html;
+                        // optional: highlight active
+                        const navs = document.querySelectorAll('.nav-item');
+                        navs.forEach(n => { 
+                            if (n.getAttribute('data-page') === 'profile') {
+                                n.classList.add('active');
+                            }
+                        });
+                    })
+                    .catch(e => console.warn('sidebar load skipped (optional)', e));
+            }
+
+            function loadTracker() {
+                fetch('../shared/tracker_employee.html')
+                    .then(r => {
+                        if (!r.ok) throw new Error('tracker not found');
+                        return r.text();
+                    })
+                    .then(html => document.getElementById('tracker-container').innerHTML = html)
+                    .catch(e => console.warn('tracker load skipped (optional)', e));
+            }
+
+            // init
+            document.addEventListener('DOMContentLoaded', async () => {
+                loadSidebar();
+                loadTracker();
+                await loadProfile();
+            });
+
+        })();
     </script>
+
+<script src="../../static/js/tracker.js"></script>
+<script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>

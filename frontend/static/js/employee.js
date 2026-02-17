@@ -546,9 +546,16 @@
     // Top Action Buttons
     // ============================================
     
-    addEmployeeBtn.addEventListener('click', function () {
-        window.location.href = "/admin/create_employee.html";
-    });
+    document.addEventListener("DOMContentLoaded", () => {
+    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+
+    if (addEmployeeBtn) {
+        addEmployeeBtn.addEventListener("click", function () {
+            window.location.href = "create_employee.html";
+        });
+    }
+});
+
 
         
     

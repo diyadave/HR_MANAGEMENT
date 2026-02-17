@@ -9,17 +9,25 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth, admin, notices 
-  # IMPORTANT: import model
+from app.routes import auth, admin, notices ,tasks
+from app.routes import projects
+from app.routes import employee_projects
+from app.routes import attendance
+from app.routes import leaves,profile
+from fastapi.staticfiles import StaticFiles
 
-from app.routes import auth
+
 app = FastAPI()
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -34,7 +42,15 @@ def create_tables():
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(notices.router)
+app.include_router(projects.router)
+app.include_router(employee_projects.router)
+app.include_router(tasks.router)
+app.include_router(leaves.router)
+app.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
+app.include_router(profile.router)
 
 
-router = APIRouter(prefix="/notices", tags=["Notices"])
+
+
+
 

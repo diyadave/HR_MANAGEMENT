@@ -359,7 +359,7 @@
               <th>Applied On</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="leaveHistoryBody">
             <tr>
               <td>Casual Leave</td>
               <td>Feb 10, 2026</td>
@@ -430,32 +430,86 @@
   </main>
 
   <script>
-    function resetForm() {
-      document.getElementById('leaveForm').reset();
-    }
+function resetForm() {
+  document.getElementById('leaveForm').reset();
+}
 
-    async function loadComponent(url, containerId) {
-      try {
-        const response = await fetch(url);
-        const html = await response.text();
-        document.getElementById(containerId).innerHTML = html;
-      } catch (error) {
-        console.error(`Error loading ${url}:`, error);
-      }
-    }
+async function loadComponent(url, containerId) {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    document.getElementById(containerId).innerHTML = html;
+  } catch (error) {
+    console.error(`Error loading ${url}:`, error);
+  }
+}
 
-    async function init() {
-      await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
-      await loadComponent('../shared/tracker_employee.html', 'tracker-container');
 
-      document.getElementById('leaveForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Leave application submitted successfully! You will be notified once it is reviewed.');
-        resetForm();
-      });
-    }
 
-    init();
-  </script>
+  async function loadMyLeaves() {
+  try {
+    const data = await API.getMyLeaves();
+    const tbody = document.getElementById("leaveHistoryBody");
+    tbody.innerHTML = "";
+
+    data.forEach(leave => {
+      const row = `
+        <tr>
+          <td>${leave.leave_type}</td>
+          <td>${leave.start_date}</td>
+          <td>${leave.end_date}</td>
+          <td>${leave.total_days}</td>
+          <td>${leave.reason}</td>
+          <td>
+            <span class="badge badge-${leave.status}">
+              ${leave.status}
+            </span>
+          </td>
+          <td>${new Date(leave.created_at).toLocaleDateString()}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+  } catch (err) {
+    console.error("Error loading leaves:", err);
+  }
+}
+
+document.getElementById("leaveForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const form = e.target;
+
+  const leaveData = {
+    leave_type: form.querySelectorAll("select")[0].value,
+    duration_type: form.querySelectorAll("select")[1].value,
+    start_date: form.querySelectorAll("input")[0].value,
+    end_date: form.querySelectorAll("input")[1].value,
+    reason: form.querySelector("textarea").value
+  };
+
+  try {
+    await API.request("/leaves", "POST", leaveData);
+    alert("Leave applied successfully");
+    loadMyLeaves();
+    form.reset();
+  } catch (err) {
+    alert(err.message || "Error applying leave");
+  }
+});
+
+async function init() {
+  await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
+ loadGlobalTracker();
+  await loadMyLeaves();
+}
+
+init();
+</script>
+
+<script src="../../static/js/api.js"></script>
+<script src="../../static/js/tracker.js"></script>
+<script src="../../static/js/loadTracker.js"></script>
+    
 </body>
 </html>

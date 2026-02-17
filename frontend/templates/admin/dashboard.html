@@ -607,24 +607,10 @@
         <!-- Compact KPI Cards -->
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-value">1,284</div>
-                <div class="kpi-label">Total Employees</div>
-                <div class="kpi-trend trend-up">+12% from last month</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">$892.4K</div>
-                <div class="kpi-label">Monthly Revenue</div>
-                <div class="kpi-trend trend-up">+8.5% from last month</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">94.2%</div>
-                <div class="kpi-label">Attendance Rate</div>
-                <div class="kpi-trend trend-up">+2% from average</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value">78%</div>
-                <div class="kpi-label">Project Completion</div>
-                <div class="kpi-trend trend-down">-3% from target</div>
+                
+                <div class="kpi-value" id="total-leaves">0</div>
+                <div class="kpi-value" id="pending-leaves">0</div>
+                <div class="kpi-value" id="attendance-rate">0%</div>
             </div>
         </div>
 
@@ -894,6 +880,43 @@ fetch("../shared/sidebar_admin.html")
       }
     });
   });
+</script>
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+const token = localStorage.getItem("access_token");
+
+async function loadAdminDashboard() {
+  if (!token) return;
+
+  const headers = {
+    "Authorization": `Bearer ${token}`
+  };
+
+  // Employees
+  const empRes = await fetch(`${API_BASE}/admin/employees`, { headers });
+  const employees = await empRes.json();
+  document.getElementById("total-employees").textContent = employees.length;
+
+  // Leaves
+  const leaveRes = await fetch(`${API_BASE}/leaves`, { headers });
+  const leaves = await leaveRes.json();
+
+  document.getElementById("total-leaves").textContent = leaves.length;
+
+  const pending = leaves.filter(l => l.status === "pending").length;
+  document.getElementById("pending-leaves").textContent = pending;
+
+  // Attendance Today
+  const today = new Date().toISOString().split("T")[0];
+  const attendanceRes = await fetch(`${API_BASE}/attendance?date=${today}`, { headers });
+  if (attendanceRes.ok) {
+    const attendance = await attendanceRes.json();
+    const rate = Math.round((attendance.length / employees.length) * 100);
+    document.getElementById("attendance-rate").textContent = rate + "%";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadAdminDashboard);
 </script>
 
 </body>

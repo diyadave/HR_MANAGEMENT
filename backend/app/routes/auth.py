@@ -17,17 +17,25 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # ✅ IMPORTANT FIX: sub MUST be user.id
+   
     token = create_access_token({
-        "sub": str(user.id),
+        "sub": str(user.id),   
         "role": user.role
     })
 
+
     return {
-        "access_token": token,
-        "role": user.role,
-        "force_password_change": user.force_password_change
+        "access_token": token,   
+        "token_type": "bearer",
+        "force_password_change": user.force_password_change,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "role": user.role
+        }
     }
+
+
 
 
 @router.post("/change-password")

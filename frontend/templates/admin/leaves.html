@@ -519,143 +519,7 @@
                 </thead>
                 <tbody id="leaveTableBody">
                     <!-- Row 1 -->
-                    <tr>
-                        <td>
-                            <div class="employee-cell">
-                                <div class="employee-avatar">AJ</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Alex Johnson</div>
-                                    <div class="employee-role">Senior Developer</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="date-cell">Feb 15-18, 2026</td>
-                        <td class="duration-cell">4 days</td>
-                        <td>
-                            <div class="reason-preview">
-                                Family wedding out of state. Travel required for 2 days plus ceremony. All work delegated to team members.
-                            </div>
-                            <button class="view-reason-btn" onclick="viewFullReason(1)">View full reason</button>
-                        </td>
-                        <td><span class="status-badge status-pending">Pending</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-approve" onclick="approveLeave(1)">Approve</button>
-                                <button class="btn-action btn-reject" onclick="rejectLeave(1)">Reject</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 2 -->
-                    <tr>
-                        <td>
-                            <div class="employee-cell">
-                                <div class="employee-avatar">SM</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Sarah Miller</div>
-                                    <div class="employee-role">Sales Manager</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="date-cell">Feb 22, 2026</td>
-                        <td class="duration-cell">1 day</td>
-                        <td>
-                            <div class="reason-preview">
-                                Sudden fever and flu symptoms. Doctor advised rest. Client meetings rescheduled to next week.
-                            </div>
-                            <button class="view-reason-btn" onclick="viewFullReason(2)">View full reason</button>
-                        </td>
-                        <td><span class="status-badge status-pending">Pending</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-approve" onclick="approveLeave(2)">Approve</button>
-                                <button class="btn-action btn-reject" onclick="rejectLeave(2)">Reject</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 3 -->
-                    <tr>
-                        <td>
-                            <div class="employee-cell">
-                                <div class="employee-avatar">MC</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Michael Chen</div>
-                                    <div class="employee-role">Marketing Head</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="date-cell">Today (Feb 24)</td>
-                        <td class="duration-cell">1 day</td>
-                        <td>
-                            <div class="reason-preview">
-                                Family emergency requiring immediate attention. Will provide documentation upon return.
-                            </div>
-                            <button class="view-reason-btn" onclick="viewFullReason(3)">View full reason</button>
-                        </td>
-                        <td><span class="status-badge status-pending">Pending</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-approve" onclick="approveLeave(3)">Approve</button>
-                                <button class="btn-action btn-reject" onclick="rejectLeave(3)">Reject</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 4 -->
-                    <tr>
-                        <td>
-                            <div class="employee-cell">
-                                <div class="employee-avatar">RJ</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">Rebecca Jones</div>
-                                    <div class="employee-role">UI/UX Designer</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="date-cell">Mar 1-2, 2026</td>
-                        <td class="duration-cell">2 days</td>
-                        <td>
-                            <div class="reason-preview">
-                                Mental health break. Need to recharge and reset. All design files are updated and shared with team.
-                            </div>
-                            <button class="view-reason-btn" onclick="viewFullReason(4)">View full reason</button>
-                        </td>
-                        <td><span class="status-badge status-approved">Approved</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-approve" disabled>Approved</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 5 -->
-                    <tr>
-                        <td>
-                            <div class="employee-cell">
-                                <div class="employee-avatar">DW</div>
-                                <div class="employee-info">
-                                    <div class="employee-name">David Wilson</div>
-                                    <div class="employee-role">HR Executive</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="date-cell">Feb 28, 2026</td>
-                        <td class="duration-cell">1 day</td>
-                        <td>
-                            <div class="reason-preview">
-                                Dental surgery scheduled. Doctor's note provided. Will be available for urgent calls only.
-                            </div>
-                            <button class="view-reason-btn" onclick="viewFullReason(5)">View full reason</button>
-                        </td>
-                        <td><span class="status-badge status-pending">Pending</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-approve" onclick="approveLeave(5)">Approve</button>
-                                <button class="btn-action btn-reject" onclick="rejectLeave(5)">Reject</button>
-                            </div>
-                        </td>
-                    </tr>
+                   
                 </tbody>
             </table>
         </div>
@@ -704,44 +568,27 @@
             document.getElementById('reasonModal').style.display = 'none';
         }
 
-        // Approval functions
-        function approveLeave(leaveId) {
-            const row = document.querySelector(`tr:nth-child(${leaveId})`);
-            if (row) {
-                // Update status
-                const statusCell = row.cells[4];
-                statusCell.innerHTML = '<span class="status-badge status-approved">Approved</span>';
-                
-                // Update actions
-                const actionCell = row.cells[5];
-                actionCell.innerHTML = '<div class="action-buttons"><button class="btn-action btn-approve" disabled>Approved</button></div>';
-                
-                // Update stats
-                updateStats('approved');
-                
-                // Show toast
-                showToast('Leave request approved successfully');
-            }
-        }
+  async function approveLeave(id) {
+  await fetch(`http://127.0.0.1:8000/leaves/${id}/approve`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
 
-        function rejectLeave(leaveId) {
-            const row = document.querySelector(`tr:nth-child(${leaveId})`);
-            if (row) {
-                // Update status
-                const statusCell = row.cells[4];
-                statusCell.innerHTML = '<span class="status-badge status-rejected">Rejected</span>';
-                
-                // Update actions
-                const actionCell = row.cells[5];
-                actionCell.innerHTML = '<div class="action-buttons"><button class="btn-action btn-reject" disabled>Rejected</button></div>';
-                
-                // Update stats
-                updateStats('rejected');
-                
-                // Show toast
-                showToast('Leave request rejected');
-            }
-        }
+  loadAllLeaves();
+}
+
+async function rejectLeave(id) {
+  await fetch(`http://127.0.0.1:8000/leaves/${id}/reject`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
+
+  loadAllLeaves();
+}
 
         // Filter functions
         function applyFilters() {
@@ -787,6 +634,53 @@
                 closeReasonModal();
             }
         });
+       
+async function loadAllLeaves() {
+  const res = await fetch("http://127.0.0.1:8000/leaves", {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+    }
+  });
+
+  const data = await res.json();
+  const tbody = document.getElementById("leaveTableBody");
+  tbody.innerHTML = "";
+
+  data.forEach(leave => {
+    const row = `
+      <tr>
+        <td>${leave.employee?.name || "-"}</td>
+        <td>${leave.start_date} - ${leave.end_date}</td>
+        <td>${leave.total_days}</td>
+        <td>${leave.reason}</td>
+        <td>
+          <span class="status-badge status-${leave.status}">
+            ${leave.status}
+          </span>
+        </td>
+        <td>
+          ${
+            leave.status === "pending"
+              ? `
+                <div class="action-buttons">
+                  <button class="btn-action btn-approve" onclick="approveLeave(${leave.id})">Approve</button>
+                  <button class="btn-action btn-reject" onclick="rejectLeave(${leave.id})">Reject</button>
+                </div>
+              `
+              : "-"
+          }
+        </td>
+      </tr>
+    `;
+
+    tbody.innerHTML += row;
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadAllLeaves();
+});
+
 
         // Set default date values
         window.onload = function() {
@@ -797,6 +691,7 @@
             nextWeek.setDate(nextWeek.getDate() + 7);
             document.getElementById('toDate').value = nextWeek.toISOString().split('T')[0];
         };
+        
     </script>
 </body>
 </html>

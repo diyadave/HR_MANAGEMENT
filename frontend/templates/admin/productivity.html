@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Dashboard - Admin</title>
+    <!-- Font Awesome & Inter (same as other admin pages) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* === global theme tokens – consistent with attendance/tasks pages === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            font-size: 13px;
+            line-height: 1.5;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #sidebar-container {
+            min-width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* --- header & filters (mirrors attendance page) --- */
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            letter-spacing: -0.025em;
+        }
+        .page-subtitle {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        .filter-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 5px;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            background-color: #ffffff;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: #073379;
+            box-shadow: 0 0 0 3px rgba(7,51,121,0.1);
+        }
+        .btn-primary {
+            background: #073379;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            margin-left: auto;
+        }
+        .btn-primary:hover {
+            background: #0f4a9e;
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* --- table styling (identical to attendance page) --- */
+        .table-container {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        .productivity-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        .productivity-table thead {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .productivity-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+        .productivity-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .productivity-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* --- employee cell with avatar simulation --- */
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .employee-name {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .department-badge {
+            background: #eef2ff;
+            color: #073379;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .hours-value {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .productivity-high {
+            font-weight: 600;
+            color: #059669;
+        }
+        .productivity-medium {
+            font-weight: 600;
+            color: #d97706;
+        }
+        .productivity-low {
+            font-weight: 600;
+            color: #dc2626;
+        }
+
+        /* --- loading & empty states --- */
+        .loading-state, .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #64748b;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .loading-state i, .empty-state i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .loading-state p, .empty-state p {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .empty-state-sub {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        /* --- responsive --- */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar-container {
+                min-width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .main-content {
+                height: auto;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-primary {
+                margin-left: 0;
+                justify-content: center;
+            }
+        }
+
+        /* quick utility */
+        .text-muted { color: #64748b; }
+        .fw-600 { font-weight: 600; }
+    </style>
+</id>
+<body>
+    <!-- sidebar dynamically loaded -->
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="container">
+            <!-- header -->
+            <div class="page-header">
+                <h1 class="page-title">Productivity Dashboard</h1>
+                <p class="page-subtitle">Track employee attendance, task hours, idle time and overtime</p>
+            </div>
+
+            <!-- filter row: month + year (like attendance filter style) -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label" for="monthSelect">Month</label>
+                    <select id="monthSelect" class="filter-select">
+                        <option value="1">January</option>
+                        <option value="2" selected>February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label" for="yearSelect">Year</label>
+                    <select id="yearSelect" class="filter-select">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="fetchDataBtn">
+                    <i class="fas fa-chart-line"></i> Apply
+                </button>
+            </div>
+
+            <!-- dynamic content: table or empty/loading -->
+            <div id="contentArea">
+                <!-- loading indicator (hidden by default) -->
+                <div id="loadingState" class="loading-state" style="display: none;">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Loading productivity data...</p>
+                </div>
+
+                <!-- empty state (hidden by default) -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>No productivity data found</p>
+                    <div class="empty-state-sub">Try adjusting the month/year or check backend logs</div>
+                </div>
+
+                <!-- table container (hidden initially, shown when data loaded) -->
+                <div id="tableContainer" class="table-container" style="display: none;">
+                    <div class="table-wrapper">
+                        <table class="productivity-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Attendance (HH:MM)</th>
+                                    <th>Task (HH:MM)</th>
+                                    <th>Idle (HH:MM)</th>
+                                    <th>Overtime (HH:MM)</th>
+                                    <th>Productivity %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- filled via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- constants & helpers ----------
+            const API_BASE = 'http://127.0.0.1:8000';
+            const token = localStorage.getItem('access_token');
+
+            // reusable fetch with auth header
+            async function apiFetch(endpoint, options = {}) {
+                const headers = {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                };
+                const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+                if (!response.ok) {
+                    // try to extract error, but throw generic
+                    let errorText = `API error ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        errorText = errData.detail || errorText;
+                    } catch { /* ignore */ }
+                    throw new Error(errorText);
+                }
+                return response.json();
+            }
+
+            // seconds to HH:MM (padded, handles negative? not expected, but safe)
+            function secondsToHHMM(totalSeconds) {
+                if (totalSeconds == null || isNaN(totalSeconds)) return '00:00';
+                const sign = totalSeconds < 0 ? '-' : '';
+                const absSec = Math.abs(totalSeconds);
+                const hours = Math.floor(absSec / 3600);
+                const minutes = Math.floor((absSec % 3600) / 60);
+                return `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            }
+
+            // get month/year from dropdowns
+            function getSelectedMonthYear() {
+                const month = document.getElementById('monthSelect').value;
+                const year = document.getElementById('yearSelect').value;
+                return { month, year };
+            }
+
+            // DOM elements
+            const loadingEl = document.getElementById('loadingState');
+            const emptyEl = document.getElementById('emptyState');
+            const tableContainer = document.getElementById('tableContainer');
+            const tableBody = document.getElementById('tableBody');
+            const fetchBtn = document.getElementById('fetchDataBtn');
+
+            // ---------- render table rows ----------
+            function renderRows(data) {
+                if (!data || data.length === 0) {
+                    tableContainer.style.display = 'none';
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                emptyEl.style.display = 'none';
+                tableContainer.style.display = 'block';
+
+                const fragment = document.createDocumentFragment();
+
+                data.forEach(emp => {
+                    const row = document.createElement('tr');
+
+                    // employee name with avatar (initials)
+                    const nameParts = (emp.name || 'Unknown').split(' ');
+                    const initials = nameParts.map(p => p[0] || '').join('').substring(0,2).toUpperCase() || '?';
+
+                    // productivity percent class
+                    const prod = parseFloat(emp.productivity_percent) || 0;
+                    let prodClass = 'productivity-medium';
+                    if (prod >= 80) prodClass = 'productivity-high';
+                    else if (prod < 60) prodClass = 'productivity-low';
+
+                    row.innerHTML = `
+                        <td>
+                            <div class="employee-cell">
+                                <div class="avatar-placeholder">${initials}</div>
+                                <span class="employee-name">${emp.name || '—'}</span>
+                            </div>
+                        </td>
+                        <td><span class="department-badge">${emp.department || '—'}</span></td>
+                        <td class="hours-value">${secondsToHHMM(emp.attendance_seconds)}</td>
+                        <td class="hours-value">${secondsToHHMM(emp.task_seconds)}</td>
+                        <td class="hours-value">${secondsToHHMM(emp.idle_seconds)}</td>
+                        <td class="hours-value">${secondsToHHMM(emp.overtime_seconds)}</td>
+                        <td><span class="${prodClass}">${prod.toFixed(1)}%</span></td>
+                    `;
+                    fragment.appendChild(row);
+                });
+
+                tableBody.innerHTML = '';
+                tableBody.appendChild(fragment);
+            }
+
+            // ---------- fetch and update view ----------
+            async function loadProductivity() {
+                // hide both table and empty, show loader
+                tableContainer.style.display = 'none';
+                emptyEl.style.display = 'none';
+                loadingEl.style.display = 'block';
+
+                const { month, year } = getSelectedMonthYear();
+
+                try {
+                    if (!token) {
+                        throw new Error('No access token found. Please log in again.');
+                    }
+
+                    const data = await apiFetch(`/admin/productivity?month=${month}&year=${year}`);
+                    renderRows(data);
+                } catch (error) {
+                    console.error('Productivity fetch error:', error);
+                    // show empty state with error hint (but keep it clean)
+                    emptyEl.querySelector('p').textContent = 'Failed to load data';
+                    emptyEl.querySelector('.empty-state-sub').textContent = error.message || 'Check connection or permissions';
+                    emptyEl.style.display = 'block';
+                    tableContainer.style.display = 'none';
+                } finally {
+                    loadingEl.style.display = 'none';
+                }
+            }
+
+            // ---------- sidebar load (identical to other pages) ----------
+            function loadSidebar() {
+                fetch('../shared/sidebar_admin.html')
+                    .then(res => {
+                        if (!res.ok) throw new Error('Sidebar load failed');
+                        return res.text();
+                    })
+                    .then(html => {
+                        document.getElementById('sidebar-container').innerHTML = html;
+                        // mark active link (simple approach: find by href or text)
+                        setTimeout(() => {
+                            const links = document.querySelectorAll('#sidebar-container a');
+                            links.forEach(link => {
+                                if (link.textContent.includes('Productivity') || link.href.includes('productivity')) {
+                                    link.classList.add('active');
+                                }
+                            });
+                        }, 50);
+                    })
+                    .catch(err => {
+                        console.warn('Sidebar error (non-critical):', err);
+                        // fallback minimal sidebar (just to keep UI)
+                        document.getElementById('sidebar-container').innerHTML = `
+                            <div style="padding: 20px; color: #1e293b;">
+                                <h3 style="margin-bottom: 20px;">Admin</h3>
+                                <ul style="list-style: none;">
+                                    <li style="padding: 8px 0;"><a href="#" style="color:#073379;">Dashboard</a></li>
+                                    <li style="padding: 8px 0;"><a href="#" style="color:#073379; font-weight:bold;">Productivity</a></li>
+                                </ul>
+                            </div>
+                        `;
+                    });
+            }
+
+            // ---------- init ----------
+            document.addEventListener('DOMContentLoaded', () => {
+                loadSidebar();
+
+                // set current month to February (as per default selected) — already selected
+                // attach event to fetch button
+                fetchBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadProductivity();
+                });
+
+                // optionally auto-load on page load (with default feb 2026)
+                loadProductivity();
+            });
+        })();
+    </script>
+    <!-- extra safe: ensure spinner animation (already in fontawesome) -->
+</body>
+</html>

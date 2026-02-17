@@ -14,16 +14,12 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(data: dict, expires_delta: int = 30):
-    """
-    data MUST contain: {"sub": "<USER_ID>"}
-    """
-    to_encode = data.copy()
 
+def create_access_token(data: dict, expires_delta: int = 30):
+    to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=expires_delta)
     to_encode["exp"] = expire
 
-    # ❌ DO NOT overwrite sub
     return jwt.encode(
         to_encode,
         settings.SECRET_KEY,

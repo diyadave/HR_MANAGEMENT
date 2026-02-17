@@ -45,8 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             // store auth info
-            localStorage.setItem("token", data.access_token);
-            localStorage.setItem("role", data.role);
+            localStorage.setItem("access_token", data.access_token);
+
+            localStorage.setItem("user", JSON.stringify({
+                id: data.user.id,
+                name: data.user.name,
+                role: data.user.role
+            }));
+
 
             // 🔐 FORCE PASSWORD CHANGE (FIRST LOGIN)
             if (data.force_password_change) {
@@ -55,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Role-based redirect
-            if (data.role === "admin") {
+            if (data.user.role === "admin") {
                 window.location.href = "../admin/dashboard.html";
             } else {
                 window.location.href = "../employee/dashboard.html";

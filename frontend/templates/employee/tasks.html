@@ -163,6 +163,11 @@
             background: #f8fafc;
         }
 
+        .tasks-table tbody tr.active-task {
+            background: #ecfdf5;
+            border-left: 3px solid #059669;
+        }
+
         .task-name {
             font-weight: 500;
             color: #0f172a;
@@ -251,9 +256,13 @@
             font-weight: 500;
         }
 
+        .hours-logged.running {
+            color: #059669;
+        }
+
         /* Action Button */
         .task-action-btn {
-            padding: 5px 14px;
+            padding: 6px 14px;
             background: #073379;
             color: white;
             border: none;
@@ -261,67 +270,43 @@
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            min-width: 70px;
         }
 
-        .task-action-btn:hover {
+        .task-action-btn:hover:not(:disabled) {
             background: #052654;
         }
 
         .task-action-btn:disabled {
             background: #cbd5e1;
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
-        .task-action-btn.resume {
+        .task-action-btn.running {
             background: #059669;
         }
 
-        .task-action-btn.resume:hover {
+        .task-action-btn.running:hover:not(:disabled) {
             background: #047857;
         }
 
-        /* Project Group View */
-        .project-group {
-            border-bottom: 1px solid #e2e8f0;
+        .task-action-btn.warning {
+            background: #dc2626;
         }
 
-        .project-group:last-child {
-            border-bottom: none;
+        .task-action-btn.warning:hover:not(:disabled) {
+            background: #b91c1c;
         }
 
-        .project-header {
-            background: #f8fafc;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .project-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .project-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .project-meta {
-            display: flex;
-            gap: 16px;
+        /* Task Timer Display */
+        .task-timer {
+            font-family: monospace;
             font-size: 12px;
-            color: #64748b;
-        }
-
-        .project-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 2px;
         }
 
         /* Empty State */
@@ -348,6 +333,27 @@
             font-size: 13px;
         }
 
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Error State */
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #dc2626;
+            font-size: 13px;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .main-content {
@@ -363,6 +369,7 @@
             .main-content {
                 margin-left: 0;
                 padding: 16px;
+                padding-bottom: 80px;
             }
 
             .page-header {
@@ -380,36 +387,27 @@
                 min-width: 120px;
             }
 
-            .tasks-table {
+            .tasks-table th,
+            .tasks-table td {
+                padding: 10px 8px;
                 font-size: 12px;
             }
 
-            .tasks-table th,
-            .tasks-table td {
-                padding: 10px 12px;
+            .task-action-btn {
+                padding: 4px 8px;
+                min-width: 60px;
+                font-size: 11px;
             }
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 13px;
-        }
-
-        /* Hidden class */
-        .hidden {
-            display: none;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar Container -->
     <div id="sidebar-container"></div>
+    <div id="tracker-container"></div>
 
     <!-- Tracker Container -->
-    <div id="tracker-container"></div>
+ 
 
     <!-- Main Content -->
     <div class="main-content">
@@ -420,27 +418,23 @@
                 <p class="page-subtitle">Manage your assigned work</p>
             </div>
             <div class="header-filters">
-                <select class="filter-select" id="filterProject" onchange="applyFilters()">
+                <select class="filter-select" id="filterProject">
                     <option value="">All Projects</option>
-                    <option value="hr-system">HR System Upgrade</option>
-                    <option value="q1-reports">Q1 Reports</option>
-                    <option value="admin-tools">Admin Tools</option>
-                    <option value="internal-portal">Internal Portal</option>
                 </select>
-                <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+                <select class="filter-select" id="filterStatus">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="on-hold">On Hold</option>
                 </select>
-                <select class="filter-select" id="filterPriority" onchange="applyFilters()">
+                <select class="filter-select" id="filterPriority">
                     <option value="">All Priority</option>
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
                 </select>
-                <button class="btn-toggle" id="btnGroupToggle" onclick="toggleGrouping()">
+                <button class="btn-toggle" id="btnGroupToggle">
                     Group by Project
                 </button>
             </div>
@@ -451,186 +445,148 @@
             <table class="tasks-table">
                 <thead>
                     <tr>
-                        <th style="width: 35%;">Task Name</th>
-                        <th style="width: 15%;">Priority</th>
+                        <th style="width: 30%;">Task Name</th>
+                        <th style="width: 12%;">Priority</th>
                         <th style="width: 12%;">Status</th>
                         <th style="width: 12%;">Due Date</th>
-                        <th style="width: 10%;">Hours Logged</th>
-                        <th style="width: 10%; text-align: center;">Action</th>
+                        <th style="width: 12%;">Hours Logged</th>
+                        <th style="width: 12%; text-align: center;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="tasksTableBody">
-                    <!-- Populated by JavaScript -->
+                    <tr>
+                        <td colspan="6" class="loading">Loading tasks...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Tasks Grouped by Project -->
+        <!-- Tasks Grouped by Project (Hidden by default) -->
         <div class="table-section hidden" id="groupedView">
-            <div id="groupedTasksContainer">
-                <!-- Populated by JavaScript -->
-            </div>
+            <div id="groupedTasksContainer"></div>
         </div>
     </div>
 
     <script>
-        // Mock Data - Tasks
-        const tasks = [
-            {
-                id: 1,
-                name: "Update Employee Dashboard UI",
-                project: "hr-system",
-                projectName: "HR System Upgrade",
-                priority: "high",
-                status: "in-progress",
-                dueDate: "2026-02-05",
-                hoursLogged: 8.5,
-                isActive: true
-            },
-            {
-                id: 2,
-                name: "Review Q1 Performance Reports",
-                project: "q1-reports",
-                projectName: "Q1 Reports",
-                priority: "medium",
-                status: "pending",
-                dueDate: "2026-02-08",
-                hoursLogged: 0,
-                isActive: false
-            },
-            {
-                id: 3,
-                name: "Fix Login Authentication Bug",
-                project: "hr-system",
-                projectName: "HR System Upgrade",
-                priority: "high",
-                status: "in-progress",
-                dueDate: "2026-02-04",
-                hoursLogged: 3.5,
-                isActive: false
-            },
-            {
-                id: 4,
-                name: "Prepare Quarterly Financial Summary",
-                project: "q1-reports",
-                projectName: "Q1 Reports",
-                priority: "high",
-                status: "pending",
-                dueDate: "2026-02-10",
-                hoursLogged: 1.0,
-                isActive: false
-            },
-            {
-                id: 5,
-                name: "Admin Panel User Guide Documentation",
-                project: "admin-tools",
-                projectName: "Admin Tools",
-                priority: "medium",
-                status: "in-progress",
-                dueDate: "2026-02-12",
-                hoursLogged: 5.0,
-                isActive: false
-            },
-            {
-                id: 6,
-                name: "Update Employee Database Schema",
-                project: "hr-system",
-                projectName: "HR System Upgrade",
-                priority: "low",
-                status: "on-hold",
-                dueDate: "2026-02-15",
-                hoursLogged: 2.5,
-                isActive: false
-            },
-            {
-                id: 7,
-                name: "Submit Weekly Timesheet",
-                project: "internal-portal",
-                projectName: "Internal Portal",
-                priority: "medium",
-                status: "completed",
-                dueDate: "2026-02-01",
-                hoursLogged: 0.5,
-                isActive: false
-            },
-            {
-                id: 8,
-                name: "Team Sync Meeting Notes",
-                project: "internal-portal",
-                projectName: "Internal Portal",
-                priority: "low",
-                status: "completed",
-                dueDate: "2026-01-30",
-                hoursLogged: 0.25,
-                isActive: false
-            },
-            {
-                id: 9,
-                name: "Implement Role-Based Access Control",
-                project: "admin-tools",
-                projectName: "Admin Tools",
-                priority: "high",
-                status: "pending",
-                dueDate: "2026-02-14",
-                hoursLogged: 0,
-                isActive: false
-            },
-            {
-                id: 10,
-                name: "Create Leave Management Module",
-                project: "hr-system",
-                projectName: "HR System Upgrade",
-                priority: "medium",
-                status: "pending",
-                dueDate: "2026-02-18",
-                hoursLogged: 0,
-                isActive: false
-            }
-        ];
-
-        let allTasks = [...tasks];
+        // ==================== STATE ====================
+        let allTasks = [];
+        let filteredTasks = [];
+        let activeTaskId = null;
+        let activeTaskTimer = null;
         let isGrouped = false;
+        let isClockedIn = false;
 
-        // Load Components
-        function loadSidebar() {
-            fetch('../shared/sidebar_employee.html')
-                .then(response => {
-                    if (!response.ok) throw new Error('Sidebar not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('sidebar-container').innerHTML = data;
-                    highlightActivePage();
-                })
-                .catch(error => console.error('Error loading sidebar:', error));
+        // ==================== LOAD SHARED COMPONENTS ====================
+        async function loadSidebar() {
+            try {
+                const response = await fetch('../shared/sidebar_employee.html');
+                const html = await response.text();
+                document.getElementById('sidebar-container').innerHTML = html;
+                highlightActivePage();
+            } catch (error) {
+                console.error('Error loading sidebar:', error);
+            }
         }
 
-        function loadTracker() {
-            fetch('../shared/tracker_employee.html')
-                .then(response => {
-                    if (!response.ok) throw new Error('Tracker not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('tracker-container').innerHTML = data;
-                })
-                .catch(error => console.error('Error loading tracker:', error));
-        }
+        
 
-        function highlightActivePage() {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                if (item.getAttribute('data-page') === 'my_tasks') {
-                    item.classList.add('active');
+        // ==================== TASK TIMER UPDATE ====================
+        function startTaskTimerUpdate() {
+            if (activeTaskTimer) {
+                clearInterval(activeTaskTimer);
+            }
+            
+            activeTaskTimer = setInterval(() => {
+                if (activeTaskId && window.Tracker) {
+                    const state = window.Tracker.getState();
+                    if (state.activeTask) {
+                        // Update the task row with current task time
+                        updateTaskRowTime(activeTaskId, state.taskSeconds);
+                    }
                 }
+            }, 1000);
+        }
+
+        function stopTaskTimerUpdate() {
+            if (activeTaskTimer) {
+                clearInterval(activeTaskTimer);
+                activeTaskTimer = null;
+            }
+        }
+
+        // Update specific task row with current time
+        function updateTaskRowTime(taskId, seconds) {
+            const taskRow = document.querySelector(`tr[data-task-id="${taskId}"]`);
+            if (taskRow) {
+                const hoursCell = taskRow.querySelector('.hours-logged');
+                if (hoursCell) {
+                    const hours = (seconds / 3600).toFixed(1);
+                    hoursCell.innerHTML = `${hours}h <span class="task-timer">(running)</span>`;
+                    hoursCell.classList.add('running');
+                }
+            }
+        }
+
+        // ==================== LOAD TASKS ====================
+        async function loadTasks() {
+            try {
+                allTasks = await API.getMyTasks();
+                
+                // Get active task from tracker
+                if (window.Tracker) {
+                    const state = window.Tracker.getState();
+                    activeTaskId = state.activeTask?.id || null;
+                    isClockedIn = state.isClockedIn;
+                }
+                
+                applyFilters(); // This will render tasks
+                populateFilters();
+                
+                // Start timer update if there's an active task
+                if (activeTaskId) {
+                    startTaskTimerUpdate();
+                }
+                
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+                showError('Failed to load tasks');
+            }
+        }
+
+        // ==================== POPULATE FILTERS ====================
+        function populateFilters() {
+            const projects = [...new Set(allTasks.map(t => t.project_name).filter(Boolean))];
+            const projectSelect = document.getElementById('filterProject');
+            
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project;
+                option.textContent = project;
+                projectSelect.appendChild(option);
             });
         }
 
-        // Render Tasks
-        function renderTasks(tasksToRender) {
+        // ==================== APPLY FILTERS ====================
+        function applyFilters() {
+            const project = document.getElementById('filterProject').value;
+            const status = document.getElementById('filterStatus').value;
+            const priority = document.getElementById('filterPriority').value;
+            
+            filteredTasks = allTasks.filter(task => {
+                if (project && task.project_name !== project) return false;
+                if (status && task.status !== status) return false;
+                if (priority && task.priority !== priority) return false;
+                return true;
+            });
+            
+            renderTasks(filteredTasks);
+        }
+
+        // ==================== RENDER TASKS ====================
+        function renderTasks(tasks) {
             const tbody = document.getElementById('tasksTableBody');
             
-            if (tasksToRender.length === 0) {
+            if (!tasks || tasks.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6">
@@ -645,108 +601,279 @@
                 return;
             }
 
-            tbody.innerHTML = tasksToRender.map(task => {
-                const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
-                const actionButton = getActionButton(task);
+            tbody.innerHTML = tasks.map(task => {
+                const isActive = task.id === activeTaskId;
+                const rowClass = isActive ? 'active-task' : '';
+                
+                // Determine button state and text
+                let buttonText = 'Start';
+                let buttonClass = 'task-action-btn';
+                let disabled = false;
+                
+                if (isActive) {
+                    buttonText = 'Stop';
+                    buttonClass += ' running';
+                } else if (!isClockedIn) {
+                    disabled = true;
+                } else if (activeTaskId && !isActive) {
+                    disabled = true;
+                }
+                
+                // Format hours
+                let hoursDisplay = task.hours_logged || 0;
+                if (isActive && window.Tracker) {
+                    const state = window.Tracker.getState();
+                    hoursDisplay = (state.taskSeconds / 3600).toFixed(1);
+                }
                 
                 return `
-                    <tr>
+                    <tr data-task-id="${task.id}" class="${rowClass}">
                         <td>
-                            <div class="task-name">${task.name}</div>
-                            <div class="task-project">${task.projectName}</div>
+                            <div class="task-name">${escapeHtml(task.title)}</div>
+                            <div class="task-project">${escapeHtml(task.project_name) || 'No Project'}</div>
                         </td>
                         <td>
                             <div class="priority-indicator">
-                                <span class="priority-dot ${task.priority}"></span>
-                                <span class="priority-text">${capitalize(task.priority)}</span>
+                                <div class="priority-dot ${task.priority || 'medium'}"></div>
+                                <span class="priority-text">${capitalize(task.priority || 'medium')}</span>
                             </div>
                         </td>
                         <td>
-                            <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+                            <span class="status-badge ${(task.status || 'pending').replace('_', '-')}">
+                                ${capitalize(task.status || 'pending').replace('_', ' ')}
+                            </span>
                         </td>
                         <td>
-                            <span class="due-date ${isOverdue ? 'overdue' : ''}">${formatDate(task.dueDate)}</span>
+                            <span class="due-date ${isOverdue(task.due_date) ? 'overdue' : ''}">
+                                ${formatDate(task.due_date) || '-'}
+                            </span>
                         </td>
                         <td>
-                            <span class="hours-logged">${task.hoursLogged}h</span>
+                            <span class="hours-logged ${isActive ? 'running' : ''}">
+                                ${hoursDisplay}h
+                                ${isActive ? '<span class="task-timer">(running)</span>' : ''}
+                            </span>
                         </td>
-                        <td style="text-align: center;">
-                            ${actionButton}
+                        <td style="text-align:center;">
+                            <button 
+                                class="${buttonClass}"
+                                onclick="handleTaskAction(${task.id}, '${escapeHtml(task.title)}')"
+                                ${disabled ? 'disabled' : ''}
+                                ${isActive ? 'data-running="true"' : ''}>
+                                ${buttonText}
+                            </button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // Render Grouped Tasks
-        function renderGroupedTasks(tasksToRender) {
-            const container = document.getElementById('groupedTasksContainer');
-            
-            if (tasksToRender.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div class="empty-state-title">No tasks found</div>
-                        <div class="empty-state-text">Try adjusting your filters</div>
-                    </div>
-                `;
-                return;
+        // ==================== HELPER FUNCTIONS ====================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function capitalize(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return null;
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch {
+                return dateStr;
             }
+        }
 
-            // Group tasks by project
-            const grouped = tasksToRender.reduce((acc, task) => {
-                if (!acc[task.project]) {
-                    acc[task.project] = {
-                        name: task.projectName,
-                        tasks: [],
-                        totalHours: 0
-                    };
+        function isOverdue(dateStr) {
+            if (!dateStr) return false;
+            try {
+                const dueDate = new Date(dateStr);
+                const today = new Date();
+                return dueDate < today;
+            } catch {
+                return false;
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('tasksTableBody').innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="error-message">
+                            ⚠️ ${message}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // ==================== HANDLE TASK ACTION ====================
+        async function handleTaskAction(taskId, taskTitle) {
+            const button = event.target;
+            button.disabled = true;
+            
+            try {
+                if (activeTaskId === taskId) {
+                    // STOP TASK
+                    if (window.Tracker) {
+                        const success = await window.Tracker.stopTask();
+                        if (success) {
+                            activeTaskId = null;
+                            stopTaskTimerUpdate();
+                        }
+                    }
+                } else {
+                    // START TASK
+                    if (window.Tracker) {
+                        // Check if clocked in
+                        const state = window.Tracker.getState();
+                        if (!state.isClockedIn) {
+                            alert('Please clock in first');
+                            button.disabled = false;
+                            return;
+                        }
+                        
+                        // Check if another task is running
+                        if (state.activeTask) {
+                            alert(`Please stop "${state.activeTask.title}" first`);
+                            button.disabled = false;
+                            return;
+                        }
+                        
+                        const success = await window.Tracker.startTask(taskId, taskTitle);
+                        if (success) {
+                            activeTaskId = taskId;
+                            startTaskTimerUpdate();
+                        }
+                    }
                 }
-                acc[task.project].tasks.push(task);
-                acc[task.project].totalHours += task.hoursLogged;
-                return acc;
-            }, {});
+                
+                // Refresh tasks
+                await loadTasks();
+                
+            } catch (error) {
+                console.error('Task action failed:', error);
+                alert(error.message || 'Action failed');
+            } finally {
+                button.disabled = false;
+            }
+        }
 
-            container.innerHTML = Object.entries(grouped).map(([projectKey, projectData]) => {
+        // ==================== TOGGLE GROUPING ====================
+        function toggleGrouping() {
+            isGrouped = !isGrouped;
+            const btn = document.getElementById('btnGroupToggle');
+            const flatView = document.getElementById('flatView');
+            const groupedView = document.getElementById('groupedView');
+            
+            btn.textContent = isGrouped ? 'Flat View' : 'Group by Project';
+            
+            if (isGrouped) {
+                flatView.classList.add('hidden');
+                groupedView.classList.remove('hidden');
+                renderGroupedView();
+            } else {
+                flatView.classList.remove('hidden');
+                groupedView.classList.add('hidden');
+                renderTasks(filteredTasks);
+            }
+        }
+
+        // ==================== RENDER GROUPED VIEW ====================
+        function renderGroupedView() {
+            const container = document.getElementById('groupedTasksContainer');
+            const grouped = {};
+            
+            filteredTasks.forEach(task => {
+                const project = task.project_name || 'Other';
+                if (!grouped[project]) grouped[project] = [];
+                grouped[project].push(task);
+            });
+            
+            container.innerHTML = Object.entries(grouped).map(([project, tasks]) => {
+                const projectTotal = tasks.reduce((sum, t) => sum + (t.hours_logged || 0), 0);
+                
                 return `
                     <div class="project-group">
                         <div class="project-header">
                             <div class="project-info">
-                                <span class="project-name">${projectData.name}</span>
-                            </div>
-                            <div class="project-meta">
-                                <span>${projectData.tasks.length} task${projectData.tasks.length !== 1 ? 's' : ''}</span>
-                                <span>${projectData.totalHours.toFixed(1)}h logged</span>
+                                <span class="project-name">${escapeHtml(project)}</span>
+                                <span class="project-meta">
+                                    <span>📋 ${tasks.length} tasks</span>
+                                    <span>⏱ ${projectTotal.toFixed(1)}h total</span>
+                                </span>
                             </div>
                         </div>
                         <table class="tasks-table">
                             <tbody>
-                                ${projectData.tasks.map(task => {
-                                    const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
-                                    const actionButton = getActionButton(task);
+                                ${tasks.map(task => {
+                                    const isActive = task.id === activeTaskId;
+                                    const rowClass = isActive ? 'active-task' : '';
+                                    
+                                    let buttonText = 'Start';
+                                    let buttonClass = 'task-action-btn';
+                                    let disabled = false;
+                                    
+                                    if (isActive) {
+                                        buttonText = 'Stop';
+                                        buttonClass += ' running';
+                                    } else if (!isClockedIn) {
+                                        disabled = true;
+                                    } else if (activeTaskId && !isActive) {
+                                        disabled = true;
+                                    }
+                                    
+                                    let hoursDisplay = task.hours_logged || 0;
+                                    if (isActive && window.Tracker) {
+                                        const state = window.Tracker.getState();
+                                        hoursDisplay = (state.taskSeconds / 3600).toFixed(1);
+                                    }
                                     
                                     return `
-                                        <tr>
-                                            <td style="width: 40%;">
-                                                <div class="task-name">${task.name}</div>
+                                        <tr data-task-id="${task.id}" class="${rowClass}">
+                                            <td style="width: 35%;">
+                                                <div class="task-name">${escapeHtml(task.title)}</div>
                                             </td>
                                             <td style="width: 15%;">
                                                 <div class="priority-indicator">
-                                                    <span class="priority-dot ${task.priority}"></span>
-                                                    <span class="priority-text">${capitalize(task.priority)}</span>
+                                                    <div class="priority-dot ${task.priority || 'medium'}"></div>
+                                                    <span>${capitalize(task.priority || 'medium')}</span>
                                                 </div>
                                             </td>
                                             <td style="width: 12%;">
-                                                <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+                                                <span class="status-badge ${(task.status || 'pending').replace('_', '-')}">
+                                                    ${capitalize(task.status || 'pending').replace('_', ' ')}
+                                                </span>
                                             </td>
                                             <td style="width: 12%;">
-                                                <span class="due-date ${isOverdue ? 'overdue' : ''}">${formatDate(task.dueDate)}</span>
+                                                <span class="due-date ${isOverdue(task.due_date) ? 'overdue' : ''}">
+                                                    ${formatDate(task.due_date) || '-'}
+                                                </span>
                                             </td>
                                             <td style="width: 10%;">
-                                                <span class="hours-logged">${task.hoursLogged}h</span>
+                                                <span class="hours-logged ${isActive ? 'running' : ''}">
+                                                    ${hoursDisplay}h
+                                                    ${isActive ? '<span class="task-timer">(running)</span>' : ''}
+                                                </span>
                                             </td>
-                                            <td style="width: 10%; text-align: center;">
-                                                ${actionButton}
+                                            <td style="width: 10%; text-align:center;">
+                                                <button 
+                                                    class="${buttonClass}"
+                                                    onclick="handleTaskAction(${task.id}, '${escapeHtml(task.title)}')"
+                                                    ${disabled ? 'disabled' : ''}
+                                                    ${isActive ? 'data-running="true"' : ''}>
+                                                    ${buttonText}
+                                                </button>
                                             </td>
                                         </tr>
                                     `;
@@ -758,135 +885,60 @@
             }).join('');
         }
 
-        // Get Action Button
-        function getActionButton(task) {
-            if (task.status === 'completed') {
-                return '<button class="task-action-btn" disabled>Completed</button>';
-            } else if (task.isActive) {
-                return '<button class="task-action-btn resume" onclick="stopTask(' + task.id + ')">Stop</button>';
-            } else if (task.status === 'in-progress') {
-                return '<button class="task-action-btn resume" onclick="startTask(' + task.id + ')">Resume</button>';
-            } else {
-                return '<button class="task-action-btn" onclick="startTask(' + task.id + ')">Start</button>';
-            }
-        }
-
-        // Start Task
-        function startTask(taskId) {
-            // Check if already clocked in
-            const clockInTime = localStorage.getItem('clockInTime');
-            if (!clockInTime) {
-                alert('Please clock in first before starting a task.');
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            if (!localStorage.getItem('access_token')) {
+                window.location.href = '/login.html';
                 return;
             }
 
-            // Stop any currently active task
-            allTasks.forEach(t => t.isActive = false);
+            await loadSidebar();
+          
             
-            // Start this task
-            const task = allTasks.find(t => t.id === taskId);
-            if (task) {
-                task.isActive = true;
-                task.status = 'in-progress';
-                
-                // Save to localStorage
-                localStorage.setItem('activeTask', task.name);
-                localStorage.setItem('taskStartTime', new Date().toISOString());
-                
-                // Re-render
-                if (isGrouped) {
-                    renderGroupedTasks(getFilteredTasks());
-                } else {
-                    renderTasks(getFilteredTasks());
-                }
-            }
-        }
+            // Load tasks after tracker is ready
+            setTimeout(async () => {
+                await loadTasks();
+            }, 200);
 
-        // Stop Task
-        function stopTask(taskId) {
-            const task = allTasks.find(t => t.id === taskId);
-            if (task) {
-                task.isActive = false;
-                
-                // Clear from localStorage
-                localStorage.removeItem('activeTask');
-                localStorage.removeItem('taskStartTime');
-                
-                // Re-render
-                if (isGrouped) {
-                    renderGroupedTasks(getFilteredTasks());
-                } else {
-                    renderTasks(getFilteredTasks());
-                }
-            }
-        }
-
-        // Toggle Grouping
-        function toggleGrouping() {
-            isGrouped = !isGrouped;
-            const flatView = document.getElementById('flatView');
-            const groupedView = document.getElementById('groupedView');
-            const btnToggle = document.getElementById('btnGroupToggle');
-
-            if (isGrouped) {
-                flatView.classList.add('hidden');
-                groupedView.classList.remove('hidden');
-                btnToggle.classList.add('active');
-                renderGroupedTasks(getFilteredTasks());
-            } else {
-                flatView.classList.remove('hidden');
-                groupedView.classList.add('hidden');
-                btnToggle.classList.remove('active');
-                renderTasks(getFilteredTasks());
-            }
-        }
-
-        // Apply Filters
-        function applyFilters() {
-            const filteredTasks = getFilteredTasks();
+            // Event listeners
+            document.getElementById('filterProject').addEventListener('change', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterPriority').addEventListener('change', applyFilters);
+            document.getElementById('btnGroupToggle').addEventListener('click', toggleGrouping);
             
-            if (isGrouped) {
-                renderGroupedTasks(filteredTasks);
-            } else {
-                renderTasks(filteredTasks);
-            }
-        }
-
-        // Get Filtered Tasks
-        function getFilteredTasks() {
-            const projectFilter = document.getElementById('filterProject').value;
-            const statusFilter = document.getElementById('filterStatus').value;
-            const priorityFilter = document.getElementById('filterPriority').value;
-
-            return allTasks.filter(task => {
-                if (projectFilter && task.project !== projectFilter) return false;
-                if (statusFilter && task.status !== statusFilter) return false;
-                if (priorityFilter && task.priority !== priorityFilter) return false;
-                return true;
+            // Refresh when page becomes visible
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    loadTasks();
+                }
             });
-        }
 
-        // Helper Functions
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        function formatStatus(status) {
-            return status.split('-').map(word => capitalize(word)).join(' ');
-        }
-
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const options = { month: 'short', day: 'numeric', year: 'numeric' };
-            return date.toLocaleDateString('en-US', options);
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSidebar();
-            loadTracker();
-            renderTasks(allTasks);
+            // Clean up on page unload
+            window.addEventListener('beforeunload', () => {
+                stopTaskTimerUpdate();
+            });
         });
+
+        // Make functions global for onclick handlers
+        window.handleTaskAction = handleTaskAction;
+        window.applyFilters = applyFilters;
+        window.toggleGrouping = toggleGrouping;
+       function highlightActivePage() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const pageName = currentPage.replace('.html', '');
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('data-page') === pageName) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+} 
     </script>
+ <script src="../../static/js/api.js"></script>
+<script src="../../static/js/tracker.js"></script>
+<script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>

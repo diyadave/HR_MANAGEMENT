@@ -94,6 +94,7 @@
             border: 1px solid #E5E7EB;
             border-radius: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .filter-group {
@@ -127,6 +128,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .action-buttons {
@@ -315,6 +318,20 @@
             border-top: 2px solid #E5E7EB;
         }
 
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748B;
+        }
+
+        /* Error state */
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #DC2626;
+        }
+
         /* Scrollbar styling */
         .table-wrapper::-webkit-scrollbar {
             height: 8px;
@@ -337,7 +354,8 @@
 </head>
 <body>
     <div class="container">
-          <div id="sidebar-container"></div>
+        <div id="sidebar-container"></div>
+        
         <!-- Header -->
         <div class="header">
             <div>
@@ -345,73 +363,56 @@
                 <h1 class="page-title">Attendance</h1>
             </div>
             <div class="header-actions">
-                <button class="icon-button">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 14L10 10M11.3333 6.66667C11.3333 9.244 9.244 11.3333 6.66667 11.3333C4.08934 11.3333 2 9.244 2 6.66667C2 4.08934 4.08934 2 6.66667 2C9.244 2 11.3333 4.08934 11.3333 6.66667Z" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <button class="icon-button" onclick="refreshData()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M14 14L10 10M11.3333 6.66667C11.3333 9.244 9.244 11.3333 6.66667 11.3333C4.08934 11.3333 2 9.244 2 6.66667C2 4.08934 4.08934 2 6.66667 2C9.244 2 11.3333 4.08934 11.3333 6.66667Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <button class="icon-button">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 2.5C8 2.5 3.5 4 3.5 8V11.5L5.5 9.5M8 2.5C8 2.5 12.5 4 12.5 8V11.5L10.5 9.5M8 2.5V13.5" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="profile-placeholder">AJ</div>
+                <div class="profile-placeholder">AD</div>
             </div>
         </div>
 
         <!-- Filter Bar -->
         <div class="filter-bar">
             <div class="filter-group">
-                <label class="filter-label">Employee</label>
-                <select class="filter-select">
-                    <option>All Employees</option>
-                    <option>Active Only</option>
-                    <option>Inactive Only</option>
-                </select>
-            </div>
-            <div class="filter-group">
                 <label class="filter-label">Department</label>
-                <select class="filter-select">
-                    <option>All Departments</option>
-                    <option>Engineering</option>
-                    <option>Sales</option>
-                    <option>Marketing</option>
-                    <option>HR</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Designation</label>
-                <select class="filter-select">
-                    <option>All Designations</option>
-                    <option>Manager</option>
-                    <option>Senior</option>
-                    <option>Junior</option>
-                    <option>Intern</option>
+                <select class="filter-select" id="deptFilter">
+                    <option value="">All Departments</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Month</label>
-                <select class="filter-select">
-                    <option>February 2026</option>
-                    <option>January 2026</option>
-                    <option>December 2025</option>
+                <select class="filter-select" id="monthFilter">
+                    <option value="1">January</option>
+                    <option value="2" selected>February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Year</label>
-                <select class="filter-select">
-                    <option>2026</option>
-                    <option>2025</option>
-                    <option>2024</option>
+                <select class="filter-select" id="yearFilter">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
                 </select>
             </div>
+            <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
         </div>
 
         <!-- Action Buttons & Legend -->
         <div class="action-bar">
             <div class="action-buttons">
                 <button class="btn btn-primary">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                         <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                     Mark Attendance
@@ -434,208 +435,15 @@
         <div class="table-container">
             <div class="table-wrapper">
                 <table class="attendance-table">
-                    <thead>
+                    <thead id="tableHeader">
                         <tr>
                             <th class="employee-col">Employee</th>
-                            <th class="date-header">1<br><span class="weekday">Mon</span></th>
-                            <th class="date-header">2<br><span class="weekday">Tue</span></th>
-                            <th class="date-header">3<br><span class="weekday">Wed</span></th>
-                            <th class="date-header">4<br><span class="weekday">Thu</span></th>
-                            <th class="date-header">5<br><span class="weekday">Fri</span></th>
-                            <th class="date-header">6<br><span class="weekday">Sat</span></th>
-                            <th class="date-header">7<br><span class="weekday">Sun</span></th>
-                            <th class="date-header">8<br><span class="weekday">Mon</span></th>
-                            <th class="date-header">9<br><span class="weekday">Tue</span></th>
-                            <th class="date-header">10<br><span class="weekday">Wed</span></th>
-                            <th class="date-header">11<br><span class="weekday">Thu</span></th>
-                            <th class="date-header">12<br><span class="weekday">Fri</span></th>
-                            <th class="date-header">13<br><span class="weekday">Sat</span></th>
-                            <th class="date-header">14<br><span class="weekday">Sun</span></th>
-                            <th class="date-header">15<br><span class="weekday">Mon</span></th>
-                            <th class="date-header">16<br><span class="weekday">Tue</span></th>
-                            <th class="date-header">17<br><span class="weekday">Wed</span></th>
-                            <th class="date-header">18<br><span class="weekday">Thu</span></th>
-                            <th class="date-header">19<br><span class="weekday">Fri</span></th>
-                            <th class="date-header">20<br><span class="weekday">Sat</span></th>
-                            <th class="date-header">21<br><span class="weekday">Sun</span></th>
-                            <th class="date-header">22<br><span class="weekday">Mon</span></th>
-                            <th class="date-header">23<br><span class="weekday">Tue</span></th>
-                            <th class="date-header">24<br><span class="weekday">Wed</span></th>
-                            <th class="date-header">25<br><span class="weekday">Thu</span></th>
-                            <th class="date-header">26<br><span class="weekday">Fri</span></th>
-                            <th class="date-header">27<br><span class="weekday">Sat</span></th>
-                            <th class="date-header">28<br><span class="weekday">Sun</span></th>
-                            <th class="total-col">Total</th>
+                            <!-- Dates will be populated by JS -->
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                         <tr>
-                            <td class="employee-col">
-                                <div class="employee-name">Alex Johnson</div>
-                                <div class="employee-details">ENG-001 • Engineering</div>
-                            </td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-late">⏰</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-halfday">★</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-leave">🚫</div></td>
-                            <td class="date-cell"><div class="status-icon status-leave">🚫</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-late">⏰</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="total-col">18/28</td>
-                        </tr>
-                        <tr>
-                            <td class="employee-col">
-                                <div class="employee-name">Sarah Miller</div>
-                                <div class="employee-details">SAL-007 • Sales</div>
-                            </td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-absent">✖</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-late">⏰</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="total-col">20/28</td>
-                        </tr>
-                        <tr>
-                            <td class="employee-col">
-                                <div class="employee-name">Michael Chen</div>
-                                <div class="employee-details">MKT-012 • Marketing</div>
-                            </td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-halfday">★</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-leave">🚫</div></td>
-                            <td class="date-cell"><div class="status-icon status-leave">🚫</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="total-col">19/28</td>
-                        </tr>
-                        <tr>
-                            <td class="employee-col">
-                                <div class="employee-name">David Wilson</div>
-                                <div class="employee-details">HR-003 • Human Resources</div>
-                            </td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-late">⏰</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-present">✔</div></td>
-                            <td class="date-cell"><div class="status-icon status-dayoff">📅</div></td>
-                            <td class="date-cell"><div class="status-icon status-holiday">⭐</div></td>
-                            <td class="total-col">21/28</td>
-                        </tr>
-                        <!-- Summary Row -->
-                        <tr class="summary-row">
-                            <td class="employee-col">Department Summary</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">3</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">3.5</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">3.5</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">3</td>
-                            <td class="date-cell">2</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">4</td>
-                            <td class="date-cell">0</td>
-                            <td class="date-cell">0</td>
-                            <td class="total-col">78/112</td>
+                            <td cols    pan="32" class="loading">Loading attendance data...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -643,21 +451,212 @@
         </div>
     </div>
     
-     // Load sidebar
-<script>
-fetch("../shared/sidebar_admin.html")
-  .then(res => res.text())
-  .then(html => {
-    document.getElementById("sidebar-container").innerHTML = html;
+ <script src="../../static/js/api.js"></script>
+    <script>
+        // Check authentication
+        if (!localStorage.getItem('access_token')) {
+            window.location.href = '/login.html';
+        }
 
-    const current = location.pathname.split("/").pop();
-    document.querySelectorAll(".sidebar a").forEach(link => {
-      if (link.getAttribute("href")?.includes(current)) {
-        link.classList.add("active");
-      }
-    });
-  });
-</script>
+        // Load sidebar
+        fetch("../shared/sidebar_admin.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+                const current = location.pathname.split("/").pop();
+                document.querySelectorAll(".sidebar a").forEach(link => {
+                    if (link.getAttribute("href")?.includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            });
 
+        // State
+        let currentMonth = 2; // February
+        let currentYear = 2026;
+        let attendanceData = [];
+        let departments = [];
+
+        // Get status icon
+        function getStatusIcon(status) {
+            const icons = {
+                'present': '✔',
+                'late': '⏰',
+                'absent': '✖',
+                'halfday': '★',
+                'holiday': '⭐',
+                'leave': '🚫',
+                'dayoff': '📅'
+            };
+            return icons[status] || '◯';
+        }
+
+        // Get status class
+        function getStatusClass(status) {
+            const classes = {
+                'present': 'status-present',
+                'late': 'status-late',
+                'absent': 'status-absent',
+                'halfday': 'status-halfday',
+                'holiday': 'status-holiday',
+                'leave': 'status-leave',
+                'dayoff': 'status-dayoff'
+            };
+            return classes[status] || '';
+        }
+
+        // Generate calendar days
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        // Get weekday name
+        function getWeekday(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return weekdays[date.getDay()];
+        }
+
+        // Render table header
+        function renderHeader() {
+            const days = getDaysInMonth(currentYear, currentMonth);
+            const headerRow = document.querySelector('#tableHeader tr');
+            
+            let html = '<th class="employee-col">Employee</th>';
+            
+            for (let d = 1; d <= days; d++) {
+                const weekday = getWeekday(currentYear, currentMonth, d);
+                html += `<th class="date-header">${d}<br><span class="weekday">${weekday}</span></th>`;
+            }
+            
+            html += '<th class="total-col">Total</th>';
+            headerRow.innerHTML = html;
+        }
+
+        // Render table body
+        function renderBody() {
+            const tbody = document.getElementById('tableBody');
+            const days = getDaysInMonth(currentYear, currentMonth);
+            
+            if (!attendanceData || attendanceData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${days + 2}" class="loading">No attendance data available</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = attendanceData.map(emp => {
+                let rowHtml = `
+                    <tr>
+                        <td class="employee-col">
+                            <div class="employee-name">${escapeHtml(emp.name)}</div>
+                            <div class="employee-details">${escapeHtml(emp.department || '')} • ${escapeHtml(emp.designation || '')}</div>
+                        </td>
+                `;
+
+                // Add daily status
+                for (let d = 1; d <= days; d++) {
+                    const status = emp.days?.[d] || 'absent';
+                    const icon = getStatusIcon(status);
+                    const statusClass = getStatusClass(status);
+                    
+                    rowHtml += `
+                        <td class="date-cell">
+                            <span class="status-icon ${statusClass}">${icon}</span>
+                        </td>
+                    `;
+                }
+
+                // Add total
+                rowHtml += `<td class="total-col">${emp.total_present_days || 0}</td></tr>`;
+                
+                return rowHtml;
+            }).join('');
+
+            // Add summary row
+            if (attendanceData.length > 0) {
+                const summary = calculateSummary();
+                tbody.innerHTML += `
+                    <tr class="summary-row">
+                        <td class="employee-col"><strong>Summary</strong></td>
+                        ${Array(days).fill().map(() => '<td></td>').join('')}
+                        <td class="total-col">${summary.avgPresent.toFixed(1)} avg</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Calculate summary
+        function calculateSummary() {
+            if (!attendanceData.length) return { avgPresent: 0 };
+            
+            const totalPresent = attendanceData.reduce((sum, emp) => sum + (emp.total_present_days || 0), 0);
+            return {
+                avgPresent: totalPresent / attendanceData.length
+            };
+        }
+
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Extract unique departments
+        function extractDepartments() {
+            departments = [...new Set(attendanceData.map(emp => emp.department).filter(Boolean))];
+            
+            const deptSelect = document.getElementById('deptFilter');
+            deptSelect.innerHTML = '<option value="">All Departments</option>' + 
+                departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const dept = document.getElementById('deptFilter').value;
+            const month = parseInt(document.getElementById('monthFilter').value);
+            const year = parseInt(document.getElementById('yearFilter').value);
+            
+            currentMonth = month;
+            currentYear = year;
+            
+            loadAttendance();
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadAttendance();
+        }
+
+        // Load attendance data
+        async function loadAttendance() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="100" class="loading">Loading attendance data...</td></tr>';
+            
+            try {
+                attendanceData = await API.getAdminAttendance(currentMonth, currentYear);
+                
+                renderHeader();
+                renderBody();
+                extractDepartments();
+                
+            } catch (error) {
+                console.error('Failed to load attendance:', error);
+                tbody.innerHTML = `<tr><td colspan="100" class="error">Error loading data: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAttendance();
+        });
+    </script>
 </body>
-</html>
+</html> 

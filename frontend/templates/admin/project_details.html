@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #073379;
+            --primary-blue-light: #1e40af;
+            --success-green: #059669;
+            --warning-orange: #d97706;
+            --completed-blue: #0369a1;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Sidebar */
+        #sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            z-index: 100;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--gray-500);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-blue);
+        }
+
+        .breadcrumb .separator {
+            margin: 0 6px;
+        }
+
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 24px;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            background: white;
+            border: 1px solid var(--gray-200);
+        }
+
+        .back-button:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+            color: var(--gray-900);
+        }
+
+        /* ========== FIXED LAYOUT: PROJECT INFO CARD ========== */
+        .project-info-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .project-title-section {
+            flex: 1;
+        }
+
+        .project-title-section h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+
+        .project-description {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            max-width: 600px;
+        }
+
+        /* FIX: move status badge to the right side, properly aligned */
+        .project-meta-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+            white-space: nowrap;
+        }
+
+        .status-active {
+            background-color: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .status-onhold {
+            background-color: #fef3c7;
+            color: var(--warning-orange);
+        }
+
+        .status-completed {
+            background-color: #e0f2fe;
+            color: var(--completed-blue);
+        }
+
+        /* FIX: meta grid alignment and missing owner role display */
+        .project-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 24px 32px;
+            margin-top: 16px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            color: var(--gray-900);
+            font-weight: 500;
+        }
+
+        .meta-value-large {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 2px;
+        }
+
+        /* FIX: progress bar layout */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Team Members Section */
+        .team-members-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .team-members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .team-member-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .team-member-card:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--gray-900);
+            font-size: 13px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        /* Tasks Table */
+        .tasks-table {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-50);
+        }
+
+        .table-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: var(--gray-50);
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        .project-name-cell {
+            min-width: 200px;
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .project-description-small {
+            font-size: 13px;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        .owner-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 150px;
+        }
+
+        .task-status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .status-todo {
+            background-color: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .status-inprogress {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-review {
+            background-color: #fef3c7;
+            color: var(--warning-orange);
+        }
+
+        .status-completed {
+            background-color: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            min-width: 100px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray-600);
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .action-view:hover {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .action-edit:hover {
+            color: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        .table-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* FIX: description field empty container – hide if empty */
+        .project-description:empty {
+            display: none;
+        }
+
+        /* FIX: extra owner role line – now properly displayed as subline */
+        .owner-role-meta {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #sidebar-container {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 16px;
+            }
+            .header {
+                padding: 16px;
+            }
+            .project-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            .project-meta-right {
+                align-items: flex-start;
+                margin-left: 0;
+                width: 100%;
+            }
+            .project-meta-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .team-members-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            .progress-container {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .actions-cell {
+                flex-direction: column;
+            }
+            .action-btn {
+                width: 100%;
+            }
+            .team-members-grid {
+                grid-template-columns: 1fr;
+            }
+            .table-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .pagination-controls {
+                align-self: flex-end;
+            }
+        }
+
+        /* extra: ensure project-meta-right does not break layout */
+        .project-meta-right .project-description {
+            text-align: right;
+            max-width: 400px;
+        }
+
+        /* fix for missing owner role display – we will insert via js but also style */
+        .meta-item .meta-value + .meta-value {
+            color: var(--gray-500);
+            font-weight: 400;
+            font-size: 13px;
+            margin-top: -2px;
+        }
+
+        /* ensure project owner and role appear correctly */
+        .project-owner-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .project-owner-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        .project-owner-role {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* FIX: the inline "Project Manager" text was misplaced */
+        .meta-item .meta-value-large + .meta-value {
+            margin-top: 2px;
+            color: var(--gray-500);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="dashboard.html">Dashboard</a>
+                <span class="separator">/</span>
+                <a href="projects.html">Projects Management</a>
+                <span class="separator">/</span>
+                <span>Project Details</span>
+            </div>
+            <div class="page-title">
+                <h1>Project Details</h1>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Back Button -->
+            <a href="projects.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                Back to Projects
+            </a>
+            
+            <!-- Project Info Card -->
+            <div class="project-info-card">
+                <div class="project-header">
+                    <div class="project-title-section">
+                        <h1 id="projectName">Website Redesign Project</h1>
+                        <!-- description moved inside title section for proper flow, but kept same id/class -->
+                        <div class="project-description" id="projectDescription"></div>
+                    </div>
+                    <!-- Fixed: project-meta-right now properly aligned right -->
+                    <div class="project-meta-right">
+                        <span class="status-badge status-active" id="projectStatus">Active</span>
+                    </div>
+                </div>
+                
+                <!-- FIX: meta-grid structure remains identical, but we reorder display: owner & role will be stacked -->
+                <div class="project-meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">Project Owner</div>
+                        <div class="meta-value-large" id="projectOwner">-</div>
+                        <div class="meta-value" style="color: var(--gray-500);">Project Manager</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="meta-label">Start Date</div>
+                        <div class="meta-value-large" id="projectStartDate">-</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="meta-label">End Date</div>
+                        <div class="meta-value-large" id="projectEndDate">-</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="meta-label">Days Remaining</div>
+                        <div class="meta-value-large" id="projectDaysRemaining">-</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="meta-label">Overall Progress</div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Members Section -->
+            <div class="team-members-section">
+                <div class="section-header">
+                    <div class="section-title">Team Members</div>
+                    <div class="meta-label" id="teamCount">0 Members</div>
+                </div>
+                
+                <div class="team-members-grid" id="teamMembersList">
+                    <!-- dynamically loaded -->
+                </div>
+            </div>
+            
+            <!-- Tasks Table -->
+            <div class="tasks-table">
+                <div class="table-header">
+                    <h2>Project Tasks</h2>
+                    <div class="pagination-info" id="taskCount">0 tasks</div>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Task Title</th>
+                                <th>Assigned To</th>
+                                <th>Created By</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody">
+                            <tr>
+                                <!-- js will populate -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Table Footer -->
+                <div class="table-footer">
+                    <div class="pagination-info">Showing 7 of 47 tasks</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span style="padding: 0 4px; color: var(--gray-400); align-self: center;">...</span>
+                        <button class="page-btn">7</button>
+                        <button class="page-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ YOUR EXACT JS CODE — NO CHANGES, PRESERVED FULLY ============
+        const API_BASE = "http://127.0.0.1:8000";
+        let selectedTeamMembers = new Set();
+        let currentOwnerId = null;
+
+        function getToken() {
+            return localStorage.getItem("access_token");
+        }
+
+        async function apiRequest(url, method = "GET", body = null) {
+            const options = {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${getToken()}`,
+                    "Content-Type": "application/json"
+                }
+            };
+
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(API_BASE + url, options);
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err || "API error");
+            }
+            return res.json();
+        }
+
+        /* ================================
+           Sidebar Loader
+        ================================ */
+        fetch("../shared/sidebar_admin.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+                const current = location.pathname.split("/").pop();
+                document.querySelectorAll(".sidebar a").forEach(link => {
+                    if (link.getAttribute("href")?.includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            });
+
+        /* ================================
+           Project Details Loader
+        ================================ */
+        const projectId = new URLSearchParams(window.location.search).get("id");
+
+        document.addEventListener("DOMContentLoaded", loadProjectDetails);
+
+        async function loadProjectDetails() {
+            try {
+                const project = await apiRequest(`/admin/projects/${projectId}`);
+
+                // Basic Info
+                document.getElementById("projectName").innerText = project.name;
+                document.getElementById("projectDescription").innerText =
+                    project.description || "-";
+                document.getElementById("projectOwner").innerText =
+                    project.owner?.name || "-";
+                document.getElementById("projectStatus").innerText =
+                    project.status || "-";
+
+                // Dates
+                document.getElementById("projectStartDate").innerText =
+                    project.start_date || "-";
+                document.getElementById("projectEndDate").innerText =
+                    project.end_date || "-";
+
+                // Days Remaining
+                if (project.end_date) {
+                    const end = new Date(project.end_date);
+                    const today = new Date();
+                    const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                    document.getElementById("projectDaysRemaining").innerText =
+                        diff > 0 ? diff + " days" : "Expired";
+                }
+
+                // Team
+                const members = project.team_members || [];
+                document.getElementById("teamCount").innerText =
+                    members.length + " Members";
+
+                // Tasks
+                const tasks = project.tasks || [];
+                document.getElementById("taskCount").innerText =
+                    tasks.length + " tasks";
+
+                // Progress
+                const completed =
+                    tasks.filter(t => t.status === "completed").length;
+                const percent = tasks.length
+                    ? Math.round((completed / tasks.length) * 100)
+                    : 0;
+
+                document.getElementById("progressFill").style.width =
+                    percent + "%";
+                document.getElementById("progressText").innerText =
+                    `${percent}% (${completed}/${tasks.length} tasks)`;
+
+                renderTeam(members);
+                renderTasks(tasks);
+
+            } catch (err) {
+                console.error("Failed to load project:", err);
+            }
+        }
+
+        /* ================================
+           Render Team Members
+        ================================ */
+        function renderTeam(members) {
+            const container = document.getElementById("teamMembersList");
+            container.innerHTML = "";
+
+            members.forEach(m => {
+                const initials = m.name
+                    ? m.name.split(" ").map(w => w[0]).join("").toUpperCase()
+                    : "?";
+
+                const div = document.createElement("div");
+                div.className = "team-member-card";
+
+                div.innerHTML = `
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-info">
+                        <div class="user-name">${m.name}</div>
+                        <div class="user-role">
+                            ${m.role || "Team Member"}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        /* ================================
+           Render Tasks
+        ================================ */
+       function renderTasks(tasks) {
+    const tbody = document.getElementById("tasksTableBody");
+    tbody.innerHTML = "";
+
+    if (!tasks.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    No tasks yet
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tasks.forEach(t => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${t.title}</td>
+            <td>${t.assigned_user?.name || "-"}</td>
+            <td>${t.created_user?.name || "-"}</td>
+            <td>${t.status}</td>
+            <td>${t.due_date || "-"}</td>
+            <td>
+                <div class="priority-indicator">
+                    <span>${t.priority || "medium"}</span>
+                </div>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+    </script>
+
+</body>
+</html>

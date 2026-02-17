@@ -755,8 +755,11 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadEmployees() {
   try {
     const res = await fetch(`${API_BASE}/admin/employees`, {
-      credentials: "include"
+    headers: {
+        "Authorization": "Bearer " + localStorage.getItem("access_token")
+    }
     });
+
 
     allEmployees = await res.json();
     renderEmployees(allEmployees);
@@ -767,9 +770,16 @@ async function loadEmployees() {
   }
 }
 
-addEmployeeBtn.addEventListener('click', function () {
-    window.location.href = "create_employee.html";
+document.addEventListener("DOMContentLoaded", () => {
+    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+
+    if (addEmployeeBtn) {
+        addEmployeeBtn.addEventListener("click", function () {
+            window.location.href = "create_employee.html";
+        });
+    }
 });
+
 
 function renderEmployees(employees) {
   const tbody = document.getElementById("employeesBody");
