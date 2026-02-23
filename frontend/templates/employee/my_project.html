@@ -591,30 +591,22 @@
                 });
             });
            
-const API_BASE = "http://127.0.0.1:8000";
-
-function getToken() {
-  return localStorage.getItem("access_token");
+function ensureAuth() {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    window.location.href = "../auth/login.html";
+    return false;
+  }
+  return true;
 }
 
-async function apiRequest(url, method = "GET", body = null) {
-  const options = {
-    method,
-    headers: {
-      "Authorization": `Bearer ${getToken()}`,
-      "Content-Type": "application/json"
-    }
-  };
-
-  if (body) options.body = JSON.stringify(body);
-
-  const res = await fetch(API_BASE + url, options);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+function apiRequest(url, method = "GET", body = null) {
+  return window.API.request(url, method, body);
 }
 
 async function loadMyProjects() {
   try {
+    if (!ensureAuth()) return;
     const projects = await apiRequest("/projects/my");
 
     const tbody = document.getElementById("myProjectsTableBody");
@@ -678,7 +670,7 @@ async function loadMyProjects() {
 
   } catch (err) {
     console.error(err);
-    alert("Failed to load projects");
+    alert("Failed to load projects. Please login again.");
   }
 }
 document.addEventListener("DOMContentLoaded", () => {

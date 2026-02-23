@@ -313,6 +313,31 @@
             font-size: 14px;
             vertical-align: middle;
         }
+        .user-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         tbody tr {
             transition: background-color 0.2s;
@@ -768,9 +793,36 @@
 
     <script>
         // ========== API & GLOBALS ==========
-        
+        function ensureAuth() {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                window.location.href = "../auth/login.html";
+                return false;
+            }
+            return true;
+        }
+
+        function apiRequest(url, method = "GET", body = null) {
+            return window.API.request(url, method, body);
+        }
+        function getProfileImageUrl(path) {
+            if (!path) return null;
+            const p = String(path);
+            if (p.startsWith("http://") || p.startsWith("https://")) return p;
+            return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
+        }
+        function renderUserWithAvatar(name, profileImage) {
+            const safeName = escapeHtml(name || "-");
+            const initials = (name || "?").split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+            const photoUrl = getProfileImageUrl(profileImage);
+            const avatar = photoUrl
+                ? `<div class="user-avatar"><img src="${photoUrl}" alt="${safeName}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'"></div>`
+                : `<div class="user-avatar">${escapeHtml(initials)}</div>`;
+            return `<span class="user-inline">${avatar}<span>${safeName}</span></span>`;
+        }
 
         let currentTasks = [];
+        let canManageTasks = false;
         const projectId = new URLSearchParams(window.location.search).get("id");
         if (!projectId) {
             alert("Invalid project");
@@ -795,16 +847,21 @@
         // ========== LOAD PROJECT & TASKS ==========
         async function loadProjectData() {
             try {
+                if (!ensureAuth()) return;
                 const project = await apiRequest(`/projects/my/${projectId}`);
                 // Update meta info using ids
-                document.getElementById("projectOwnerDisplay").innerText = project.owner?.name || '-';
+                document.getElementById("projectOwnerDisplay").innerHTML = renderUserWithAvatar(
+                    project.owner?.name || "-",
+                    project.owner?.profile_image
+                );
                 document.getElementById("teamMembersCount").innerText = `${project.team_members?.length || 0} Members`;
                 document.getElementById("totalTasksCount").innerText = (project.tasks || []).length;
                 document.getElementById("projectName").innerText = project.name;
 
                 // Hide create button if not owner
                 const currentUser = JSON.parse(localStorage.getItem("user") || '{}');
-                if (project.owner?.id !== currentUser?.id) {
+                canManageTasks = project.owner?.id === currentUser?.id;
+                if (!canManageTasks) {
                     document.getElementById("createTaskBtn").style.display = "none";
                 }
 
@@ -859,14 +916,18 @@
                 tr.innerHTML = `
                     <td><span class="task-name">${escapeHtml(task.title || '')}</span></td>
                     <td><span class="status-badge ${statusClass}">${task.status || 'pending'}</span></td>
-                    <td>${task.assigned_user?.name || '-'}</td>
+                    <td>${renderUserWithAvatar(task.assignee_name || task.assigned_user?.name || '-', task.assignee_profile_image || task.assigned_user?.profile_image)}</td>
                     <td><span class="priority-badge ${priorityClass}">${task.priority || 'medium'}</span></td>
                     <td>${task.estimated_hours || 0}h</td>
                     <td>${task.due_date || '-'}</td>
                     <td>
-                        <button class="action-btn action-edit" onclick="openEditModal(${task.id})" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
+                        ${
+                            canManageTasks
+                                ? `<button class="action-btn action-edit" onclick="openEditModal(${task.id})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                   </button>`
+                                : `<span style="color:var(--gray-400);font-size:12px;">-</span>`
+                        }
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -884,6 +945,7 @@
         let selectedTaskId = null;
 
         function openEditModal(taskId) {
+            if (!canManageTasks) return;
             const task = currentTasks.find(t => t.id === taskId);
             if (!task) return;
             selectedTaskId = taskId;

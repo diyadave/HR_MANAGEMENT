@@ -184,7 +184,8 @@ body {
 }
 
 .form-group input[type="email"],
-.form-group input[type="password"] {
+.form-group input[type="password"],
+.form-group input[type="text"] {
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
@@ -197,14 +198,16 @@ body {
 }
 
 .form-group input[type="email"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input[type="password"]:focus,
+.form-group input[type="text"]:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-group input[type="email"]::placeholder,
-.form-group input[type="password"]::placeholder {
+.form-group input[type="password"]::placeholder,
+.form-group input[type="text"]::placeholder {
     color: var(--color-gray-400);
 }
 

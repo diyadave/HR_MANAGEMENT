@@ -29,29 +29,29 @@ document.addEventListener("DOMContentLoaded", () => {
         hideError();
         setLoading(true);
 
-        const email = document.getElementById("email").value.trim();
+        const employee_id = document.getElementById("employee_id").value.trim().toUpperCase();
         const password = passwordInput.value;
+        const stayLoggedIn = document.getElementById("stayLoggedIn")?.checked === true;
 
-        if (!email || !password) {
-            showError("Email and password are required");
+        if (!employee_id || !password) {
+            showError("Employee ID and password are required");
             setLoading(false);
             return;
         }
 
         try {
-            const data = await apiRequest("/auth/login", "POST", {
-                email,
+            const data = await API.login({
+                employee_id,
                 password
             });
 
-            // store auth info
-            localStorage.setItem("access_token", data.access_token);
-
-            localStorage.setItem("user", JSON.stringify({
-                id: data.user.id,
-                name: data.user.name,
-                role: data.user.role
-            }));
+            if (typeof window.saveAuthSession === "function") {
+                window.saveAuthSession(data, stayLoggedIn);
+            } else {
+                localStorage.setItem("access_token", data.access_token);
+                localStorage.setItem("refresh_token", data.refresh_token);
+                localStorage.setItem("user", JSON.stringify(data.user));
+            }
 
 
             // 🔐 FORCE PASSWORD CHANGE (FIRST LOGIN)

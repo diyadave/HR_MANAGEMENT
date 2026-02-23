@@ -15,7 +15,6 @@
             --text-secondary: #666666;
             --border: #e1e5eb;
             --shadow: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 250px;
         }
 
         * {
@@ -32,86 +31,10 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: white;
-            box-shadow: 2px 0 10px var(--shadow);
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            background-color: var(--primary-blue);
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .logo-text {
-            font-weight: 700;
-            font-size: 20px;
-            color: var(--primary-blue);
-        }
-
-        .nav-links {
-            padding: 24px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 20px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .nav-item:hover {
-            background-color: rgba(7, 51, 121, 0.05);
-            color: var(--primary-blue);
-        }
-
-        .nav-item.active {
-            background-color: rgba(7, 51, 121, 0.08);
-            color: var(--primary-blue);
-            border-left: 3px solid var(--primary-blue);
-        }
-
-        .nav-item i {
-            width: 20px;
-            font-size: 16px;
-        }
-
-        .nav-text {
-            font-weight: 500;
-            font-size: 15px;
-        }
-
         /* Main Content Area */
         .main-content {
             flex: 1;
-            margin-left: var(--sidebar-width);
+            margin-left: 260px;
             padding: 30px;
         }
 
@@ -239,31 +162,8 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            
-            .sidebar-header {
-                padding: 20px 0;
-                display: flex;
-                justify-content: center;
-            }
-            
-            .logo-text, .nav-text {
-                display: none;
-            }
-            
-            .logo-icon {
-                margin: 0 auto;
-            }
-            
-            .nav-item {
-                justify-content: center;
-                padding: 18px 0;
-            }
-            
             .main-content {
-                margin-left: 70px;
+                margin-left: 0;
                 padding: 20px;
             }
             
@@ -313,6 +213,17 @@
             <div class="form-card">
                 <form id="createEmployeeForm">
                     <div class="form-group">
+                        <label for="employee_id" class="form-label">Employee ID</label>
+                        <input
+                            type="text"
+                            id="employee_id"
+                            class="form-input"
+                            placeholder="e.g. EMP-2026-0001"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
                         <label for="fullName" class="form-label">Full Name</label>
                         <input 
                             type="text" 
@@ -361,18 +272,18 @@
                     
                     <span class="helper-text">
                         <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
-                        Employee ID and temporary password will be generated automatically and sent via email.
+                        Temporary password will be generated automatically and sent via email.
                     </span>
                     
                     <div class="button-group">
                         <button type="button" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Employee</button>
+                        <button type="submit" class="btn btn-primary" id="createEmployeeBtn">Create Employee</button>
                     </div>
                 </form>
             </div>
         </div>
     </main>
-<script src="../../../static/js/api.js"></script>
+<script src="../../static/js/api.js"></script>
 
 
 
@@ -382,12 +293,15 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("createEmployeeForm");
+    const submitBtn = document.getElementById("createEmployeeBtn");
     if (!form) return;
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (submitBtn) submitBtn.disabled = true;
 
         const data = {
+            employee_id: document.getElementById("employee_id").value.trim().toUpperCase(),
             name: document.getElementById("name").value,
             email: document.getElementById("email").value,
             department: document.getElementById("department").value,
@@ -404,8 +318,17 @@ document.addEventListener("DOMContentLoaded", () => {
             form.reset();
         } catch (err) {
             alert(err.message);
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
         }
     });
+
+    const cancelBtn = form.querySelector(".btn-secondary");
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            window.location.href = "employees.html";
+        });
+    }
 });
 
 </script>

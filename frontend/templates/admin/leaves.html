@@ -212,6 +212,13 @@
             font-weight: 600;
             flex-shrink: 0;
         }
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
 
         .employee-info {
             min-width: 0;
@@ -455,6 +462,7 @@
     </style>
 </head>
 <body>
+    <script src="../../static/js/api.js"></script>
     <div id="sidebar-container"></div>
     
     <div class="container">
@@ -568,25 +576,13 @@
             document.getElementById('reasonModal').style.display = 'none';
         }
 
-  async function approveLeave(id) {
-  await fetch(`http://127.0.0.1:8000/leaves/${id}/approve`, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
-
+async function approveLeave(id) {
+  await API.approveLeave(id);
   loadAllLeaves();
 }
 
 async function rejectLeave(id) {
-  await fetch(`http://127.0.0.1:8000/leaves/${id}/reject`, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
-
+  await API.rejectLeave(id);
   loadAllLeaves();
 }
 
@@ -636,20 +632,42 @@ async function rejectLeave(id) {
         });
        
 async function loadAllLeaves() {
-  const res = await fetch("http://127.0.0.1:8000/leaves", {
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
+  const escapeHtml = (v) => String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+  const getProfileImageUrl = (path) => {
+    if (!path) return null;
+    const p = String(path);
+    if (p.startsWith("http://") || p.startsWith("https://")) return p;
+    return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
+  };
 
-  const data = await res.json();
+  const data = await API.getLeaves("pending");
   const tbody = document.getElementById("leaveTableBody");
   tbody.innerHTML = "";
 
   data.forEach(leave => {
+    const empName = leave.employee?.name || "-";
+    const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+    const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
     const row = `
       <tr>
-        <td>${leave.employee?.name || "-"}</td>
+        <td>
+          <div class="employee-cell">
+            <div class="employee-avatar">${
+              photoUrl
+                ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
+                : `${escapeHtml(initials)}`
+            }</div>
+            <div class="employee-info">
+              <div class="employee-name">${escapeHtml(empName)}</div>
+              <div class="employee-role">${escapeHtml(leave.employee?.designation || leave.employee?.department || "")}</div>
+            </div>
+          </div>
+        </td>
         <td>${leave.start_date} - ${leave.end_date}</td>
         <td>${leave.total_days}</td>
         <td>${leave.reason}</td>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
@@ -65,10 +65,14 @@ def get_my_leaves(
 # ======================================
 @router.get("/", response_model=list[LeaveOut])
 def get_all_leaves(
+    status: str | None = Query(default=None),
     db: Session = Depends(get_db),
     admin=Depends(get_current_admin)
 ):
-    return db.query(Leave).order_by(Leave.created_at.desc()).all()
+    query = db.query(Leave)
+    if status:
+        query = query.filter(Leave.status == status)
+    return query.order_by(Leave.created_at.desc()).all()
 
 
 # ======================================
@@ -84,6 +88,8 @@ def approve_leave(
 
     if not leave:
         raise HTTPException(status_code=404, detail="Leave not found")
+    if leave.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending leaves can be approved")
 
     leave.status = "approved"
     leave.approved_by = admin.id
@@ -107,6 +113,8 @@ def reject_leave(
 
     if not leave:
         raise HTTPException(status_code=404, detail="Leave not found")
+    if leave.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending leaves can be rejected")
 
     leave.status = "rejected"
     leave.approved_by = admin.id

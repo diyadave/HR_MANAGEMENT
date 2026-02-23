@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    SESSION_IDLE_TIMEOUT_MINUTES: int = 30
     SMTP_HOST: str
     SMTP_PORT: int
     SMTP_USERNAME: str

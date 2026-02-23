@@ -224,10 +224,10 @@
       </div>
       <div class="filter-bar">
         <select class="filter-select" id="monthFilter">
-          <option value="feb2026">February 2026</option>
-          <option value="jan2026">January 2026</option>
-          <option value="dec2025">December 2025</option>
-          <option value="nov2025">November 2025</option>
+          <option value="2026-2">February 2026</option>
+          <option value="2026-1">January 2026</option>
+          <option value="2025-12">December 2025</option>
+          <option value="2025-11">November 2025</option>
         </select>
       </div>
     </div>
@@ -352,128 +352,82 @@
       }
     }
 
-    // Load attendance history (mock data - replace with real API)
+    function parseMonthYear() {
+      const value = document.getElementById("monthFilter").value || "";
+      const [yearStr, monthStr] = value.split("-");
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+      return {
+        month: Number.isFinite(month) ? month : new Date().getMonth() + 1,
+        year: Number.isFinite(year) ? year : new Date().getFullYear()
+      };
+    }
+
+    function formatDateLabel(isoDate) {
+      const d = new Date(isoDate);
+      return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+    }
+
+    function formatDayLabel(isoDate) {
+      const d = new Date(isoDate);
+      return d.toLocaleDateString("en-US", { weekday: "long" });
+    }
+
+    function formatClockTime(isoDatetime) {
+      if (!isoDatetime) return "-";
+      const d = new Date(isoDatetime);
+      return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    }
+
+    function statusBadge(status) {
+      const map = {
+        present: "status-present",
+        late: "status-late",
+        absent: "status-absent",
+        halfday: "status-halfday"
+      };
+      const css = map[status] || "";
+      const label = status === "halfday" ? "Half Day" : status.charAt(0).toUpperCase() + status.slice(1);
+      if (!css) return `<span class="status-indicator">${label}</span>`;
+      return `<span class="status-indicator ${css}"><span class="status-dot"></span>${label}</span>`;
+    }
+
+    // Load attendance history (real API)
     async function loadHistory() {
-      // This would be replaced with actual API call
-      // For now, keeping the static data from original
       const tbody = document.getElementById("attendanceHistory");
-      tbody.innerHTML = `
-        <tr>
-          <td>Feb 03, 2026</td>
-          <td>Tuesday</td>
-          <td>09:02 AM</td>
-          <td>In Progress</td>
-          <td>-</td>
-          <td>
-            <span class="status-indicator status-present">
-              <span class="status-dot"></span>
-              Present
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Feb 02, 2026</td>
-          <td>Monday</td>
-          <td>08:58 AM</td>
-          <td>06:05 PM</td>
-          <td>9h 7m</td>
-          <td>
-            <span class="status-indicator status-present">
-              <span class="status-dot"></span>
-              Present
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Feb 01, 2026</td>
-          <td>Sunday</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>
-            <span class="status-indicator">
-              Weekend
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 31, 2026</td>
-          <td>Saturday</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>
-            <span class="status-indicator">
-              Weekend
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 30, 2026</td>
-          <td>Friday</td>
-          <td>09:15 AM</td>
-          <td>06:00 PM</td>
-          <td>8h 45m</td>
-          <td>
-            <span class="status-indicator status-late">
-              <span class="status-dot"></span>
-              Late
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 29, 2026</td>
-          <td>Thursday</td>
-          <td>09:00 AM</td>
-          <td>06:10 PM</td>
-          <td>9h 10m</td>
-          <td>
-            <span class="status-indicator status-present">
-              <span class="status-dot"></span>
-              Present
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 28, 2026</td>
-          <td>Wednesday</td>
-          <td>08:55 AM</td>
-          <td>05:55 PM</td>
-          <td>9h 0m</td>
-          <td>
-            <span class="status-indicator status-present">
-              <span class="status-dot"></span>
-              Present
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 27, 2026</td>
-          <td>Tuesday</td>
-          <td>09:05 AM</td>
-          <td>01:00 PM</td>
-          <td>3h 55m</td>
-          <td>
-            <span class="status-indicator status-halfday">
-              <span class="status-dot"></span>
-              Half Day
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <td>Jan 26, 2026</td>
-          <td>Monday</td>
-          <td>09:00 AM</td>
-          <td>06:00 PM</td>
-          <td>9h 0m</td>
-          <td>
-            <span class="status-indicator status-present">
-              <span class="status-dot"></span>
-              Present
-            </span>
-          </td>
-        </tr>
-      `;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">Loading attendance records...</td></tr>`;
+      try {
+        const { month, year } = parseMonthYear();
+        const data = await API.getAttendanceHistory(month, year);
+        const records = data.records || [];
+
+        document.getElementById("presentDays").textContent = data.stats?.present_days ?? 0;
+        document.getElementById("absentDays").textContent = data.stats?.absent_days ?? 0;
+        document.getElementById("lateDays").textContent = data.stats?.late_days ?? 0;
+        document.getElementById("avgHours").textContent = data.stats?.avg_hours ?? "0.0h";
+
+        if (!records.length) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">No attendance records for selected month.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = records.map((r) => {
+          const clockOutLabel = r.clock_out_time ? formatClockTime(r.clock_out_time) : (r.clock_in_time ? "In Progress" : "-");
+          return `
+            <tr>
+              <td>${formatDateLabel(r.date)}</td>
+              <td>${formatDayLabel(r.date)}</td>
+              <td>${formatClockTime(r.clock_in_time)}</td>
+              <td>${clockOutLabel}</td>
+              <td>${formatHours(r.total_seconds)}</td>
+              <td>${statusBadge(r.status || "absent")}</td>
+            </tr>
+          `;
+        }).join("");
+      } catch (error) {
+        console.error("History load error:", error);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:#DC2626;">Failed to load attendance records.</td></tr>`;
+      }
     }
 
     // Load shared components
@@ -498,6 +452,8 @@
       // Refresh summary every 30 seconds
       setInterval(loadSummary, 30000);
     }
+
+    document.getElementById("monthFilter").addEventListener("change", loadHistory);
 
     window.onload = init;
   </script>

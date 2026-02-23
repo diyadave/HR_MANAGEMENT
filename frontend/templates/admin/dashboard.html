@@ -604,269 +604,62 @@
             </div>
         </div>
 
-        <!-- Compact KPI Cards -->
+        <!-- KPI Cards -->
         <div class="kpi-grid">
-            <div class="kpi-card">
-                
-                <div class="kpi-value" id="total-leaves">0</div>
-                <div class="kpi-value" id="pending-leaves">0</div>
-                <div class="kpi-value" id="attendance-rate">0%</div>
-            </div>
+            <div class="kpi-card"><div class="kpi-value" id="total-employees">0</div><div class="kpi-label">Employees</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="active-employees">0</div><div class="kpi-label">Active Employees</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="total-projects">0</div><div class="kpi-label">Projects</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="open-tasks">0</div><div class="kpi-label">Open Tasks</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="pending-leaves">0</div><div class="kpi-label">Pending Leaves</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="attendance-rate">0%</div><div class="kpi-label">Attendance Today</div></div>
         </div>
 
-        <!-- Main Dashboard Grid -->
         <div class="dashboard-grid">
-            <!-- Left Column -->
-            <div class="card">
+            <div class="card compact">
                 <div class="card-header">
-                    <h2 class="card-title">Recent Activity</h2>
-                    <a href="#" class="card-link">View All</a>
+                    <h2 class="card-title">Recent Tasks</h2>
+                    <a href="tasks.html" class="card-link">View All</a>
                 </div>
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">New Employee Registration</div>
-                            <div class="activity-description">Sarah Jenkins joined Marketing</div>
-                            <div class="activity-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Leave Request Approved</div>
-                            <div class="activity-description">Michael Chen's vacation approved</div>
-                            <div class="activity-time">4 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Performance Review</div>
-                            <div class="activity-description">Q4 reviews for Engineering team</div>
-                            <div class="activity-time">Yesterday at 4:30 PM</div>
-                        </div>
-                    </div>
-                </div>
+                <div class="task-list" id="recentTasksList"></div>
             </div>
 
-            <!-- Right Column - Quick Stats -->
             <div class="card compact">
                 <div class="card-header">
                     <h2 class="card-title">Department Headcount</h2>
                 </div>
-                <div class="department-stats">
-                    <div class="department-item">
-                        <div class="department-info">
-                            <div class="department-icon">
-                                <i class="fas fa-code"></i>
-                            </div>
-                            <div class="department-name">Engineering</div>
-                        </div>
-                        <div class="department-count">428</div>
-                    </div>
-                    <div class="department-item">
-                        <div class="department-info">
-                            <div class="department-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <div class="department-name">Marketing</div>
-                        </div>
-                        <div class="department-count">216</div>
-                    </div>
-                    <div class="department-item">
-                        <div class="department-info">
-                            <div class="department-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div class="department-name">Sales</div>
-                        </div>
-                        <div class="department-count">342</div>
-                    </div>
-                    <div class="department-item">
-                        <div class="department-info">
-                            <div class="department-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="department-name">HR & Admin</div>
-                        </div>
-                        <div class="department-count">98</div>
-                    </div>
-                </div>
+                <div class="department-stats" id="departmentStats"></div>
             </div>
 
-            <!-- Left Column - Performance -->
             <div class="card compact">
                 <div class="card-header">
                     <h2 class="card-title">Project Progress</h2>
                 </div>
-                <div class="progress-item">
-                    <div class="progress-header">
-                        <div class="progress-label">Website Redesign</div>
-                        <div class="progress-percent">85%</div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 85%"></div>
-                    </div>
-                </div>
-                <div class="progress-item">
-                    <div class="progress-header">
-                        <div class="progress-label">Mobile App Launch</div>
-                        <div class="progress-percent">62%</div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 62%"></div>
-                    </div>
-                </div>
-                <div class="progress-item">
-                    <div class="progress-header">
-                        <div class="progress-label">CRM Implementation</div>
-                        <div class="progress-percent">45%</div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 45%"></div>
-                    </div>
-                </div>
+                <div id="projectProgressList"></div>
             </div>
 
-            <!-- Right Column - Upcoming Tasks -->
             <div class="card compact">
                 <div class="card-header">
-                    <h2 class="card-title">Upcoming Tasks</h2>
-                    <a href="#" class="card-link">View All</a>
-                </div>
-                <div class="task-list">
-                    <div class="task-item">
-                        <div class="task-checkbox"></div>
-                        <div class="task-info">
-                            <div class="task-name">Submit Q1 Reports</div>
-                            <div class="task-project">Finance Department</div>
-                        </div>
-                        <div class="task-due">Tomorrow</div>
-                    </div>
-                    <div class="task-item">
-                        <div class="task-checkbox"></div>
-                        <div class="task-info">
-                            <div class="task-name">Team Performance Review</div>
-                            <div class="task-project">Engineering</div>
-                        </div>
-                        <div class="task-due">Feb 15</div>
-                    </div>
-                    <div class="task-item">
-                        <div class="task-checkbox"></div>
-                        <div class="task-info">
-                            <div class="task-name">Budget Planning Meeting</div>
-                            <div class="task-project">All Departments</div>
-                        </div>
-                        <div class="task-due">Feb 18</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card compact">
-                <div class="card-header">
-                    <h2 class="card-title">Quick Actions</h2>
-                </div>
-                <div class="quick-actions">
-                    <button class="action-btn">
-                        <i class="fas fa-user-plus action-icon"></i>
-                        Add Employee
-                    </button>
-                    <button class="action-btn">
-                        <i class="fas fa-file-invoice-dollar action-icon"></i>
-                        Process Payroll
-                    </button>
-                    <button class="action-btn">
-                        <i class="fas fa-calendar-alt action-icon"></i>
-                        Schedule Meeting
-                    </button>
-                    <button class="action-btn">
-                        <i class="fas fa-chart-pie action-icon"></i>
-                        Generate Report
-                    </button>
-                </div>
-            </div>
-
-            <!-- Employee Status -->
-            <div class="card compact">
-                <div class="card-header">
-                    <h2 class="card-title">Employee Status</h2>
+                    <h2 class="card-title">Leave Overview</h2>
+                    <a href="all_leaves.html" class="card-link">View All</a>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">12</div>
-                        <div class="stat-label">On Leave</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">42</div>
-                        <div class="stat-label">Remote</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">8</div>
-                        <div class="stat-label">Training</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Onboarding</div>
-                    </div>
+                    <div class="stat-item"><div class="stat-value" id="total-leaves">0</div><div class="stat-label">Total</div></div>
+                    <div class="stat-item"><div class="stat-value" id="approved-leaves">0</div><div class="stat-label">Approved</div></div>
+                    <div class="stat-item"><div class="stat-value" id="rejected-leaves">0</div><div class="stat-label">Rejected</div></div>
+                    <div class="stat-item"><div class="stat-value" id="pending-leaves-card">0</div><div class="stat-label">Pending</div></div>
                 </div>
             </div>
         </div>
 
-        <!-- Bottom Row - Company Notices -->
         <div class="card">
             <div class="card-header">
-                <h2 class="card-title">Latest Company Notices</h2>
-                <a href="notices.html" class="card-link">View All Notices</a>
+                <h2 class="card-title">Latest Notices</h2>
+                <a href="notices.html" class="card-link">View All</a>
             </div>
-            <div class="notice-list">
-                <div class="notice-item">
-                    <div class="notice-title">Office Holiday - Republic Day Celebration</div>
-                    <div class="notice-date">Posted on January 24, 2026</div>
-                </div>
-                <div class="notice-item">
-                    <div class="notice-title">Q1 Performance Reviews Schedule Announced</div>
-                    <div class="notice-date">Posted on January 20, 2026</div>
-                </div>
-                <div class="notice-item">
-                    <div class="notice-title">New Employee Benefits Package Available</div>
-                    <div class="notice-date">Posted on January 15, 2026</div>
-                </div>
-            </div>
+            <div class="notice-list" id="noticeList"></div>
         </div>
     </div>
 
-    <!-- Add Font Awesome for icons -->
-    <script>
-        // Add Font Awesome if not already loaded
-        if (!document.querySelector('link[href*="font-awesome"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-            document.head.appendChild(link);
-        }
-
-        // Load sidebar
-        
-            
-
-            // Quick action buttons
-            const actionBtns = document.querySelectorAll('.action-btn');
-            actionBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const action = this.textContent.trim();
-                    alert(`Action: ${action}\nThis would trigger the respective functionality.`);
-                });
-            });
-        
-    </script>
     <script>
 fetch("../shared/sidebar_admin.html")
   .then(res => res.text())
@@ -882,42 +675,143 @@ fetch("../shared/sidebar_admin.html")
   });
 </script>
 <script>
-const API_BASE = "http://127.0.0.1:8000";
-const token = localStorage.getItem("access_token");
+function safeText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function escapeHtml(v) {
+  if (v === null || v === undefined) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 async function loadAdminDashboard() {
-  if (!token) return;
+  if (!localStorage.getItem("access_token")) return;
+  if (!window.API) return;
 
-  const headers = {
-    "Authorization": `Bearer ${token}`
-  };
+  try {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const day = now.getDate();
 
-  // Employees
-  const empRes = await fetch(`${API_BASE}/admin/employees`, { headers });
-  const employees = await empRes.json();
-  document.getElementById("total-employees").textContent = employees.length;
+    const [employees, leaves, attendance, tasks, projects, notices] = await Promise.all([
+      API.getAdminEmployees(),
+      API.request("/leaves/"),
+      API.getAdminAttendance(month, year),
+      API.getAdminTasks(),
+      API.getAdminProjects(),
+      API.getNotices()
+    ]);
 
-  // Leaves
-  const leaveRes = await fetch(`${API_BASE}/leaves`, { headers });
-  const leaves = await leaveRes.json();
+    const empList = employees || [];
+    const leaveList = leaves || [];
+    const taskList = tasks || [];
+    const projList = projects || [];
+    const noticeList = notices || [];
+    const attList = attendance || [];
 
-  document.getElementById("total-leaves").textContent = leaves.length;
+    const presentToday = attList.filter(emp => ["present", "late", "halfday"].includes(emp.days?.[day])).length;
+    const attendanceRate = empList.length ? Math.round((presentToday / empList.length) * 100) : 0;
+    const activeEmployees = empList.filter(e => e.is_active).length;
+    const openTasks = taskList.filter(t => t.status !== "completed").length;
 
-  const pending = leaves.filter(l => l.status === "pending").length;
-  document.getElementById("pending-leaves").textContent = pending;
+    const pendingLeaves = leaveList.filter(l => l.status === "pending").length;
+    const approvedLeaves = leaveList.filter(l => l.status === "approved").length;
+    const rejectedLeaves = leaveList.filter(l => l.status === "rejected").length;
 
-  // Attendance Today
-  const today = new Date().toISOString().split("T")[0];
-  const attendanceRes = await fetch(`${API_BASE}/attendance?date=${today}`, { headers });
-  if (attendanceRes.ok) {
-    const attendance = await attendanceRes.json();
-    const rate = Math.round((attendance.length / employees.length) * 100);
-    document.getElementById("attendance-rate").textContent = rate + "%";
+    safeText("total-employees", empList.length);
+    safeText("active-employees", activeEmployees);
+    safeText("total-projects", projList.length);
+    safeText("open-tasks", openTasks);
+    safeText("pending-leaves", pendingLeaves);
+    safeText("attendance-rate", `${attendanceRate}%`);
+    safeText("total-leaves", leaveList.length);
+    safeText("approved-leaves", approvedLeaves);
+    safeText("rejected-leaves", rejectedLeaves);
+    safeText("pending-leaves-card", pendingLeaves);
+
+    const deptMap = {};
+    empList.forEach(e => {
+      const key = (e.department || "Unassigned").trim();
+      deptMap[key] = (deptMap[key] || 0) + 1;
+    });
+    const deptStatsEl = document.getElementById("departmentStats");
+    if (deptStatsEl) {
+      const deptRows = Object.entries(deptMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([dept, count]) => `
+          <div class="department-item">
+            <div class="department-name">${escapeHtml(dept)}</div>
+            <div class="department-count">${count}</div>
+          </div>
+        `).join("");
+      deptStatsEl.innerHTML = deptRows || `<div class="activity-description">No department data</div>`;
+    }
+
+    const projectProgressEl = document.getElementById("projectProgressList");
+    if (projectProgressEl) {
+      const progressRows = projList.slice(0, 5).map(p => {
+        const items = taskList.filter(t => Number(t.project_id) === Number(p.id));
+        const total = items.length;
+        const done = items.filter(t => t.status === "completed").length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        return `
+          <div class="progress-item">
+            <div class="progress-header">
+              <div class="progress-label">${escapeHtml(p.name || "Untitled Project")}</div>
+              <div class="progress-percent">${pct}%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+        `;
+      }).join("");
+      projectProgressEl.innerHTML = progressRows || `<div class="activity-description">No projects yet</div>`;
+    }
+
+    const recentTasksEl = document.getElementById("recentTasksList");
+    if (recentTasksEl) {
+      const rows = taskList.slice(0, 6).map(t => `
+        <div class="task-item">
+          <div class="task-info">
+            <div class="task-name">${escapeHtml(t.title || "Untitled Task")}</div>
+            <div class="task-project">${escapeHtml(t.project_name || "No Project")}</div>
+          </div>
+          <div class="task-due">${formatShortDate(t.due_date)}</div>
+        </div>
+      `).join("");
+      recentTasksEl.innerHTML = rows || `<div class="activity-description">No tasks available</div>`;
+    }
+
+    const noticesEl = document.getElementById("noticeList");
+    if (noticesEl) {
+      noticesEl.innerHTML = noticeList.slice(0, 6).map(n => `
+        <div class="notice-item">
+          <div class="notice-title">${escapeHtml(n.title || "Notice")}</div>
+          <div class="notice-date">Posted ${formatShortDate(n.created_at)}</div>
+        </div>
+      `).join("") || `<div class="activity-description">No notices published</div>`;
+    }
+  } catch (err) {
+    console.error("Dashboard load failed:", err);
   }
 }
 
 document.addEventListener("DOMContentLoaded", loadAdminDashboard);
 </script>
+<script src="../../static/js/api.js"></script>
 
 </body>
 </html>

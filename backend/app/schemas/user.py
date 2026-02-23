@@ -4,7 +4,7 @@ from typing import Optional
 from datetime import date
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    employee_id: str
     password: str
 
 class UserInfo(BaseModel):
@@ -14,14 +14,24 @@ class UserInfo(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
     force_password_change: bool
     user: UserInfo
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+class ForgotPasswordRequest(BaseModel):
+    employee_id: str
+    email: EmailStr
+
+
 
 
 class EmployeeCreate(BaseModel):
+    employee_id: str
     name: str
     email: EmailStr
     department: str | None = None
@@ -41,6 +51,7 @@ class EmployeeOut(BaseModel):
     role: str
     department: Optional[str] = None
     designation: Optional[str] = None
+    profile_image: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 
@@ -57,6 +68,7 @@ class UserOut(BaseModel):
     role: str
     department: Optional[str] = None
     designation: Optional[str] = None
+    profile_image: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 
@@ -65,6 +77,11 @@ class UserOut(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     new_password: str
+
+class AdminCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
 
   
 

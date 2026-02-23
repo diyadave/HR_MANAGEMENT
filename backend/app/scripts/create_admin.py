@@ -11,6 +11,7 @@ def create_admin():
         return
 
     admin = User(
+        employee_id="ADMIN-0001",
         name="System Admin",
         email="admin@company.com",
         password_hash=hash_password("Admin@123"),

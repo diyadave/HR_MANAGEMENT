@@ -247,6 +247,13 @@
             font-size: 13px;
             flex-shrink: 0;
         }
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
 
         .employee-info {
             flex: 1;
@@ -460,6 +467,7 @@
     </style>
 </head>
 <body>
+    <script src="../../static/js/api.js"></script>
     <div class="container">
         <div id="sidebar-container"></div>
         <!-- Header -->
@@ -663,21 +671,42 @@
             }
             });
         });
-        async function loadAllLeaves() {
-  const res = await fetch("http://127.0.0.1:8000/leaves", {
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
-
-  const data = await res.json();
+        const escapeHtml = (v) => String(v ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+        const getProfileImageUrl = (path) => {
+          if (!path) return null;
+          const p = String(path);
+          if (p.startsWith("http://") || p.startsWith("https://")) return p;
+          return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
+        };
+async function loadAllLeaves() {
+  const data = await API.getLeaves("approved");
   const tbody = document.getElementById("leaveTableBody");
   tbody.innerHTML = "";
 
   data.forEach(leave => {
+    const empName = leave.employee?.name || "-";
+    const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+    const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
     const row = `
       <tr>
-        <td>${leave.employee?.name || "-"}</td>
+        <td>
+          <div class="employee-cell">
+            <div class="employee-avatar">${
+              photoUrl
+                ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
+                : `${escapeHtml(initials)}`
+            }</div>
+            <div class="employee-info">
+              <div class="employee-name">${escapeHtml(empName)}</div>
+              <div class="employee-id">${escapeHtml(leave.employee?.employee_id || "")}</div>
+            </div>
+          </div>
+        </td>
         <td>${leave.start_date} - ${leave.end_date}</td>
         <td>${leave.total_days}</td>
         <td>${leave.reason}</td>
@@ -686,16 +715,7 @@
             ${leave.status}
           </span>
         </td>
-        <td>
-            ${
-              leave.status === "pending"
-                ? `
-                <button onclick="approveLeave(${leave.id})">Approve</button>
-                <button onclick="rejectLeave(${leave.id})">Reject</button>
-              `
-                : "-"
-            }
-        </td>
+        <td>-</td>
       </tr>
     `;
     tbody.innerHTML += row;
@@ -704,25 +724,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   loadAllLeaves();
 });
-async function approveLeave(id) {
-  await fetch(`http://127.0.0.1:8000/leaves/${id}/approve`, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
-  loadAllLeaves();
-}
-
-async function rejectLeave(id) {
-  await fetch(`http://127.0.0.1:8000/leaves/${id}/reject`, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-    }
-  });
-  loadAllLeaves();
-}
+async function approveLeave(id) { return id; }
+async function rejectLeave(id) { return id; }
         </script>
 
 </body>

@@ -40,7 +40,36 @@
 
         /* Page Header */
         .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 20px;
+        }
+
+        .header-profile-link {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            overflow: hidden;
+            color: #334155;
+            flex-shrink: 0;
+        }
+
+        .header-profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-profile-fallback {
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .page-title {
@@ -299,6 +328,10 @@
                 padding: 16px;
             }
 
+            .page-header {
+                gap: 10px;
+            }
+
             .status-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
@@ -351,10 +384,15 @@
 <div id="tracker-container"></div>
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
+                <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> • Today is <span id="current-date"></span></p>
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> � Today is <span id="current-date"></span></p>
+            </div>
+            <a href="../employee/profile.html" class="header-profile-link" id="headerProfileLink" title="Profile">
+                <span class="header-profile-fallback" id="headerProfileFallback">U</span>
+            </a>
         </div>
 
         <!-- Today Status - Compact Card -->
@@ -445,192 +483,228 @@
         </div>
     </div>
 
-    <script>
-        
+    <script src="../../static/js/api.js"></script>
+<script>
+function safeText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
 
+function formatHm(seconds) {
+    const safe = Math.max(Number(seconds || 0), 0);
+    const hours = Math.floor(safe / 3600);
+    const minutes = Math.floor((safe % 3600) / 60);
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
 
-        // Display current date
-        function updateCurrentDate() {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const today = new Date();
-            document.getElementById('current-date').textContent = today.toLocaleDateString('en-US', options);
-        }
+function formatHms(seconds) {
+    const safe = Math.max(Number(seconds || 0), 0);
+    const hours = Math.floor(safe / 3600);
+    const minutes = Math.floor((safe % 3600) / 60);
+    const secs = safe % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
 
-        // Load sidebar dynamically
-        function loadSidebar() {
-            fetch('../shared/sidebar_employee.html')
-                .then(response => {
-                    if (!response.ok) throw new Error('Sidebar not found');
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('sidebar-container').innerHTML = data;
-                    highlightActivePage();
-                })
-                .catch(error => {
-                    console.error('Error loading sidebar:', error);
-                    document.getElementById('sidebar-container').innerHTML = '<div style="padding: 20px; color: #64748b; font-size: 12px;">Sidebar unavailable</div>';
-                });
-        }
+function updateCurrentDate() {
+    const el = document.getElementById("current-date");
+    if (!el) return;
+    el.textContent = new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
+}
 
-        // Load tracker dynamically
-       
+function highlightActivePage() {
+    const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
+    const pageName = currentPage.replace(".html", "");
+    document.querySelectorAll(".nav-item").forEach((item) => {
+        const itemPage = item.getAttribute("data-page");
+        item.classList.toggle("active", itemPage === pageName);
+    });
+}
 
-        // Highlight active page in sidebar
-        function highlightActivePage() {
-            const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-            const pageName = currentPage.replace('.html', '');
-            
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                const itemPage = item.getAttribute('data-page');
-                if (itemPage === pageName) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        }
-    async function loadDashboard() {
+async function loadSidebar() {
     try {
-        const [
-        attendanceSummary,
-        activeAttendance,
-        tasks,
-        activeTask,
-        notices,
-        leaves
-        ] = await Promise.all([
-        API.getAttendanceSummary(),
-        API.getActiveAttendance(),
-        API.getMyTasks(),
-        API.getActiveTask(),
-        API.getNotices(),
-        API.getMyLeaves()
-        ]);
-
-        renderAttendance(attendanceSummary, activeAttendance);
-        renderTasks(tasks);
-        renderActiveTask(activeTask);
-        renderNotices(notices);
-        renderLeaves(leaves);
-
-    } catch (err) {
-        console.error("Dashboard load failed:", err);
-    }
-    }
-    function renderAttendance(summary, active) {
-
-    if (!active) return;
-
-    const secondsFromBackend = active.worked_seconds || 0;
-    const isRunning = active.is_running;
-
-    const statusText = document.getElementById("clock-status-text");
-
-    if (isRunning) {
-        document.getElementById("clockin-time").textContent = "Running";
-        statusText.textContent = "Clocked in";   // ✅ fix
-
-        const startTimestamp = Date.now() - (secondsFromBackend * 1000);
-
-        const update = () => {
-            const now = Date.now();
-            const diff = Math.floor((now - startTimestamp) / 1000);
-
-            const hours = Math.floor(diff / 3600);
-            const minutes = Math.floor((diff % 3600) / 60);
-
-            document.getElementById("hours-today").textContent =
-                `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
-        };
-
-        update();
-        setInterval(update, 60000);
-
-    } else {
-        document.getElementById("clockin-time").textContent = "--:--";
-        statusText.textContent = "Not clocked in";  
-
-        const hours = Math.floor(secondsFromBackend / 3600);
-        const minutes = Math.floor((secondsFromBackend % 3600) / 60);
-
-        document.getElementById("hours-today").textContent =
-            `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
+        const response = await fetch("../shared/sidebar_employee.html");
+        if (!response.ok) throw new Error("Sidebar not found");
+        document.getElementById("sidebar-container").innerHTML = await response.text();
+        highlightActivePage();
+    } catch (error) {
+        console.error("Error loading sidebar:", error);
+        document.getElementById("sidebar-container").innerHTML =
+            '<div style="padding: 20px; color: #64748b; font-size: 12px;">Sidebar unavailable</div>';
     }
 }
-    function renderActiveTask(task) {
-    if (!task) return;
 
-    document.getElementById("active-task-name").textContent = task.task_title;
-    }
-    function renderTasks(tasks) {
-    const tbody = document.getElementById("my-tasks-body");
-    tbody.innerHTML = "";
-
-    if (!tasks.length) {
-        tbody.innerHTML = `
-        <tr><td colspan="4">No tasks assigned</td></tr>
-        `;
+function renderAttendance(active) {
+    if (!active) {
+        safeText("clockin-time", "--:--");
+        safeText("hours-today", "00:00");
+        safeText("clock-status-text", "Not clocked in");
         return;
     }
 
-    tasks.slice(0, 5).forEach(task => {
-        tbody.innerHTML += `
+    const seconds = Number(active.worked_seconds || 0);
+    const running = Boolean(active.is_running);
+    safeText("clockin-time", running ? "Running" : "--:--");
+    safeText("hours-today", formatHm(seconds));
+    safeText("clock-status-text", running ? "Working" : "Not clocked in");
+}
+
+function renderActiveTask(task) {
+    safeText("active-task-name", task?.title || task?.task_title || "None");
+}
+
+function renderTasks(tasks) {
+    const tbody = document.getElementById("my-tasks-body");
+    if (!tbody) return;
+
+    const list = Array.isArray(tasks) ? tasks : [];
+    if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="4">No tasks assigned</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = list.slice(0, 5).map((task) => `
         <tr>
-            <td class="task-name">${task.title}</td>
-            <td><span class="task-status ${task.status}">
-            ${task.status}
-            </span></td>
-            <td class="task-due">
-            ${task.due_date ? new Date(task.due_date).toLocaleDateString() : "-"}
-            </td>
-            <td style="text-align:center;">
-            <a href="tasks.html" class="task-action">Open</a>
-            </td>
+            <td class="task-name">${task.title || "Untitled"}</td>
+            <td><span class="task-status ${task.status || "pending"}">${task.status || "pending"}</span></td>
+            <td class="task-due">${task.due_date ? new Date(task.due_date).toLocaleDateString() : "-"}</td>
+            <td style="text-align:center;"><a href="tasks.html" class="task-action">Open</a></td>
         </tr>
-        `;
-    });
-    }
-    
-    function renderNotices(notices) {
+    `).join("");
+}
+
+function renderNotices(notices) {
     const container = document.getElementById("noticePreview");
-    container.innerHTML = "";
+    if (!container) return;
 
-    notices.slice(0, 3).forEach(n => {
-        container.innerHTML += `
+    const list = Array.isArray(notices) ? notices : [];
+    if (!list.length) {
+        container.innerHTML = '<div class="loading" style="padding: 10px 0;">No notices</div>';
+        return;
+    }
+
+    container.innerHTML = list.slice(0, 3).map((n) => `
         <div class="notice-item">
-            <div class="notice-title">${n.title}</div>
-            <div class="notice-date">
-            ${new Date(n.created_at).toLocaleDateString()}
-            </div>
+            <div class="notice-title">${n.title || "Notice"}</div>
+            <div class="notice-date">${n.created_at ? new Date(n.created_at).toLocaleDateString() : "-"}</div>
         </div>
-        `;
-    });
-    }
-      
-     function renderLeaves(leaves) {
-    const pending = leaves.filter(l => l.status === "pending").length;
-    const approved = leaves.filter(l => l.status === "approved").length;
-    const rejected = leaves.filter(l => l.status === "rejected").length;
+    `).join("");
+}
 
-    document.getElementById("leavePending").textContent = pending;
-    document.getElementById("leaveApproved").textContent = approved;
-    document.getElementById("leaveRejected").textContent = rejected;
+function renderLeaves(leaves) {
+    const list = Array.isArray(leaves) ? leaves : [];
+    safeText("leavePending", list.filter((l) => l.status === "pending").length);
+    safeText("leaveApproved", list.filter((l) => l.status === "approved").length);
+    safeText("leaveRejected", list.filter((l) => l.status === "rejected").length);
+}
+
+function applyHeaderProfile(profile) {
+    const link = document.getElementById("headerProfileLink");
+    const fallback = document.getElementById("headerProfileFallback");
+    if (!link || !fallback) return;
+
+    let userName = "User";
+    const userRaw = localStorage.getItem("user");
+    if (userRaw) {
+        try {
+            const parsed = JSON.parse(userRaw);
+            if (parsed?.name) userName = parsed.name;
+        } catch {}
     }
-// Initialize tracker functionality
-       
-        // Initialize on page load
-       document.addEventListener('DOMContentLoaded', async function() {
-        updateCurrentDate();
-        await loadSidebar();
-        loadGlobalTracker();
+    fallback.textContent = userName.charAt(0).toUpperCase();
+
+    const imgPath = profile?.profile_image;
+    if (!imgPath) return;
+
+    const oldImg = link.querySelector("img");
+    if (oldImg) oldImg.remove();
+
+    const img = document.createElement("img");
+    img.className = "header-profile-img";
+    img.alt = "Profile";
+    img.src = imgPath.startsWith("http") ? imgPath : `http://127.0.0.1:8000${imgPath}`;
+    img.onerror = () => img.remove();
+    link.prepend(img);
+}
+
+function syncDashboardFromTracker() {
+    if (!window.Tracker || typeof window.Tracker.getState !== "function") return;
+    const state = window.Tracker.getState();
+    if (!state) return;
+
+    safeText("clockin-time", state.isClockedIn ? "Running" : "--:--");
+    safeText("clock-status-text", state.isClockedIn ? "Working" : "Not clocked in");
+    safeText("hours-today", formatHm(state.attendanceSeconds || 0));
+    safeText("task-timer", formatHms(state.taskSeconds || 0));
+    safeText("active-task-name", state.activeTask?.title || "None");
+}
+
+async function loadDashboard() {
+    if (!window.API) {
+        console.error("API helper is not available on dashboard.");
+        renderAttendance(null);
+        renderActiveTask(null);
+        renderTasks([]);
+        renderNotices([]);
+        renderLeaves([]);
+        return;
+    }
+
+    const results = await Promise.allSettled([
+        window.API.getActiveAttendance(),
+        window.API.getMyTasks(),
+        window.API.getActiveTask(),
+        window.API.getNotices(),
+        window.API.getMyLeaves(),
+        window.API.getProfile()
+    ]);
+
+    renderAttendance(results[0].status === "fulfilled" ? results[0].value : null);
+    renderTasks(results[1].status === "fulfilled" ? results[1].value : []);
+    renderActiveTask(results[2].status === "fulfilled" ? results[2].value : null);
+    renderNotices(results[3].status === "fulfilled" ? results[3].value : []);
+    renderLeaves(results[4].status === "fulfilled" ? results[4].value : []);
+    applyHeaderProfile(results[5].status === "fulfilled" ? results[5].value : null);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    updateCurrentDate();
+    await loadSidebar();
+
+    try {
+        if (typeof window.loadGlobalTracker === "function") {
+            await window.loadGlobalTracker();
+        } else if (typeof window.loadTracker === "function") {
+            await window.loadTracker();
+        }
+    } catch (err) {
+        console.error("Tracker init failed:", err);
+    }
+
+    try {
         await loadDashboard();
-        });
-    </script>
- 
-<script src="../../static/js/api.js"></script>
+        syncDashboardFromTracker();
+        setInterval(syncDashboardFromTracker, 1000);
+    } catch (err) {
+        console.error("Dashboard init failed:", err);
+        renderAttendance(null);
+        renderActiveTask(null);
+        renderTasks([]);
+        renderNotices([]);
+        renderLeaves([]);
+    }
+});
+</script>
 <script src="../../static/js/tracker.js"></script>
 <script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>
+
+
+
+
+

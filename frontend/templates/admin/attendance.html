@@ -259,6 +259,38 @@
             color: #64748B;
             margin-top: 2px;
         }
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .employee-avatar-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .employee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #073379, #1e40af);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            overflow: hidden;
+            border: 1px solid #E5E7EB;
+        }
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         .date-cell {
             text-align: center;
@@ -331,6 +363,115 @@
             padding: 40px;
             color: #DC2626;
         }
+        .employee-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            padding: 16px;
+        }
+        .employee-modal-overlay.show {
+            display: flex;
+        }
+        .employee-modal {
+            width: min(760px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+        }
+        .employee-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 18px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .employee-modal-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #64748B;
+            font-size: 20px;
+            line-height: 1;
+        }
+        .employee-modal-body {
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 18px;
+        }
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto 10px;
+            border: 1px solid #E5E7EB;
+            background: #F1F5F9;
+        }
+        .profile-fallback {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #073379, #1e40af);
+            color: #fff;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 700;
+        }
+        .employee-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .metric {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 10px;
+            background: #F8FAFC;
+        }
+        .metric h4 {
+            font-size: 11px;
+            color: #64748B;
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .metric p {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0F172A;
+        }
+        .employee-list-mini {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .employee-list-mini h5 {
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .employee-list-mini ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            color: #334155;
+        }
 
         /* Scrollbar styling */
         .table-wrapper::-webkit-scrollbar {
@@ -349,6 +490,42 @@
 
         .table-wrapper::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
+        }
+        @media (max-width: 1024px) {
+            .container {
+                margin-left: 0;
+                padding: 16px;
+            }
+            .filter-bar {
+                gap: 10px;
+            }
+            .filter-group {
+                min-width: 140px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .employee-modal-body {
+                grid-template-columns: 1fr;
+            }
+            .employee-metrics {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -450,6 +627,33 @@
             </div>
         </div>
     </div>
+    <div id="employeeDetailModal" class="employee-modal-overlay">
+        <div class="employee-modal">
+            <div class="employee-modal-head">
+                <h3 id="employeeModalTitle" style="font-size:16px;">Employee Details</h3>
+                <button type="button" class="employee-modal-close" id="closeEmployeeModalBtn">&times;</button>
+            </div>
+            <div class="employee-modal-body">
+                <div style="text-align:center;" id="profilePhotoWrap"></div>
+                <div>
+                    <div style="font-size:13px;color:#64748B;margin-bottom:8px;" id="employeeMetaTop"></div>
+                    <div class="employee-metrics">
+                        <div class="metric"><h4>Attendance</h4><p id="metricAttendance">0%</p></div>
+                        <div class="metric"><h4>Tasks</h4><p id="metricTasks">0</p></div>
+                        <div class="metric"><h4>Projects</h4><p id="metricProjects">0</p></div>
+                    </div>
+                    <div class="employee-list-mini">
+                        <h5>Project Details</h5>
+                        <ul id="projectDetailsList"></ul>
+                    </div>
+                    <div class="employee-list-mini">
+                        <h5>Task Details</h5>
+                        <ul id="taskDetailsList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
  <script src="../../static/js/api.js"></script>
     <script>
@@ -476,6 +680,8 @@
         let currentYear = 2026;
         let attendanceData = [];
         let departments = [];
+        let allTasks = [];
+        let allProjects = [];
 
         // Get status icon
         function getStatusIcon(status) {
@@ -551,8 +757,20 @@
                 let rowHtml = `
                     <tr>
                         <td class="employee-col">
-                            <div class="employee-name">${escapeHtml(emp.name)}</div>
-                            <div class="employee-details">${escapeHtml(emp.department || '')} • ${escapeHtml(emp.designation || '')}</div>
+                            <div class="employee-cell">
+                                <button class="employee-avatar-btn" data-emp-id="${emp.employee_id}" title="View employee details">
+                                    <div class="employee-avatar">
+                                        ${getProfileImageUrl(emp.profile_image)
+                                            ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${escapeHtml(emp.name)}" onerror="this.parentElement.innerHTML='${escapeHtml((emp.name || '?').slice(0,2).toUpperCase())}'">`
+                                            : `${escapeHtml((emp.name || '?').slice(0,2).toUpperCase())}`
+                                        }
+                                    </div>
+                                </button>
+                                <div>
+                                    <div class="employee-name">${escapeHtml(emp.name)}</div>
+                                    <div class="employee-details">${escapeHtml(emp.department || '')} | ${escapeHtml(emp.designation || '')}</div>
+                                </div>
+                            </div>
                         </td>
                 `;
 
@@ -586,8 +804,12 @@
                     </tr>
                 `;
             }
+            tbody.querySelectorAll(".employee-avatar-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    openEmployeeDetail(parseInt(btn.dataset.empId, 10));
+                });
+            });
         }
-
         // Calculate summary
         function calculateSummary() {
             if (!attendanceData.length) return { avgPresent: 0 };
@@ -641,7 +863,14 @@
             tbody.innerHTML = '<tr><td colspan="100" class="loading">Loading attendance data...</td></tr>';
             
             try {
-                attendanceData = await API.getAdminAttendance(currentMonth, currentYear);
+                const [attendance, tasks, projects] = await Promise.all([
+                    API.getAdminAttendance(currentMonth, currentYear),
+                    API.getAdminTasks(),
+                    API.getAdminProjects()
+                ]);
+                attendanceData = attendance || [];
+                allTasks = tasks || [];
+                allProjects = projects || [];
                 
                 renderHeader();
                 renderBody();
@@ -653,9 +882,59 @@
             }
         }
 
+
+        function getProfileImageUrl(path) {
+            if (!path) return '';
+            if (path.startsWith('http://') || path.startsWith('https://')) return path;
+            const normalized = path.replace(/\\/g, '/').replace(/^\/+/, '');
+            return `http://127.0.0.1:8000/${normalized}`;
+        }
+
+        function openEmployeeDetail(employeeId) {
+            const emp = attendanceData.find(e => Number(e.employee_id) === Number(employeeId));
+            if (!emp) return;
+            const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+            const attendancePercent = daysInMonth ? Math.round(((emp.total_present_days || 0) / daysInMonth) * 100) : 0;
+            const tasks = allTasks.filter(t => Number(t.assigned_to) === Number(employeeId));
+            const projects = allProjects.filter(p => {
+                const ownerMatch = Number(p.owner_id) === Number(employeeId);
+                const teamMatch = Array.isArray(p.team_members) && p.team_members.some(m => Number(m.id) === Number(employeeId));
+                return ownerMatch || teamMatch;
+            });
+
+            document.getElementById('employeeModalTitle').textContent = emp.name || 'Employee';
+            document.getElementById('employeeMetaTop').textContent = `${emp.department || '-'} | ${emp.designation || '-'}`;
+            document.getElementById('metricAttendance').textContent = `${attendancePercent}%`;
+            document.getElementById('metricTasks').textContent = String(tasks.length);
+            document.getElementById('metricProjects').textContent = String(projects.length);
+
+            const photoWrap = document.getElementById('profilePhotoWrap');
+            const photoUrl = getProfileImageUrl(emp.profile_image);
+            photoWrap.innerHTML = photoUrl
+                ? `<img class="profile-photo" src="${photoUrl}" alt="${escapeHtml(emp.name || 'Employee')}" onerror="this.remove(); this.parentElement.innerHTML='&lt;div class=&quot;profile-fallback&quot;&gt;${escapeHtml((emp.name || '?').slice(0,2).toUpperCase())}&lt;/div&gt;'">`
+                : `<div class="profile-fallback">${escapeHtml((emp.name || '?').slice(0,2).toUpperCase())}</div>`;
+
+            document.getElementById('projectDetailsList').innerHTML = projects.length
+                ? projects.slice(0, 6).map(p => `<li>${escapeHtml(p.name || 'Untitled Project')}</li>`).join('')
+                : '<li>No projects assigned</li>';
+
+            document.getElementById('taskDetailsList').innerHTML = tasks.length
+                ? tasks.slice(0, 6).map(t => `<li>${escapeHtml(t.title || 'Untitled Task')} (${escapeHtml(t.status || 'pending')})</li>`).join('')
+                : '<li>No tasks assigned</li>';
+
+            document.getElementById('employeeDetailModal').classList.add('show');
+        }
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadAttendance();
+            document.getElementById('closeEmployeeModalBtn').addEventListener('click', () => {
+                document.getElementById('employeeDetailModal').classList.remove('show');
+            });
+            document.getElementById('employeeDetailModal').addEventListener('click', (e) => {
+                if (e.target.id === 'employeeDetailModal') {
+                    document.getElementById('employeeDetailModal').classList.remove('show');
+                }
+            });
         });
     </script>
 </body>

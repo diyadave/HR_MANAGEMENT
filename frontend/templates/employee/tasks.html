@@ -50,7 +50,7 @@
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 20px;
             gap: 20px;
         }
@@ -72,15 +72,62 @@
             color: #64748b;
         }
 
-        .header-filters {
+        .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
+        /* Buttons */
+        .btn-primary {
+            padding: 8px 16px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #052654;
+        }
+
+        .btn-secondary {
+            padding: 8px 16px;
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
         /* Filters */
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
         .filter-select {
-            padding: 7px 12px;
+            padding: 8px 12px;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             font-size: 13px;
@@ -94,28 +141,6 @@
             border-color: #073379;
         }
 
-        .btn-toggle {
-            padding: 7px 14px;
-            background: white;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-toggle:hover {
-            background: #f8fafc;
-        }
-
-        .btn-toggle.active {
-            background: #073379;
-            color: white;
-            border-color: #073379;
-        }
-
         /* Table Container */
         .table-section {
             background: white;
@@ -123,6 +148,7 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         .tasks-table {
@@ -233,9 +259,69 @@
             color: #065f46;
         }
 
-        .status-badge.on-hold {
-            background: #f3f4f6;
-            color: #4b5563;
+        /* Action Buttons Container */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .task-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+
+        .task-action-btn.start {
+            background: #073379;
+            color: white;
+        }
+
+        .task-action-btn.start:hover:not(:disabled) {
+            background: #052654;
+        }
+
+        .task-action-btn.stop {
+            background: #dc2626;
+            color: white;
+        }
+
+        .task-action-btn.stop:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        .task-action-btn.complete {
+            background: #059669;
+            color: white;
+        }
+
+        .task-action-btn.complete:hover:not(:disabled) {
+            background: #047857;
+        }
+
+        .task-action-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Task Timer */
+        .task-timer {
+            font-family: monospace;
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .hours-logged.running {
+            color: #059669;
+            font-weight: 600;
         }
 
         /* Due Date */
@@ -249,70 +335,121 @@
             font-weight: 500;
         }
 
-        /* Hours */
-        .hours-logged {
-            font-size: 13px;
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
             color: #0f172a;
-            font-weight: 500;
         }
 
-        .hours-logged.running {
-            color: #059669;
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
         }
 
-        /* Action Button */
-        .task-action-btn {
-            padding: 6px 14px;
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* History Cards */
+        .history-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .history-total-time {
             background: #073379;
             color: white;
-            border: none;
-            border-radius: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 70px;
         }
 
-        .task-action-btn:hover:not(:disabled) {
-            background: #052654;
+        .history-logs {
+            margin-top: 12px;
         }
 
-        .task-action-btn:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            opacity: 0.6;
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 13px;
         }
 
-        .task-action-btn.running {
-            background: #059669;
+        .log-time {
+            color: #64748b;
         }
 
-        .task-action-btn.running:hover:not(:disabled) {
-            background: #047857;
-        }
-
-        .task-action-btn.warning {
-            background: #dc2626;
-        }
-
-        .task-action-btn.warning:hover:not(:disabled) {
-            background: #b91c1c;
-        }
-
-        /* Task Timer Display */
-        .task-timer {
-            font-family: monospace;
-            font-size: 12px;
+        .log-duration {
+            font-weight: 500;
             color: #059669;
-            font-weight: 600;
-            margin-top: 2px;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: #64748b;
         }
 
@@ -322,44 +459,22 @@
             opacity: 0.3;
         }
 
-        .empty-state-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .empty-state-text {
-            font-size: 13px;
-        }
-
-        /* Loading State */
+        /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
             color: #64748b;
-            font-size: 13px;
         }
 
-        /* Error State */
-        .error-message {
-            text-align: center;
-            padding: 40px;
-            color: #dc2626;
-            font-size: 13px;
-        }
-
-        /* Hidden class */
+        /* Hidden */
         .hidden {
             display: none;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .main-content {
                 margin-right: 0;
             }
-
             #tracker-container {
                 display: none;
             }
@@ -369,88 +484,60 @@
             .main-content {
                 margin-left: 0;
                 padding: 16px;
-                padding-bottom: 80px;
             }
-
-            .page-header {
+            .action-buttons {
                 flex-direction: column;
-                gap: 12px;
             }
-
-            .header-filters {
-                width: 100%;
-                flex-wrap: wrap;
-            }
-
-            .filter-select {
-                flex: 1;
-                min-width: 120px;
-            }
-
-            .tasks-table th,
+            .tasks-table th, 
             .tasks-table td {
                 padding: 10px 8px;
-                font-size: 12px;
-            }
-
-            .task-action-btn {
-                padding: 4px 8px;
-                min-width: 60px;
-                font-size: 11px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar Container -->
     <div id="sidebar-container"></div>
     <div id="tracker-container"></div>
 
-    <!-- Tracker Container -->
- 
-
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <div class="header-left">
                 <h1 class="page-title">My Tasks</h1>
-                <p class="page-subtitle">Manage your assigned work</p>
+                <p class="page-subtitle">Manage and track your work</p>
             </div>
-            <div class="header-filters">
-                <select class="filter-select" id="filterProject">
-                    <option value="">All Projects</option>
-                </select>
-                <select class="filter-select" id="filterStatus">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="on-hold">On Hold</option>
-                </select>
-                <select class="filter-select" id="filterPriority">
-                    <option value="">All Priority</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
-                <button class="btn-toggle" id="btnGroupToggle">
-                    Group by Project
+            <div class="header-actions">
+                <button class="btn-secondary" id="refreshTasksBtn">
+                    🔄 Refresh
+                </button>
+                <button class="btn-primary" id="viewHistoryBtn">
+                    📋 View History
                 </button>
             </div>
         </div>
 
-        <!-- Tasks Table (Flat View) -->
-        <div class="table-section" id="flatView">
+        <div class="filters-bar">
+            <select class="filter-select" id="filterProject">
+                <option value="">All Projects</option>
+            </select>
+            <select class="filter-select" id="filterPriority">
+                <option value="">All Priority</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="table-section">
             <table class="tasks-table">
                 <thead>
                     <tr>
-                        <th style="width: 30%;">Task Name</th>
-                        <th style="width: 12%;">Priority</th>
-                        <th style="width: 12%;">Status</th>
-                        <th style="width: 12%;">Due Date</th>
-                        <th style="width: 12%;">Hours Logged</th>
-                        <th style="width: 12%; text-align: center;">Action</th>
+                        <th>Task</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Time Spent</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tasksTableBody">
@@ -461,22 +548,51 @@
             </table>
         </div>
 
-        <!-- Tasks Grouped by Project (Hidden by default) -->
-        <div class="table-section hidden" id="groupedView">
-            <div id="groupedTasksContainer"></div>
+        <!-- Task Limit Info -->
+        <div class="info-message" id="taskLimitInfo" style="display: none; text-align: center; color: #64748b; font-size: 12px; margin-top: 8px;">
+            Showing top 15 active tasks. <a href="#" id="showAllLink">View all in history</a>
         </div>
     </div>
 
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Task History</h2>
+                <button class="modal-close" id="closeHistoryModal">&times;</button>
+            </div>
+            <div class="modal-body" id="historyModalBody">
+                <div class="loading">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/api.js"></script>
+    <script src="../../static/js/tracker.js"></script>
+    <script src="../../static/js/loadTracker.js"></script>
+    
     <script>
         // ==================== STATE ====================
         let allTasks = [];
         let filteredTasks = [];
         let activeTaskId = null;
         let activeTaskTimer = null;
-        let isGrouped = false;
         let isClockedIn = false;
 
-        // ==================== LOAD SHARED COMPONENTS ====================
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!localStorage.getItem('access_token')) {
+                window.location.href = '../auth/login.html';
+                return;
+            }
+
+            await loadSidebar();
+            await loadTasks();
+            setupEventListeners();
+            startTaskTimerUpdate();
+        });
+
+        // ==================== LOAD SIDEBAR ====================
         async function loadSidebar() {
             try {
                 const response = await fetch('../shared/sidebar_employee.html');
@@ -488,49 +604,32 @@
             }
         }
 
-        
+        // ==================== SETUP EVENT LISTENERS ====================
+        function setupEventListeners() {
+            document.getElementById('filterProject').addEventListener('change', applyFilters);
+            document.getElementById('filterPriority').addEventListener('change', applyFilters);
+            document.getElementById('refreshTasksBtn').addEventListener('click', () => loadTasks());
+            document.getElementById('viewHistoryBtn').addEventListener('click', openHistoryModal);
+            document.getElementById('closeHistoryModal').addEventListener('click', closeHistoryModal);
+            document.getElementById('showAllLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                openHistoryModal();
+            });
 
-        // ==================== TASK TIMER UPDATE ====================
-        function startTaskTimerUpdate() {
-            if (activeTaskTimer) {
-                clearInterval(activeTaskTimer);
-            }
-            
-            activeTaskTimer = setInterval(() => {
-                if (activeTaskId && window.Tracker) {
-                    const state = window.Tracker.getState();
-                    if (state.activeTask) {
-                        // Update the task row with current task time
-                        updateTaskRowTime(activeTaskId, state.taskSeconds);
-                    }
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('historyModal');
+                if (e.target === modal) {
+                    closeHistoryModal();
                 }
-            }, 1000);
-        }
-
-        function stopTaskTimerUpdate() {
-            if (activeTaskTimer) {
-                clearInterval(activeTaskTimer);
-                activeTaskTimer = null;
-            }
-        }
-
-        // Update specific task row with current time
-        function updateTaskRowTime(taskId, seconds) {
-            const taskRow = document.querySelector(`tr[data-task-id="${taskId}"]`);
-            if (taskRow) {
-                const hoursCell = taskRow.querySelector('.hours-logged');
-                if (hoursCell) {
-                    const hours = (seconds / 3600).toFixed(1);
-                    hoursCell.innerHTML = `${hours}h <span class="task-timer">(running)</span>`;
-                    hoursCell.classList.add('running');
-                }
-            }
+            });
         }
 
         // ==================== LOAD TASKS ====================
         async function loadTasks() {
             try {
-                allTasks = await API.getMyTasks();
+                const tasks = await API.getMyTasks(15, false);
+                allTasks = tasks;
                 
                 // Get active task from tracker
                 if (window.Tracker) {
@@ -539,13 +638,11 @@
                     isClockedIn = state.isClockedIn;
                 }
                 
-                applyFilters(); // This will render tasks
+                applyFilters();
                 populateFilters();
                 
-                // Start timer update if there's an active task
-                if (activeTaskId) {
-                    startTaskTimerUpdate();
-                }
+                // Show/hide limit info
+                document.getElementById('taskLimitInfo').style.display = tasks.length === 15 ? 'block' : 'none';
                 
             } catch (error) {
                 console.error('Failed to load tasks:', error);
@@ -555,8 +652,11 @@
 
         // ==================== POPULATE FILTERS ====================
         function populateFilters() {
-            const projects = [...new Set(allTasks.map(t => t.project_name).filter(Boolean))];
+            const projects = [...new Set(allTasks.map(t => t.project?.name || t.project_name).filter(Boolean))];
             const projectSelect = document.getElementById('filterProject');
+            
+            // Keep first option
+            projectSelect.innerHTML = '<option value="">All Projects</option>';
             
             projects.forEach(project => {
                 const option = document.createElement('option');
@@ -569,12 +669,11 @@
         // ==================== APPLY FILTERS ====================
         function applyFilters() {
             const project = document.getElementById('filterProject').value;
-            const status = document.getElementById('filterStatus').value;
             const priority = document.getElementById('filterPriority').value;
             
             filteredTasks = allTasks.filter(task => {
-                if (project && task.project_name !== project) return false;
-                if (status && task.status !== status) return false;
+                const taskProject = task.project?.name || task.project_name;
+                if (project && taskProject !== project) return false;
                 if (priority && task.priority !== priority) return false;
                 return true;
             });
@@ -592,8 +691,8 @@
                         <td colspan="6">
                             <div class="empty-state">
                                 <div class="empty-state-icon">📋</div>
-                                <div class="empty-state-title">No tasks found</div>
-                                <div class="empty-state-text">Try adjusting your filters</div>
+                                <div class="empty-state-title">No active tasks</div>
+                                <div class="empty-state-text">Check your history for completed tasks</div>
                             </div>
                         </td>
                     </tr>
@@ -605,32 +704,34 @@
                 const isActive = task.id === activeTaskId;
                 const rowClass = isActive ? 'active-task' : '';
                 
-                // Determine button state and text
-                let buttonText = 'Start';
-                let buttonClass = 'task-action-btn';
-                let disabled = false;
-                
-                if (isActive) {
-                    buttonText = 'Stop';
-                    buttonClass += ' running';
-                } else if (!isClockedIn) {
-                    disabled = true;
-                } else if (activeTaskId && !isActive) {
-                    disabled = true;
-                }
+                // Determine button states
+                const isRunning = task.id === activeTaskId;
+
+                const canStart = !isRunning && isClockedIn && task.status !== 'completed';
+                const canPause = isRunning;
+                const canComplete = task.status !== 'completed';
                 
                 // Format hours
-                let hoursDisplay = task.hours_logged || 0;
+                let hoursDisplay = task.total_time_spent || 0;
                 if (isActive && window.Tracker) {
                     const state = window.Tracker.getState();
                     hoursDisplay = (state.taskSeconds / 3600).toFixed(1);
+                } else {
+                    hoursDisplay = hoursDisplay.toFixed(1);
                 }
+                
+                // Get project name safely
+                const projectName = task.project?.name || task.project_name || 'No Project';
+                
+                // Status class mapping
+                const statusClass = task.status === 'in_progress' ? 'in-progress' : 
+                                   task.status === 'completed' ? 'completed' : 'pending';
                 
                 return `
                     <tr data-task-id="${task.id}" class="${rowClass}">
                         <td>
                             <div class="task-name">${escapeHtml(task.title)}</div>
-                            <div class="task-project">${escapeHtml(task.project_name) || 'No Project'}</div>
+                            <div class="task-project">${escapeHtml(projectName)}</div>
                         </td>
                         <td>
                             <div class="priority-indicator">
@@ -639,12 +740,12 @@
                             </div>
                         </td>
                         <td>
-                            <span class="status-badge ${(task.status || 'pending').replace('_', '-')}">
-                                ${capitalize(task.status || 'pending').replace('_', ' ')}
+                            <span class="status-badge ${statusClass}">
+                                ${formatStatus(task.status || 'pending')}
                             </span>
                         </td>
                         <td>
-                            <span class="due-date ${isOverdue(task.due_date) ? 'overdue' : ''}">
+                            <span class="due-date ${isOverdue(task.due_date) && task.status !== 'completed' ? 'overdue' : ''}">
                                 ${formatDate(task.due_date) || '-'}
                             </span>
                         </td>
@@ -654,18 +755,188 @@
                                 ${isActive ? '<span class="task-timer">(running)</span>' : ''}
                             </span>
                         </td>
-                        <td style="text-align:center;">
-                            <button 
-                                class="${buttonClass}"
-                                onclick="handleTaskAction(${task.id}, '${escapeHtml(task.title)}')"
-                                ${disabled ? 'disabled' : ''}
-                                ${isActive ? 'data-running="true"' : ''}>
-                                ${buttonText}
-                            </button>
+                        <td>
+                           <div class="action-buttons">
+                            ${canStart ? `
+                                <button class="task-action-btn start"
+                                    onclick="handleStart(${task.id}, '${escapeHtml(task.title)}')">
+                                    Start
+                                </button>
+                            ` : ''}
+
+                            ${canPause ? `
+                                <button class="task-action-btn stop"
+                                    onclick="handleStop(${task.id})">
+                                    Pause
+                                </button>
+                            ` : ''}
+
+                            ${canComplete ? `
+                                <button class="task-action-btn complete"
+                                    onclick="handleComplete(${task.id})">
+                                    Complete
+                                </button>
+                            ` : ''}
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // ==================== TASK ACTIONS ====================
+        async function handleStart(taskId, taskTitle) {
+            try {
+                const result = await API.startTask(taskId);
+                activeTaskId = taskId;
+                await loadTasks();
+                
+                // Update tracker state if available
+               if (window.Tracker?.refresh) {
+                await window.Tracker.refresh();
+            }
+                
+                await loadTasks();
+                startTaskTimerUpdate();
+                
+            } catch (error) {
+                console.error('Start failed:', error);
+                alert(error.message || 'Failed to start task');
+            }
+        }
+
+        async function handleStop(taskId) {
+            try {
+                const result = await API.stopTask(taskId);
+                
+                // Update tracker
+                if (window.Tracker?.refresh) {
+                await window.Tracker.refresh();
+            }
+                
+                await loadTasks();
+                
+            } catch (error) {
+                console.error('Stop failed:', error);
+                alert(error.message || 'Failed to stop task');
+            }
+        }
+
+        async function handleComplete(taskId) {
+            if (!confirm('Mark this task as completed?')) return;
+            
+            try {
+                const result = await API.completeTask(taskId);
+                
+                // If this was active task, clear it
+                if (activeTaskId === taskId) {
+                    activeTaskId = null;
+                    if (window.Tracker?.refresh) {
+                    await window.Tracker.refresh();
+                }
+                }
+                
+                await loadTasks();
+                
+            } catch (error) {
+                console.error('Complete failed:', error);
+                alert(error.message || 'Failed to complete task');
+            }
+        }
+
+        // ==================== TIMER UPDATE ====================
+        function startTaskTimerUpdate() {
+            if (activeTaskTimer) {
+                clearInterval(activeTaskTimer);
+            }
+            
+            activeTaskTimer = setInterval(() => {
+                if (activeTaskId && window.Tracker) {
+                    const state = window.Tracker.getState();
+                    if (state.activeTask) {
+                        updateTaskRowTime(activeTaskId, state.taskSeconds);
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopTaskTimerUpdate() {
+            if (activeTaskTimer) {
+                clearInterval(activeTaskTimer);
+                activeTaskTimer = null;
+            }
+        }
+
+        function updateTaskRowTime(taskId, seconds) {
+            const taskRow = document.querySelector(`tr[data-task-id="${taskId}"]`);
+            if (taskRow) {
+                const hoursCell = taskRow.querySelector('.hours-logged');
+                if (hoursCell) {
+                    const hours = (seconds / 3600).toFixed(1);
+                    hoursCell.innerHTML = `${hours}h <span class="task-timer">(running)</span>`;
+                    hoursCell.classList.add('running');
+                }
+            }
+        }
+
+        // ==================== HISTORY MODAL ====================
+        async function openHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const modalBody = document.getElementById('historyModalBody');
+            
+            modalBody.innerHTML = '<div class="loading">Loading history...</div>';
+            modal.classList.add('active');
+            
+            try {
+                const history = await API.getTaskHistory(50);
+                renderHistory(history);
+            } catch (error) {
+                console.error('Failed to load history:', error);
+                modalBody.innerHTML = '<div class="error-message">Failed to load history</div>';
+            }
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function renderHistory(history) {
+            const modalBody = document.getElementById('historyModalBody');
+            
+            if (!history || history.length === 0) {
+                modalBody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📜</div>
+                        <div class="empty-state-title">No history yet</div>
+                        <div class="empty-state-text">Completed tasks will appear here</div>
+                    </div>
+                `;
+                return;
+            }
+
+            modalBody.innerHTML = history.map(item => `
+                <div class="history-card">
+                    <div class="history-header">
+                        <span class="history-title">${escapeHtml(item.task_title)}</span>
+                        <span class="history-total-time">${item.total_time_hours}h total</span>
+                    </div>
+                    <div class="history-logs">
+                        ${item.logs.map(log => `
+                            <div class="log-item">
+                                <span class="log-time">
+                                    ${formatDateTime(log.start_time)} → ${log.end_time ? formatDateTime(log.end_time) : 'running'}
+                                </span>
+                                <span class="log-duration">${log.duration_seconds ? (log.duration_seconds / 3600).toFixed(2) + 'h' : '-'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${item.completed_at ? `
+                        <div style="margin-top: 8px; font-size: 11px; color: #64748b;">
+                            Completed: ${formatDateTime(item.completed_at)} ${item.completed_by_name ? `by ${item.completed_by_name}` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
         }
 
         // ==================== HELPER FUNCTIONS ====================
@@ -684,6 +955,10 @@
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
+        function formatStatus(status) {
+            return status.split('_').map(word => capitalize(word)).join(' ');
+        }
+
         function formatDate(dateStr) {
             if (!dateStr) return null;
             try {
@@ -694,11 +969,27 @@
             }
         }
 
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return dateStr;
+            }
+        }
+
         function isOverdue(dateStr) {
             if (!dateStr) return false;
             try {
                 const dueDate = new Date(dateStr);
                 const today = new Date();
+                today.setHours(0, 0, 0, 0);
                 return dueDate < today;
             } catch {
                 return false;
@@ -717,228 +1008,27 @@
             `;
         }
 
-        // ==================== HANDLE TASK ACTION ====================
-        async function handleTaskAction(taskId, taskTitle) {
-            const button = event.target;
-            button.disabled = true;
-            
-            try {
-                if (activeTaskId === taskId) {
-                    // STOP TASK
-                    if (window.Tracker) {
-                        const success = await window.Tracker.stopTask();
-                        if (success) {
-                            activeTaskId = null;
-                            stopTaskTimerUpdate();
-                        }
-                    }
+        function highlightActivePage() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const pageName = currentPage.replace('.html', '');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.getAttribute('data-page') === pageName) {
+                    item.classList.add('active');
                 } else {
-                    // START TASK
-                    if (window.Tracker) {
-                        // Check if clocked in
-                        const state = window.Tracker.getState();
-                        if (!state.isClockedIn) {
-                            alert('Please clock in first');
-                            button.disabled = false;
-                            return;
-                        }
-                        
-                        // Check if another task is running
-                        if (state.activeTask) {
-                            alert(`Please stop "${state.activeTask.title}" first`);
-                            button.disabled = false;
-                            return;
-                        }
-                        
-                        const success = await window.Tracker.startTask(taskId, taskTitle);
-                        if (success) {
-                            activeTaskId = taskId;
-                            startTaskTimerUpdate();
-                        }
-                    }
-                }
-                
-                // Refresh tasks
-                await loadTasks();
-                
-            } catch (error) {
-                console.error('Task action failed:', error);
-                alert(error.message || 'Action failed');
-            } finally {
-                button.disabled = false;
-            }
-        }
-
-        // ==================== TOGGLE GROUPING ====================
-        function toggleGrouping() {
-            isGrouped = !isGrouped;
-            const btn = document.getElementById('btnGroupToggle');
-            const flatView = document.getElementById('flatView');
-            const groupedView = document.getElementById('groupedView');
-            
-            btn.textContent = isGrouped ? 'Flat View' : 'Group by Project';
-            
-            if (isGrouped) {
-                flatView.classList.add('hidden');
-                groupedView.classList.remove('hidden');
-                renderGroupedView();
-            } else {
-                flatView.classList.remove('hidden');
-                groupedView.classList.add('hidden');
-                renderTasks(filteredTasks);
-            }
-        }
-
-        // ==================== RENDER GROUPED VIEW ====================
-        function renderGroupedView() {
-            const container = document.getElementById('groupedTasksContainer');
-            const grouped = {};
-            
-            filteredTasks.forEach(task => {
-                const project = task.project_name || 'Other';
-                if (!grouped[project]) grouped[project] = [];
-                grouped[project].push(task);
-            });
-            
-            container.innerHTML = Object.entries(grouped).map(([project, tasks]) => {
-                const projectTotal = tasks.reduce((sum, t) => sum + (t.hours_logged || 0), 0);
-                
-                return `
-                    <div class="project-group">
-                        <div class="project-header">
-                            <div class="project-info">
-                                <span class="project-name">${escapeHtml(project)}</span>
-                                <span class="project-meta">
-                                    <span>📋 ${tasks.length} tasks</span>
-                                    <span>⏱ ${projectTotal.toFixed(1)}h total</span>
-                                </span>
-                            </div>
-                        </div>
-                        <table class="tasks-table">
-                            <tbody>
-                                ${tasks.map(task => {
-                                    const isActive = task.id === activeTaskId;
-                                    const rowClass = isActive ? 'active-task' : '';
-                                    
-                                    let buttonText = 'Start';
-                                    let buttonClass = 'task-action-btn';
-                                    let disabled = false;
-                                    
-                                    if (isActive) {
-                                        buttonText = 'Stop';
-                                        buttonClass += ' running';
-                                    } else if (!isClockedIn) {
-                                        disabled = true;
-                                    } else if (activeTaskId && !isActive) {
-                                        disabled = true;
-                                    }
-                                    
-                                    let hoursDisplay = task.hours_logged || 0;
-                                    if (isActive && window.Tracker) {
-                                        const state = window.Tracker.getState();
-                                        hoursDisplay = (state.taskSeconds / 3600).toFixed(1);
-                                    }
-                                    
-                                    return `
-                                        <tr data-task-id="${task.id}" class="${rowClass}">
-                                            <td style="width: 35%;">
-                                                <div class="task-name">${escapeHtml(task.title)}</div>
-                                            </td>
-                                            <td style="width: 15%;">
-                                                <div class="priority-indicator">
-                                                    <div class="priority-dot ${task.priority || 'medium'}"></div>
-                                                    <span>${capitalize(task.priority || 'medium')}</span>
-                                                </div>
-                                            </td>
-                                            <td style="width: 12%;">
-                                                <span class="status-badge ${(task.status || 'pending').replace('_', '-')}">
-                                                    ${capitalize(task.status || 'pending').replace('_', ' ')}
-                                                </span>
-                                            </td>
-                                            <td style="width: 12%;">
-                                                <span class="due-date ${isOverdue(task.due_date) ? 'overdue' : ''}">
-                                                    ${formatDate(task.due_date) || '-'}
-                                                </span>
-                                            </td>
-                                            <td style="width: 10%;">
-                                                <span class="hours-logged ${isActive ? 'running' : ''}">
-                                                    ${hoursDisplay}h
-                                                    ${isActive ? '<span class="task-timer">(running)</span>' : ''}
-                                                </span>
-                                            </td>
-                                            <td style="width: 10%; text-align:center;">
-                                                <button 
-                                                    class="${buttonClass}"
-                                                    onclick="handleTaskAction(${task.id}, '${escapeHtml(task.title)}')"
-                                                    ${disabled ? 'disabled' : ''}
-                                                    ${isActive ? 'data-running="true"' : ''}>
-                                                    ${buttonText}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check authentication
-            if (!localStorage.getItem('access_token')) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            await loadSidebar();
-          
-            
-            // Load tasks after tracker is ready
-            setTimeout(async () => {
-                await loadTasks();
-            }, 200);
-
-            // Event listeners
-            document.getElementById('filterProject').addEventListener('change', applyFilters);
-            document.getElementById('filterStatus').addEventListener('change', applyFilters);
-            document.getElementById('filterPriority').addEventListener('change', applyFilters);
-            document.getElementById('btnGroupToggle').addEventListener('click', toggleGrouping);
-            
-            // Refresh when page becomes visible
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    loadTasks();
+                    item.classList.remove('active');
                 }
             });
+        }
 
-            // Clean up on page unload
-            window.addEventListener('beforeunload', () => {
-                stopTaskTimerUpdate();
-            });
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            stopTaskTimerUpdate();
         });
 
         // Make functions global for onclick handlers
-        window.handleTaskAction = handleTaskAction;
-        window.applyFilters = applyFilters;
-        window.toggleGrouping = toggleGrouping;
-       function highlightActivePage() {
-    const currentPage = window.location.pathname.split('/').pop();
-    const pageName = currentPage.replace('.html', '');
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.getAttribute('data-page') === pageName) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-} 
+        window.handleStart = handleStart;
+        window.handleStop = handleStop;
+        window.handleComplete = handleComplete;
     </script>
- <script src="../../static/js/api.js"></script>
-<script src="../../static/js/tracker.js"></script>
-<script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>

@@ -13,6 +13,6 @@ class TaskTimeLog(Base):
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=True)
 
-    task = relationship("Task")
+    # Relationships
+    task = relationship("Task", back_populates="time_logs")
     user = relationship("User")
-    

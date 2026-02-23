@@ -21,24 +21,12 @@
             color: #1e293b;
             font-size: 13px;
             line-height: 1.5;
-            display: flex;
             -webkit-font-smoothing: antialiased;
         }
 
-        #sidebar-container {
-            min-width: 260px;
-            background: #ffffff;
-            border-right: 1px solid #e2e8f0;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            overflow-y: auto;
-        }
-
         .main-content {
-            flex: 1;
-            overflow-y: auto;
-            height: 100vh;
+            margin-left: 260px;
+            min-height: 100vh;
         }
 
         .container {
@@ -164,7 +152,7 @@
             background-color: #f8fafc;
         }
 
-        /* --- employee cell with avatar simulation --- */
+        /* --- employee cell with avatar --- */
         .employee-cell {
             display: flex;
             align-items: center;
@@ -182,6 +170,13 @@
             font-weight: 600;
             font-size: 12px;
             flex-shrink: 0;
+        }
+        .avatar-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
         }
         .employee-name {
             font-weight: 500;
@@ -242,17 +237,9 @@
 
         /* --- responsive --- */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            #sidebar-container {
-                min-width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-            }
             .main-content {
-                height: auto;
+                margin-left: 0 !important;
+                min-height: auto;
             }
             .filter-bar {
                 flex-direction: column;
@@ -268,13 +255,13 @@
         .text-muted { color: #64748b; }
         .fw-600 { font-weight: 600; }
     </style>
-</id>
+</head>
 <body>
     <!-- sidebar dynamically loaded -->
     <div id="sidebar-container"></div>
 
     <div class="main-content">
-        <div class="container">
+        
             <!-- header -->
             <div class="page-header">
                 <h1 class="page-title">Productivity Dashboard</h1>
@@ -354,30 +341,16 @@
         </div>
     </div>
 
+    <script src="../../static/js/api.js"></script>
     <script>
         (function() {
             // ---------- constants & helpers ----------
             const API_BASE = 'http://127.0.0.1:8000';
-            const token = localStorage.getItem('access_token');
 
             // reusable fetch with auth header
             async function apiFetch(endpoint, options = {}) {
-                const headers = {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    ...(options.headers || {})
-                };
-                const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
-                if (!response.ok) {
-                    // try to extract error, but throw generic
-                    let errorText = `API error ${response.status}`;
-                    try {
-                        const errData = await response.json();
-                        errorText = errData.detail || errorText;
-                    } catch { /* ignore */ }
-                    throw new Error(errorText);
-                }
-                return response.json();
+                if (!window.API) throw new Error("API not initialized");
+                return API.request(endpoint, options.method || "GET", options.body || null);
             }
 
             // seconds to HH:MM (padded, handles negative? not expected, but safe)
@@ -388,6 +361,22 @@
                 const hours = Math.floor(absSec / 3600);
                 const minutes = Math.floor((absSec % 3600) / 60);
                 return `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            }
+
+            function escapeHtml(str) {
+                return String(str ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function getProfileImageUrl(path) {
+                if (!path) return null;
+                const p = String(path);
+                if (p.startsWith('http://') || p.startsWith('https://')) return p;
+                return `${API_BASE}/${p.replace(/^\/+/, '')}`;
             }
 
             // get month/year from dropdowns
@@ -420,9 +409,10 @@
                 data.forEach(emp => {
                     const row = document.createElement('tr');
 
-                    // employee name with avatar (initials)
+                    // employee name with avatar image or initials fallback
                     const nameParts = (emp.name || 'Unknown').split(' ');
                     const initials = nameParts.map(p => p[0] || '').join('').substring(0,2).toUpperCase() || '?';
+                    const photoUrl = getProfileImageUrl(emp.profile_image);
 
                     // productivity percent class
                     const prod = parseFloat(emp.productivity_percent) || 0;
@@ -433,11 +423,15 @@
                     row.innerHTML = `
                         <td>
                             <div class="employee-cell">
-                                <div class="avatar-placeholder">${initials}</div>
-                                <span class="employee-name">${emp.name || '—'}</span>
+                                <div class="avatar-placeholder">${
+                                    photoUrl
+                                        ? `<img src="${photoUrl}" alt="${escapeHtml(emp.name || 'Employee')}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
+                                        : `${escapeHtml(initials)}`
+                                }</div>
+                                <span class="employee-name">${escapeHtml(emp.name || '-')}</span>
                             </div>
                         </td>
-                        <td><span class="department-badge">${emp.department || '—'}</span></td>
+                        <td><span class="department-badge">${escapeHtml(emp.department || '-')}</span></td>
                         <td class="hours-value">${secondsToHHMM(emp.attendance_seconds)}</td>
                         <td class="hours-value">${secondsToHHMM(emp.task_seconds)}</td>
                         <td class="hours-value">${secondsToHHMM(emp.idle_seconds)}</td>
@@ -461,7 +455,7 @@
                 const { month, year } = getSelectedMonthYear();
 
                 try {
-                    if (!token) {
+                    if (!localStorage.getItem("access_token")) {
                         throw new Error('No access token found. Please log in again.');
                     }
 

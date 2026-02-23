@@ -16,18 +16,6 @@
   let isClockedIn = false;
   let activeTask = null;
   let taskStartTime = null;
-  // ==================== RESTORE STATE FROM LOCAL STORAGE ====================
-const savedState = localStorage.getItem("tracker_state");
-if (savedState) {
-  try {
-    const parsed = JSON.parse(savedState);
-    isClockedIn = parsed.isClockedIn || false;
-    activeTask = parsed.activeTask || null;
-  } catch (e) {
-    console.warn("Failed to parse saved tracker state");
-  }
-}
-
   // ==================== DOM ELEMENTS ====================
 let elements = {};
 
@@ -71,17 +59,19 @@ function initTrackerElements() {
   }
 
   // ==================== TIMER CONTROLS ====================
-  function startAttendanceTimer(initialSeconds) {
-    stopAllIntervals();
-    
-    attendanceSeconds = initialSeconds || 0;
-    elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
-    
-    attendanceInterval = setInterval(() => {
-      attendanceSeconds++;
-      elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
-    }, 1000);
+function startAttendanceTimer(initialSeconds) {
+  if (attendanceInterval) {
+    clearInterval(attendanceInterval);
   }
+  
+  attendanceSeconds = initialSeconds || 0;
+  elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
+  
+  attendanceInterval = setInterval(() => {
+    attendanceSeconds++;
+    elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
+  }, 1000);
+}
 
   function startTaskTimer(initialSeconds) {
     if (taskInterval) {
@@ -146,58 +136,54 @@ function initTrackerElements() {
       elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
       
       if (isClockedIn) {
+      if (!attendanceInterval) {
         startAttendanceTimer(attendanceSeconds);
-      } else {
-        if (attendanceInterval) {
-          clearInterval(attendanceInterval);
-          attendanceInterval = null;
-        }
       }
+    } else {
+      if (attendanceInterval) {
+        clearInterval(attendanceInterval);
+        attendanceInterval = null;
+      }
+    }
 
       // Load active task
-      try {
-        activeTask = await API.getActiveTask();
-        if (activeTask) {
+      // Load active task
+    try {
+      activeTask = await API.getActiveTask();
+
+      if (activeTask) {
         activeTask.id = activeTask.id || activeTask.task_id;
         activeTask.title = activeTask.title || activeTask.task_title;
-        }
-        
-        if (activeTask) {
-          // Calculate task duration if task is running
-          if (activeTask.start_time) {
-            const startTime = new Date(activeTask.start_time).getTime();
-            const now = new Date().getTime();
-            taskSeconds = Math.floor((now - startTime) / 1000);
+
+        if (activeTask.start_time) {
+          const startTime = new Date(activeTask.start_time).getTime();
+          const now = new Date().getTime();
+          const runningSeconds = Math.floor((now - startTime) / 1000);
+          const totalSeconds = activeTask.total_seconds || runningSeconds;
+          taskSeconds = Math.max(totalSeconds, runningSeconds);
+
+          if (!taskInterval) {
             startTaskTimer(taskSeconds);
-          } else {
-            taskSeconds = activeTask.worked_seconds || 0;
-            elements.taskTimer.textContent = formatTime(taskSeconds);
           }
         } else {
-          activeTask = null;
-          stopTaskTimer();
+          taskSeconds = activeTask.worked_seconds || 0;
+          elements.taskTimer.textContent = formatTime(taskSeconds);
         }
-      } catch (e) {
-        // No active task is fine
+      } else {
         activeTask = null;
         stopTaskTimer();
       }
 
+    } catch (e) {
+      activeTask = null;
+      stopTaskTimer();
+    }
       updateUI();
-      // ==================== SAVE STATE TO LOCAL STORAGE ====================
-localStorage.setItem("tracker_state", JSON.stringify({
-  isClockedIn,
-  activeTask
-}));
-
-      // Store state in window for other pages to access
-    
 
     } catch (error) {
 
-        if (error.message.toLowerCase().includes("unauthorized")) {
-            localStorage.removeItem("access_token");
-            window.location.href = "/login.html";
+        if (error.message.toLowerCase().includes("session expired")) {
+            window.location.href = "../auth/login.html";
             return;
         }
 

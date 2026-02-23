@@ -316,6 +316,13 @@
             font-size: 12px;
             flex-shrink: 0;
         }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+            display: block;
+        }
 
         .user-info {
             display: flex;
@@ -916,6 +923,12 @@
 const API_BASE = "http://127.0.0.1:8000";
 let selectedTeamMembers = new Set();
 let currentOwnerId = null;
+function getProfileImageUrl(path) {
+    if (!path) return "";
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    return `http://127.0.0.1:8000/${normalized}`;
+}
 
 function getToken() {
     return localStorage.getItem("access_token");
@@ -1010,7 +1023,10 @@ async function loadTeamMembers() {
             <div class="member-checkbox ${isSelected ? "checked" : ""}"></div>
             <div class="member-info">
                 <div class="user-avatar">
-                    ${emp.name.slice(0,2).toUpperCase()}
+                    ${emp.profile_image
+                        ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${emp.name}" onerror="this.parentElement.textContent='${emp.name.slice(0,2).toUpperCase()}'">`
+                        : `${emp.name.slice(0,2).toUpperCase()}`
+                    }
                 </div>
                 <div>
                     <div style="font-weight:500">${emp.name}</div>
@@ -1042,7 +1058,15 @@ async function loadProjects() {
                     <div class="project-description">${p.description || ""}</div>
                 </td>
                 <td>
-                <div class="user-name">${p.owner?.name || "-"}</div>
+                <div class="owner-cell">
+                    <div class="user-avatar">
+                        ${p.owner?.profile_image
+                            ? `<img src="${getProfileImageUrl(p.owner.profile_image)}" alt="${p.owner?.name || 'Owner'}" onerror="this.parentElement.textContent='${(p.owner?.name || '?').slice(0,2).toUpperCase()}'">`
+                            : `${(p.owner?.name || '?').slice(0,2).toUpperCase()}`
+                        }
+                    </div>
+                    <div class="user-name">${p.owner?.name || "-"}</div>
+                </div>
                 </td>
 
                 <td>
