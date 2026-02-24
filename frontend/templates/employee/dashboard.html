@@ -388,7 +388,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Dashboard</h1>
-                <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> • Today is <span id="current-date"></span></p>
+                <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> ï¿½ Today is <span id="current-date"></span></p>
             </div>
             <a href="../employee/profile.html" class="header-profile-link" id="headerProfileLink" title="Profile">
                 <span class="header-profile-fallback" id="headerProfileFallback">U</span>
@@ -605,6 +605,7 @@ function renderLeaves(leaves) {
 function applyHeaderProfile(profile) {
     const link = document.getElementById("headerProfileLink");
     const fallback = document.getElementById("headerProfileFallback");
+    const nameEl = document.getElementById("employee-name");
     if (!link || !fallback) return;
 
     let userName = "User";
@@ -614,6 +615,9 @@ function applyHeaderProfile(profile) {
             const parsed = JSON.parse(userRaw);
             if (parsed?.name) userName = parsed.name;
         } catch {}
+    }
+    if (nameEl) {
+        nameEl.textContent = profile?.name || userName;
     }
     fallback.textContent = userName.charAt(0).toUpperCase();
 

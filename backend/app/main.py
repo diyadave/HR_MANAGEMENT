@@ -16,9 +16,11 @@ from app.routes import employee_projects
 from app.routes import attendance
 from app.routes import leaves,profile
 from fastapi.staticfiles import StaticFiles
+from app.models.holiday import Holiday  
+from app.models.attendance_edit_log import AttendanceEditLog
 from app.models.research import ResearchColumn, ResearchRow, ResearchCell, ResearchColumnPermission, ResearchDocument, ResearchDocumentPermission
 from app.schemas.research import ResearchFileCreate, ResearchFileOut, CellUpdate
-from app.routes import research
+from app.routes import research,holiday
 
 app = FastAPI()
 
@@ -53,6 +55,7 @@ app.include_router(leaves.router)
 app.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 app.include_router(profile.router)
 app.include_router(research.router)
+app.include_router(holiday.router)
 
 
 

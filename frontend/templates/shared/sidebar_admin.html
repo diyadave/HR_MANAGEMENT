@@ -261,7 +261,7 @@
             <div class="sidebar-logo">DooOn</div>
             <div class="sidebar-role">Admin Panel</div>
             <div class="sidebar-user-row">
-                <span class="sidebar-greeting" data-user-greeting>Hi Diya</span>
+                
             </div>
         </div>
 
@@ -303,16 +303,30 @@
                     </span>
                     <span class="nav-text">Tasks</span>
                 </a>
-              <a href="research.html" class="nav-item" data-page="research">
+                <a href="research.html" class="nav-item" data-page="research">
                     <span class="nav-icon">
+                        <!-- UPDATED: Trending Up Arrow for Growth Desk -->
                         <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
                         </svg>
                     </span>
                     <span class="nav-text">Growth Desk</span>
                 </a>
             </div>
+            <a href="holidays.html" class="nav-item" data-page="holidays">
+                <span class="nav-icon">
+                    <!-- UPDATED: Calendar with Star for Holidays -->
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <polygon points="12 15 13 18 16 18 14 20 15 23 12 21 9 23 10 20 8 18 11 18 12 15"></polygon>
+                    </svg>
+                </span>
+                <span class="nav-text">Holidays</span>
+            </a>
 
             <!-- HR Section -->
             <div class="nav-section">
@@ -339,13 +353,12 @@
                     </span>
                     <span class="nav-text">Attendance</span>
                 </a>
-                    <a href="productivity.html" class="nav-item" data-page="productivity">
+                <a href="productivity.html" class="nav-item" data-page="productivity">
                     <span class="nav-icon">
+                        <!-- UPDATED: Chart/Graph for Productivity -->
                         <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="7.5 13.5 10.5 10.5 13.5 13.5 16.5 10.5"></polyline>
                         </svg>
                     </span>
                     <span class="nav-text">Productivity</span>
@@ -429,7 +442,14 @@
         }
 
         // Toggle submenu
-        
+        function toggleSubmenu(event, submenuId) {
+            event.preventDefault();
+            const submenu = document.getElementById(submenuId);
+            const parent = submenu.closest('.nav-parent');
+            
+            submenu.classList.toggle('expanded');
+            parent.classList.toggle('expanded');
+        }
 
         // Handle logout
         function handleLogout(event) {
@@ -496,4 +516,3 @@
     </script>
 </body>
 </html>
-

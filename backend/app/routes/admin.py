@@ -1,9 +1,11 @@
 import secrets
+import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from sqlalchemy import extract
+from sqlalchemy import and_, extract, inspect, or_, text
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
+from calendar import monthrange
 
 from app.database.session import get_db
 from app.core.dependencies import get_current_admin
@@ -11,6 +13,9 @@ from app.core.security import hash_password, verify_password
 
 from app.models.user import User
 from app.models.attendance import Attendance
+from app.models.attendance_edit_log import AttendanceEditLog
+from app.models.holiday import Holiday
+from app.models.leave import Leave
 from app.models.project import Project
 from app.models.task import Task
 from app.models.task_time_log import TaskTimeLog
@@ -149,6 +154,172 @@ def get_all_tasks(
 
     return result
 # ================= ATTENDANCE REPORT =================
+OFFICE_START = time(9, 0)
+LATE_AFTER = time(9, 30)
+
+
+def ensure_attendance_schema(db: Session) -> None:
+    inspector = inspect(db.bind)
+    existing_cols = {c["name"] for c in inspector.get_columns("attendance_logs")}
+    ddl = {
+        "half_day_type": "ALTER TABLE attendance_logs ADD COLUMN half_day_type VARCHAR(20)",
+        "is_late": "ALTER TABLE attendance_logs ADD COLUMN is_late BOOLEAN DEFAULT FALSE NOT NULL",
+        "working_from": "ALTER TABLE attendance_logs ADD COLUMN working_from VARCHAR(30)",
+        "location": "ALTER TABLE attendance_logs ADD COLUMN location VARCHAR(255)",
+        "manual_override": "ALTER TABLE attendance_logs ADD COLUMN manual_override BOOLEAN DEFAULT FALSE NOT NULL",
+        "edit_reason": "ALTER TABLE attendance_logs ADD COLUMN edit_reason TEXT",
+    }
+    for col, statement in ddl.items():
+        if col in existing_cols:
+            continue
+        try:
+            db.execute(text(statement))
+            db.commit()
+        except Exception:
+            db.rollback()
+
+
+def parse_iso_date(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD") from exc
+
+
+def parse_time_on_date(target_date: date, value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+
+    try:
+        parsed_dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if parsed_dt.tzinfo is None:
+            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+        return parsed_dt.astimezone(timezone.utc)
+    except Exception:
+        pass
+
+    try:
+        parts = raw.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1])
+        second = int(parts[2]) if len(parts) > 2 else 0
+        return datetime(target_date.year, target_date.month, target_date.day, hour, minute, second, tzinfo=timezone.utc)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM, HH:MM:SS or ISO datetime") from exc
+
+
+def compute_total_seconds(clock_in_time: Optional[datetime], clock_out_time: Optional[datetime]) -> int:
+    if not clock_in_time or not clock_out_time:
+        return 0
+    if clock_out_time <= clock_in_time:
+        return 0
+    return int((clock_out_time - clock_in_time).total_seconds())
+
+
+def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]:
+    direct = db.query(Holiday).filter(extract("month", Holiday.date) == month, extract("year", Holiday.date) == year).all()
+    repeating = db.query(Holiday).filter(Holiday.repeat_yearly == True, extract("month", Holiday.date) == month).all()
+    result = {h.date for h in direct}
+    for h in repeating:
+        result.add(date(year, h.date.month, h.date.day))
+    return result
+
+
+def get_approved_leave_dates_for_month(db: Session, user_id: int, month: int, year: int) -> set[date]:
+    first_day = date(year, month, 1)
+    last_day = date(year, month, monthrange(year, month)[1])
+    leaves = db.query(Leave).filter(
+        Leave.user_id == user_id,
+        Leave.status == "approved",
+        Leave.start_date <= last_day,
+        Leave.end_date >= first_day,
+    ).all()
+
+    leave_dates = set()
+    for leave in leaves:
+        start = max(leave.start_date, first_day)
+        end = min(leave.end_date, last_day)
+        for day in range(start.day, end.day + 1):
+            leave_dates.add(date(year, month, day))
+    return leave_dates
+
+
+def status_from_attendance(attendance: Optional[Attendance]) -> str:
+    if not attendance:
+        return "absent"
+
+    if (attendance.working_from or "").lower() == "holiday":
+        return "holiday"
+
+    if attendance.half_day_type in {"first_half", "second_half"}:
+        return "halfday"
+
+    # Live tracker awareness: if currently clocked-in, reflect status immediately.
+    if attendance.clock_in_time and not attendance.clock_out_time:
+        clock_in_local = attendance.clock_in_time.astimezone(timezone.utc).time()
+        return "late" if clock_in_local > LATE_AFTER else "present"
+
+    total_seconds = int(attendance.total_seconds or 0)
+    if total_seconds >= 9 * 3600:
+        status = "present"
+    elif total_seconds >= 4 * 3600:
+        status = "halfday"
+    else:
+        status = "absent"
+
+    if attendance.clock_in_time and attendance.clock_in_time.astimezone(timezone.utc).time() > LATE_AFTER and status == "present":
+        status = "late"
+    if attendance.is_late and status in {"present", "late"}:
+        status = "late"
+    return status
+
+
+def serialize_attendance(attendance: Optional[Attendance]) -> dict:
+    if not attendance:
+        return {}
+    return {
+        "id": attendance.id,
+        "user_id": attendance.user_id,
+        "date": attendance.date.isoformat(),
+        "clock_in_time": attendance.clock_in_time.isoformat() if attendance.clock_in_time else None,
+        "clock_out_time": attendance.clock_out_time.isoformat() if attendance.clock_out_time else None,
+        "total_seconds": int(attendance.total_seconds or 0),
+        "half_day_type": attendance.half_day_type,
+        "is_late": bool(attendance.is_late),
+        "working_from": attendance.working_from,
+        "location": attendance.location,
+        "manual_override": bool(attendance.manual_override),
+        "edit_reason": attendance.edit_reason,
+    }
+
+
+def append_edit_log(
+    db: Session,
+    *,
+    attendance_id: Optional[int],
+    user_id: int,
+    admin_id: int,
+    target_date: date,
+    action: str,
+    reason: Optional[str],
+    old_payload: dict,
+    new_payload: dict,
+) -> None:
+    db.add(AttendanceEditLog(
+        attendance_id=attendance_id,
+        user_id=user_id,
+        admin_id=admin_id,
+        date=target_date,
+        action=action,
+        reason=reason,
+        old_payload=json.dumps(old_payload or {}),
+        new_payload=json.dumps(new_payload or {}),
+        manual_override=True,
+    ))
+
 
 @router.get("/attendance")
 def get_monthly_attendance(
@@ -157,8 +328,10 @@ def get_monthly_attendance(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
+    ensure_attendance_schema(db)
     users = db.query(User).filter(User.role == "employee").all()
-
+    days_in_month = monthrange(year, month)[1]
+    holiday_dates = get_holiday_dates_for_month(db, month, year)
     result = []
 
     for user in users:
@@ -167,23 +340,45 @@ def get_monthly_attendance(
             extract("month", Attendance.date) == month,
             extract("year", Attendance.date) == year
         ).all()
+        attendance_by_date = {r.date: r for r in records}
+        leave_dates = get_approved_leave_dates_for_month(db, user.id, month, year)
 
         days_map = {}
-        total_present = 0
+        day_details = {}
+        present_days = 0.0
+        half_days = 0
+        leave_days = 0
+        holidays = 0
 
-        for r in records:
-            hours = (r.total_seconds or 0) / 3600
+        for day in range(1, days_in_month + 1):
+            current_date = date(year, month, day)
+            row = attendance_by_date.get(current_date)
 
-            if hours >= 9:
-                status = "present"
-                total_present += 1
-            elif hours >= 4:
-                status = "halfday"
-                total_present += 0.5
+            if current_date in holiday_dates:
+                status = "holiday"
+                holidays += 1
+            elif current_date in leave_dates:
+                status = "leave"
+                leave_days += 1
             else:
-                status = "absent"
+                status = status_from_attendance(row)
+                if status in {"present", "late"}:
+                    present_days += 1
+                elif status == "halfday":
+                    half_days += 1
 
-            days_map[r.date.day] = status
+            days_map[day] = status
+            day_details[day] = {
+                "status": status,
+                "half_day_type": row.half_day_type if row else None,
+                "manual_override": bool(row.manual_override) if row else False,
+                "is_late": bool(row.is_late) if row else False,
+            }
+
+        working_days = max(days_in_month - holidays - leave_days, 0)
+        score = present_days + (0.5 * half_days)
+        attendance_percentage = round((score / working_days) * 100, 2) if working_days else 0.0
+        absent_days = max(working_days - int(present_days) - half_days, 0)
 
         result.append({
             "employee_id": user.id,
@@ -192,10 +387,297 @@ def get_monthly_attendance(
             "designation": user.designation,
             "profile_image": user.profile_image,
             "days": days_map,
-            "total_present_days": total_present
+            "day_details": day_details,
+            "total_present_days": present_days,
+            "present_days": present_days,
+            "half_days": half_days,
+            "leave_days": leave_days,
+            "holidays": holidays,
+            "absent_days": absent_days,
+            "attendance_percentage": attendance_percentage,
         })
 
     return result
+
+
+@router.get("/attendance/details")
+def get_attendance_details(
+    user_id: int,
+    date: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    ensure_attendance_schema(db)
+    target_date = parse_iso_date(date)
+
+    employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    is_holiday = db.query(Holiday).filter(
+        or_(
+            and_(Holiday.date == target_date, Holiday.repeat_yearly == False),
+            and_(
+                Holiday.repeat_yearly == True,
+                extract("month", Holiday.date) == target_date.month,
+                extract("day", Holiday.date) == target_date.day,
+            ),
+        )
+    ).first() is not None
+
+    has_approved_leave = db.query(Leave).filter(
+        Leave.user_id == user_id,
+        Leave.status == "approved",
+        Leave.start_date <= target_date,
+        Leave.end_date >= target_date,
+    ).first() is not None
+
+    attendance = db.query(Attendance).filter(
+        Attendance.user_id == user_id,
+        Attendance.date == target_date,
+    ).first()
+
+    if is_holiday:
+        status = "holiday"
+    elif has_approved_leave:
+        status = "leave"
+    else:
+        status = status_from_attendance(attendance)
+
+    return {
+        "employee": {
+            "id": employee.id,
+            "name": employee.name,
+            "designation": employee.designation,
+        },
+        "attendance_id": attendance.id if attendance else None,
+        "date": target_date.isoformat(),
+        "status": status,
+        "clock_in_time": attendance.clock_in_time.isoformat() if attendance and attendance.clock_in_time else None,
+        "clock_out_time": attendance.clock_out_time.isoformat() if attendance and attendance.clock_out_time else None,
+        "total_seconds": int(attendance.total_seconds or 0) if attendance else 0,
+        "half_day_type": attendance.half_day_type if attendance else None,
+        "is_late": bool(attendance.is_late) if attendance else False,
+        "working_from": attendance.working_from if attendance else None,
+        "location": attendance.location if attendance else None,
+        "manual_override": bool(attendance.manual_override) if attendance else False,
+        "edit_reason": attendance.edit_reason if attendance else None,
+        "is_active_tracker": bool(attendance and attendance.clock_in_time and not attendance.clock_out_time),
+    }
+
+
+@router.post("/attendance/mark")
+def mark_attendance(
+    payload: dict,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    ensure_attendance_schema(db)
+
+    try:
+        user_id = int(payload.get("user_id"))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="user_id is required") from exc
+    if not payload.get("date"):
+        raise HTTPException(status_code=400, detail="date is required")
+    target_date = parse_iso_date(str(payload.get("date")))
+    reason = payload.get("reason")
+    status = (payload.get("status") or "").strip().lower() or None
+
+    employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    is_holiday = db.query(Holiday).filter(
+        or_(
+            and_(Holiday.date == target_date, Holiday.repeat_yearly == False),
+            and_(
+                Holiday.repeat_yearly == True,
+                extract("month", Holiday.date) == target_date.month,
+                extract("day", Holiday.date) == target_date.day,
+            ),
+        )
+    ).first() is not None
+
+    has_approved_leave = db.query(Leave).filter(
+        Leave.user_id == user_id,
+        Leave.status == "approved",
+        Leave.start_date <= target_date,
+        Leave.end_date >= target_date,
+    ).first() is not None
+
+    if (is_holiday or has_approved_leave) and status != "holiday":
+        raise HTTPException(status_code=400, detail="Cannot edit attendance for holiday/approved leave")
+
+    attendance = db.query(Attendance).filter(
+        Attendance.user_id == user_id,
+        Attendance.date == target_date,
+    ).first()
+
+    old_payload = serialize_attendance(attendance)
+
+    if not attendance:
+        attendance = Attendance(user_id=user_id, date=target_date)
+        db.add(attendance)
+        db.flush()
+
+    attendance.clock_in_time = parse_time_on_date(target_date, payload.get("clock_in_time"))
+    attendance.clock_out_time = parse_time_on_date(target_date, payload.get("clock_out_time"))
+    attendance.half_day_type = payload.get("half_day_type") or None
+    attendance.is_late = bool(payload.get("is_late")) if payload.get("is_late") is not None else False
+    attendance.working_from = payload.get("working_from") or None
+    attendance.location = payload.get("location") or None
+    attendance.manual_override = True
+    attendance.edit_reason = reason
+
+    if status == "absent":
+        attendance.clock_in_time = None
+        attendance.clock_out_time = None
+        attendance.total_seconds = 0
+        attendance.half_day_type = None
+        attendance.is_late = False
+    elif status in {"halfday", "halfday_first", "halfday_second"}:
+        attendance.half_day_type = "first_half" if status == "halfday_first" else (
+            "second_half" if status == "halfday_second" else (attendance.half_day_type or "first_half")
+        )
+        attendance.is_late = False
+        if not attendance.clock_in_time and not attendance.clock_out_time:
+            attendance.total_seconds = 4 * 3600
+    elif status == "late":
+        attendance.half_day_type = None
+        attendance.is_late = True
+        if not attendance.clock_in_time:
+            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 45, tzinfo=timezone.utc)
+        if not attendance.clock_out_time:
+            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+    elif status == "present":
+        attendance.half_day_type = None
+        attendance.is_late = False
+        if not attendance.clock_in_time:
+            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=timezone.utc)
+        if not attendance.clock_out_time:
+            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+    elif status == "holiday":
+        attendance.clock_in_time = None
+        attendance.clock_out_time = None
+        attendance.total_seconds = 0
+        attendance.half_day_type = None
+        attendance.is_late = False
+        attendance.working_from = "holiday"
+
+    if attendance.clock_in_time and attendance.clock_out_time:
+        attendance.total_seconds = compute_total_seconds(attendance.clock_in_time, attendance.clock_out_time)
+    else:
+        attendance.total_seconds = int(attendance.total_seconds or 0)
+
+    if attendance.clock_in_time and attendance.clock_in_time.astimezone(timezone.utc).time() > LATE_AFTER:
+        attendance.is_late = True
+
+    db.flush()
+    new_payload = serialize_attendance(attendance)
+    append_edit_log(
+        db,
+        attendance_id=attendance.id,
+        user_id=user_id,
+        admin_id=admin.id,
+        target_date=target_date,
+        action="update" if old_payload else "create",
+        reason=reason,
+        old_payload=old_payload,
+        new_payload=new_payload,
+    )
+    db.commit()
+
+    return {
+        "message": "Attendance saved",
+        "attendance_id": attendance.id,
+        "status": status_from_attendance(attendance),
+        "total_seconds": int(attendance.total_seconds or 0),
+    }
+
+
+@router.delete("/attendance/{attendance_id}")
+def delete_attendance_entry(
+    attendance_id: int,
+    reason: Optional[str] = None,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    ensure_attendance_schema(db)
+    attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+    if not attendance:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+    if not attendance.manual_override:
+        raise HTTPException(status_code=400, detail="Only manual override attendance can be deleted")
+    if attendance.clock_in_time and not attendance.clock_out_time:
+        raise HTTPException(status_code=400, detail="Cannot delete active tracker attendance")
+
+    old_payload = serialize_attendance(attendance)
+    append_edit_log(
+        db,
+        attendance_id=attendance.id,
+        user_id=attendance.user_id,
+        admin_id=admin.id,
+        target_date=attendance.date,
+        action="delete",
+        reason=reason,
+        old_payload=old_payload,
+        new_payload={},
+    )
+    db.delete(attendance)
+    db.commit()
+    return {"message": "Attendance deleted"}
+
+
+@router.post("/attendance/bulk-mark")
+def bulk_mark_attendance(
+    payload: dict,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    ensure_attendance_schema(db)
+    employee_ids = payload.get("employee_ids") or []
+    if not employee_ids:
+        raise HTTPException(status_code=400, detail="employee_ids is required")
+
+    status = (payload.get("status") or "").strip().lower()
+    if not status:
+        raise HTTPException(status_code=400, detail="status is required")
+
+    if payload.get("date"):
+        target_dates = [parse_iso_date(str(payload["date"]))]
+    else:
+        month = int(payload.get("month") or datetime.now(timezone.utc).month)
+        year = int(payload.get("year") or datetime.now(timezone.utc).year)
+        target_dates = [date(year, month, d) for d in range(1, monthrange(year, month)[1] + 1)]
+
+    results = []
+    for employee_id in employee_ids:
+        for target_date in target_dates:
+            try:
+                response = mark_attendance({
+                    "user_id": int(employee_id),
+                    "date": target_date.isoformat(),
+                    "clock_in_time": payload.get("clock_in_time"),
+                    "clock_out_time": payload.get("clock_out_time"),
+                    "half_day_type": payload.get("half_day_type"),
+                    "is_late": payload.get("is_late"),
+                    "working_from": payload.get("working_from"),
+                    "location": payload.get("location"),
+                    "reason": payload.get("reason"),
+                    "status": status,
+                }, db, admin)
+                results.append({"user_id": employee_id, "date": target_date.isoformat(), "ok": True, "result": response})
+            except HTTPException as exc:
+                results.append({"user_id": employee_id, "date": target_date.isoformat(), "ok": False, "error": exc.detail})
+
+    return {
+        "message": "Bulk mark completed",
+        "processed": len(results),
+        "success": sum(1 for r in results if r["ok"]),
+        "failed": sum(1 for r in results if not r["ok"]),
+        "results": results,
+    }
 
 
 # ================= PRODUCTIVITY =================

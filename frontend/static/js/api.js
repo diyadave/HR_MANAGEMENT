@@ -267,6 +267,12 @@ window.API = {
     createAdminTask: (data) => apiRequest("/admin/tasks", "POST", data),
     getAdminProjects: () => apiRequest("/admin/projects/"),
     getAdminAttendance: (month, year) => apiRequest(`/admin/attendance?month=${month}&year=${year}`),
+    getAdminAttendanceDetails: (userId, date) =>
+        apiRequest(`/admin/attendance/details?user_id=${userId}&date=${encodeURIComponent(date)}`),
+    markAdminAttendance: (payload) => apiRequest("/admin/attendance/mark", "POST", payload),
+    deleteAdminAttendance: (attendanceId, reason = "") =>
+        apiRequest(`/admin/attendance/${attendanceId}${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`, "DELETE"),
+    bulkMarkAdminAttendance: (payload) => apiRequest("/admin/attendance/bulk-mark", "POST", payload),
     getAdminProfile: () => apiRequest("/admin/profile"),
     getAdminList: () => apiRequest("/admin/list"),
     createAdmin: (data) => apiRequest("/admin/create", "POST", data),

@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Management | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../../static/js/api.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+        body { background-color: #F8FAFC; color: #0F172A; font-size: 13px; line-height: 1.5; }
+
+        /* ── CONTAINER (matches attendance.html margin-left: 260px) ── */
+        .container { padding: 24px 32px; margin-left: 260px; }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px;
+        }
+        .breadcrumb { color: #64748B; font-size: 12px; margin-bottom: 4px; }
+        .page-title { font-size: 22px; font-weight: 600; color: #0F172A; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .icon-button {
+            background: none; border: none; color: #64748B; cursor: pointer;
+            width: 32px; height: 32px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        .icon-button:hover { background-color: #F1F5F9; }
+        .profile-placeholder {
+            width: 32px; height: 32px; border-radius: 50%;
+            background-color: #073379; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 14px;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white; border: 1px solid #E5E7EB; border-radius: 8px;
+            padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+        }
+        .stat-icon {
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .stat-icon.blue   { background: #EFF6FF; }
+        .stat-icon.green  { background: #ECFDF5; }
+        .stat-icon.orange { background: #FFF7ED; }
+        .stat-icon.purple { background: #F5F3FF; }
+        .stat-value { font-size: 20px; font-weight: 700; color: #0F172A; }
+        .stat-label { font-size: 11px; color: #64748B; margin-top: 1px; font-weight: 500; }
+
+        /* ── FILTER BAR (matches attendance.html exactly) ── */
+        .filter-bar {
+            display: flex; gap: 16px; margin-bottom: 16px; padding: 16px;
+            background-color: white; border: 1px solid #E5E7EB; border-radius: 8px;
+            align-items: flex-end; flex-wrap: wrap;
+        }
+        .filter-group { display: flex; flex-direction: column; min-width: 160px; }
+        .filter-label {
+            font-size: 11px; color: #64748B; margin-bottom: 4px; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .filter-select {
+            padding: 6px 12px; border: 1px solid #E5E7EB; border-radius: 6px;
+            font-size: 13px; color: #0F172A; background-color: white; height: 32px;
+        }
+        .filter-input {
+            padding: 6px 12px; border: 1px solid #E5E7EB; border-radius: 6px;
+            font-size: 13px; color: #0F172A; background-color: white; height: 32px;
+            outline: none;
+        }
+        .filter-input:focus { border-color: #073379; }
+
+        /* ── ACTION BAR (matches attendance.html) ── */
+        .action-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .action-buttons { display: flex; gap: 10px; }
+        .btn {
+            padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+            cursor: pointer; border: 1px solid transparent; height: 32px;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .btn-primary   { background-color: #073379; color: white; border-color: #073379; }
+        .btn-primary:hover   { background-color: #052962; }
+        .btn-secondary { background-color: white; color: #0F172A; border-color: #E5E7EB; }
+        .btn-secondary:hover { background-color: #F8FAFC; border-color: #CBD5E1; }
+        .btn-danger    { background-color: #EF4444; color: white; border-color: #EF4444; }
+        .btn-danger:hover    { background-color: #DC2626; }
+        .btn-sm { padding: 4px 10px; height: 26px; font-size: 12px; }
+
+        /* ── TABLE (matches attendance.html) ── */
+        .table-container {
+            background-color: white; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;
+        }
+        .table-header-bar {
+            padding: 14px 16px; border-bottom: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .table-title-text { font-size: 14px; font-weight: 600; color: #0F172A; }
+        .table-count-text { font-size: 12px; color: #64748B; margin-top: 1px; }
+        .table-wrapper { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        thead { background-color: #F1F5F9; position: sticky; top: 0; z-index: 10; }
+        th {
+            padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600;
+            color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E7EB; white-space: nowrap;
+        }
+        td { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; font-size: 13px; color: #0F172A; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background-color: #F8FAFC; }
+
+        input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #073379; }
+
+        .holiday-name-cell { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .type-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+        /* Badges - exact same pattern as attendance.html status chips */
+        .badge {
+            display: inline-flex; align-items: center; padding: 2px 8px;
+            border-radius: 12px; font-size: 11px; font-weight: 600;
+        }
+        .badge-blue   { background: #EFF6FF; color: #1D4ED8; }
+        .badge-green  { background: #ECFDF5; color: #059669; }
+        .badge-purple { background: #F5F3FF; color: #7C3AED; }
+        .badge-orange { background: #FFF7ED; color: #D97706; }
+        .badge-slate  { background: #F1F5F9; color: #475569; }
+
+        .dept-tag {
+            display: inline-flex; padding: 2px 7px; border-radius: 4px;
+            font-size: 11px; font-weight: 500;
+            background: #F1F5F9; color: #475569;
+        }
+        .dept-tag.all { background: #EFF6FF; color: #073379; }
+
+        .row-actions { display: flex; gap: 6px; }
+
+        .table-footer {
+            padding: 12px 16px; border-top: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 12px; color: #64748B;
+        }
+
+        /* ── CALENDAR SECTION ── */
+        .calendar-section { margin-top: 24px; }
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+        }
+        .section-title { font-size: 15px; font-weight: 600; color: #0F172A; }
+        .month-nav { display: flex; align-items: center; gap: 8px; }
+        .month-nav button {
+            width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E5E7EB;
+            background: white; cursor: pointer; font-size: 14px; color: #64748B;
+            display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+        }
+        .month-nav button:hover { background: #F1F5F9; color: #0F172A; }
+        .month-name { font-size: 13px; font-weight: 600; color: #0F172A; min-width: 110px; text-align: center; }
+
+        .cal-card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .cal-day-hdr {
+            padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600;
+            color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;
+            background: #F1F5F9; border-bottom: 1px solid #E5E7EB;
+        }
+        .cal-cell {
+            border-right: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;
+            min-height: 68px; padding: 5px 6px; cursor: pointer; transition: background 0.15s;
+        }
+        .cal-cell:nth-child(7n) { border-right: none; }
+        .cal-cell:hover { background: #F8FAFC; }
+        .cal-cell.other-month { opacity: 0.4; }
+        .cal-date {
+            width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 500; color: #0F172A; margin-bottom: 3px;
+        }
+        .cal-cell.today .cal-date {
+            background: #073379; color: white; border-radius: 50%;
+        }
+        .cal-cell.weekend .cal-date { color: #94A3B8; }
+        .cal-holiday-chip {
+            background: #ECFDF5; color: #059669; border: 1px solid #D1FAE5;
+            border-radius: 3px; padding: 1px 4px; font-size: 10px; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 2px; display: block;
+        }
+        .cal-holiday-chip.half-first { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+        .cal-holiday-chip.half-second { background: #F5F3FF; color: #7C3AED; border-color: #DDD6FE; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 16px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white; border-radius: 12px; width: 500px; max-width: 100%;
+            max-height: 92vh; overflow-y: auto; border: 1px solid #E5E7EB;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            animation: modalIn 0.18s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: none; } }
+        .modal-head {
+            padding: 18px 20px 14px; border-bottom: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-title { font-size: 15px; font-weight: 600; color: #0F172A; }
+        .modal-sub   { font-size: 12px; color: #64748B; margin-top: 2px; }
+        .modal-close {
+            width: 28px; height: 28px; border-radius: 6px; border: none; background: none;
+            cursor: pointer; font-size: 18px; color: #64748B;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close:hover { background: #F1F5F9; color: #0F172A; }
+        .modal-body   { padding: 18px 20px; }
+        .modal-footer { padding: 14px 20px; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 10px; }
+
+        .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .form-full { grid-column: 1 / -1; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-label { font-size: 11px; font-weight: 600; color: #0F172A; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-label .req { color: #EF4444; }
+        .form-ctrl {
+            padding: 7px 10px; border: 1px solid #E5E7EB; border-radius: 6px;
+            font-size: 13px; color: #0F172A; background: white; height: 34px; transition: border 0.2s;
+        }
+        .form-ctrl:focus { outline: none; border-color: #073379; box-shadow: 0 0 0 3px rgba(7,51,121,0.08); }
+
+        /* Type radio cards */
+        .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .type-radio { display: none; }
+        .type-card {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 10px 6px; border: 1.5px solid #E5E7EB; border-radius: 6px;
+            cursor: pointer; text-align: center; transition: all 0.15s;
+        }
+        .type-card:hover { border-color: #073379; background: #F8FAFC; }
+        .type-radio:checked + .type-card { border-color: #073379; background: #EFF6FF; }
+        .type-card-icon { font-size: 18px; }
+        .type-card-label { font-size: 11px; font-weight: 600; color: #0F172A; }
+
+        /* Dept checkboxes */
+        .dept-list {
+            border: 1px solid #E5E7EB; border-radius: 6px;
+            padding: 8px; max-height: 130px; overflow-y: auto;
+        }
+        .dept-item {
+            display: flex; align-items: center; gap: 8px; padding: 4px 6px;
+            border-radius: 4px; cursor: pointer; font-size: 13px;
+        }
+        .dept-item:hover { background: #F8FAFC; }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; background: #F8FAFC; border-radius: 6px;
+            border: 1px solid #E5E7EB; margin-bottom: 14px;
+        }
+        .toggle-lbl { font-size: 13px; font-weight: 500; color: #0F172A; }
+        .toggle-sub { font-size: 11px; color: #64748B; }
+        .toggle-switch { position: relative; width: 38px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-track {
+            position: absolute; inset: 0; background: #CBD5E1; border-radius: 20px;
+            cursor: pointer; transition: 0.25s;
+        }
+        .toggle-track:before {
+            content: ''; position: absolute; width: 14px; height: 14px;
+            border-radius: 50%; background: white; top: 3px; left: 3px;
+            transition: 0.25s; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .toggle-switch input:checked + .toggle-track { background: #073379; }
+        .toggle-switch input:checked + .toggle-track:before { transform: translateX(18px); }
+
+        /* Info note */
+        .info-note {
+            background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px;
+            padding: 10px 12px; font-size: 12px; color: #1D4ED8; margin-bottom: 14px;
+            display: flex; gap: 8px;
+        }
+
+        /* Bulk upload */
+        .upload-zone {
+            border: 2px dashed #E5E7EB; border-radius: 8px; padding: 28px;
+            text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 14px;
+        }
+        .upload-zone:hover { border-color: #073379; background: #F8FAFC; }
+        .upload-zone p { font-size: 13px; color: #64748B; }
+        .upload-zone strong { color: #073379; }
+
+        /* Confirm modal */
+        .confirm-modal { width: 380px; }
+        .confirm-icon  { text-align: center; font-size: 36px; margin-bottom: 10px; }
+        .confirm-title { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+        .confirm-desc  { font-size: 12px; color: #64748B; text-align: center; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+            background: #1E293B; color: white; padding: 10px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18); max-width: 300px;
+            animation: toastIn 0.25s ease;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* Loading / error states */
+        .state-row td { text-align: center; padding: 40px; color: #64748B; }
+        .state-row.error td { color: #EF4444; }
+
+        @media (max-width: 1024px) { .container { margin-left: 0; padding: 16px; } }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="sidebar-container"></div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <div class="breadcrumb">HR Management → <span>Holiday Management</span></div>
+            <div class="page-title">Holiday Management</div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-button" title="Notifications">🔔</button>
+            <button class="icon-button" title="Help">❓</button>
+            <div class="profile-placeholder">AD</div>
+        </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue">🎉</div>
+            <div><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Holidays</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div><div class="stat-value" id="statCompleted">—</div><div class="stat-label">Completed</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div><div class="stat-value" id="statUpcoming">—</div><div class="stat-label">Upcoming</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple">🔄</div>
+            <div><div class="stat-value" id="statYearly">—</div><div class="stat-label">Repeating Yearly</div></div>
+        </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label class="filter-label">Search</label>
+            <input class="filter-input" id="searchInput" placeholder="Holiday name…" oninput="applyFilters()">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Year</label>
+            <select class="filter-select" id="yearFilter" onchange="applyFilters()">
+                <option value="">All Years</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Type</label>
+            <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+                <option value="">All Types</option>
+                <option value="Full Day">Full Day</option>
+                <option value="First Half">First Half</option>
+                <option value="Second Half">Second Half</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Department</label>
+            <select class="filter-select" id="deptFilter" onchange="applyFilters()">
+                <option value="">All Departments</option>
+                <option value="All">All Dept</option>
+                <option value="Engineering">Engineering</option>
+                <option value="HR">HR</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Finance">Finance</option>
+                <option value="Sales">Sales</option>
+                <option value="Operations">Operations</option>
+            </select>
+        </div>
+        <div style="margin-left:auto;">
+            <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+        </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+        <div style="font-size:12px;color:#64748B;" id="tableCountLabel">Loading…</div>
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="openBulkModal()">📂 Bulk Upload</button>
+            <button class="btn btn-secondary" onclick="exportCSV()">📤 Export</button>
+            <button class="btn btn-secondary" id="bulkDeleteBtn" style="display:none" onclick="confirmBulkDelete()">🗑 Delete Selected</button>
+            <button class="btn btn-primary" onclick="openAddModal()">➕ Add Holiday</button>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                        <th>Holiday Name</th>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>Type</th>
+                        <th>Department</th>
+                        <th>Repeat</th>
+                        <th>Status</th>
+                        <th style="width:90px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="holidayTableBody">
+                    <tr class="state-row"><td colspan="9">Loading holidays…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-footer">
+            <span id="footerInfo">—</span>
+            <span style="color:#64748B;font-size:11px;">Auto-syncs attendance on save/delete</span>
+        </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="calendar-section">
+        <div class="section-header">
+            <div class="section-title">Calendar Preview</div>
+            <div class="month-nav">
+                <button onclick="prevMonth()">‹</button>
+                <span class="month-name" id="calMonthLabel">—</span>
+                <button onclick="nextMonth()">›</button>
+            </div>
+        </div>
+        <div class="cal-card">
+            <div class="cal-grid" id="calGrid"></div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ════════════════════ ADD / EDIT MODAL ════════════════════ -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal">
+        <div class="modal-head">
+            <div>
+                <div class="modal-title" id="modalHeadTitle">Add Holiday</div>
+                <div class="modal-sub">Attendance will be auto-marked for all matching employees</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-note">
+                ℹ️&nbsp; Saving this holiday will automatically create attendance records for all employees in the selected department(s).
+            </div>
+
+            <div class="form-row">
+                <div class="form-group form-full">
+                    <label class="form-label">Holiday Name <span class="req">*</span></label>
+                    <input class="form-ctrl" id="fName" placeholder="e.g. Republic Day">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date <span class="req">*</span></label>
+                    <input type="date" class="form-ctrl" id="fDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select class="form-ctrl" id="fDept">
+                        <option value="All">All Departments</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="HR">HR</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Operations">Operations</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label class="form-label">Holiday Type <span class="req">*</span></label>
+                <div class="type-grid">
+                    <div>
+                        <input type="radio" name="fType" id="tFull" value="Full Day" class="type-radio" checked>
+                        <label class="type-card" for="tFull">
+                            <span class="type-card-icon">🌕</span>
+                            <span class="type-card-label">Full Day</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fType" id="tFirst" value="First Half" class="type-radio">
+                        <label class="type-card" for="tFirst">
+                            <span class="type-card-icon">🌗</span>
+                            <span class="type-card-label">First Half</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="radio" name="fType" id="tSecond" value="Second Half" class="type-radio">
+                        <label class="type-card" for="tSecond">
+                            <span class="type-card-icon">🌓</span>
+                            <span class="type-card-label">Second Half</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-lbl">🔄 Repeat Yearly</div>
+                    <div class="toggle-sub">Auto-add this holiday every year on the same date</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fRepeat">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveBtn" onclick="saveHoliday()">Save Holiday</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════ BULK UPLOAD MODAL ════════════════════ -->
+<div class="modal-overlay" id="bulkModal">
+    <div class="modal" style="width:460px;">
+        <div class="modal-head">
+            <div>
+                <div class="modal-title">Bulk Upload Holidays</div>
+                <div class="modal-sub">Upload CSV or Excel with holiday data</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('bulkModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-zone" onclick="document.getElementById('bulkFile').click()">
+                <input type="file" id="bulkFile" accept=".csv,.xlsx" style="display:none" onchange="handleFileSelect(this)">
+                <div style="font-size:32px;margin-bottom:8px;">📁</div>
+                <p><strong>Click to browse</strong> or drag & drop</p>
+                <p style="margin-top:4px;font-size:12px;">Supported: .CSV, .XLSX</p>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;font-size:12px;color:#64748B;">
+                📄 Required columns: <strong>name</strong>, <strong>date (YYYY-MM-DD)</strong>, <strong>type</strong> &nbsp;|&nbsp;
+                Optional: <strong>department</strong>, <strong>repeat_yearly</strong>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('bulkModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="processBulkUpload()">Upload & Process</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════ CONFIRM DELETE MODAL ════════════════════ -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal confirm-modal">
+        <div class="modal-head">
+            <div class="modal-title">Delete Holiday</div>
+            <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">🗑️</div>
+            <div class="confirm-title" id="deleteTitle">Delete "Republic Day"?</div>
+            <div class="confirm-desc" style="margin-top:6px;">This will also remove auto-generated attendance records for this date.</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  API HELPERS  –  reuses BASE_URL and apiRequest from api.js
+// ══════════════════════════════════════════════════════════════
+const HolidayAPI = {
+    list:   (params = {}) => {
+        const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v]) => v !== '' && v != null)));
+        return apiRequest(`/holidays/?${qs}`);
+    },
+    create: (data)    => apiRequest('/holidays/', 'POST', data),
+    update: (id, data)=> apiRequest(`/holidays/${id}`, 'PUT', data),
+    delete: (id)      => apiRequest(`/holidays/${id}`, 'DELETE'),
+    bulkDelete: (ids) => apiRequest('/holidays/', 'DELETE', { ids }),
+    exportUrl: (year) => `${BASE_URL}/holidays/export/csv${year ? '?year=' + year : ''}`,
+};
+fetch("../shared/sidebar_admin.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      if (link.getAttribute("href")?.includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+let allHolidays   = [];       // raw from API
+let shownHolidays = [];       // after client-side filter
+let editingId     = null;
+let deleteId      = null;
+const todayDate   = new Date();
+let calYear       = todayDate.getFullYear();
+let calMonth      = todayDate.getMonth();
+
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD  –  fetch from backend
+// ══════════════════════════════════════════════════════════════
+async function loadHolidays() {
+    const year  = document.getElementById('yearFilter').value;
+    const type  = document.getElementById('typeFilter').value;
+    const dept  = document.getElementById('deptFilter').value;
+
+    showTableLoading();
+    try {
+        allHolidays = await HolidayAPI.list({ year, type, department: dept });
+        applyClientFilter();
+        updateStats();
+        renderCalendar();
+    } catch (err) {
+        showTableError(err.message);
+    }
+}
+
+// Client-side text filter only (backend already handles year/type/dept)
+function applyFilters() { loadHolidays(); }
+
+function applyClientFilter() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    shownHolidays = search
+        ? allHolidays.filter(h => h.name.toLowerCase().includes(search))
+        : [...allHolidays];
+    renderTable();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER TABLE
+// ══════════════════════════════════════════════════════════════
+function renderTable() {
+    const tbody = document.getElementById('holidayTableBody');
+    if (!shownHolidays.length) {
+        tbody.innerHTML = '<tr class="state-row"><td colspan="9">No holidays found.</td></tr>';
+        document.getElementById('tableCountLabel').textContent = '0 holidays';
+        document.getElementById('footerInfo').textContent = '0 holidays';
+        return;
+    }
+
+    tbody.innerHTML = shownHolidays.map(h => {
+        const d      = new Date(h.date + 'T00:00:00');
+        const isPast = d < todayDate;
+        const day    = DAY_NAMES[d.getDay()];
+        const dateStr= d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+        const typeInfo = typeStyle(h.type);
+        const deptHtml = h.department === 'All'
+            ? `<span class="dept-tag all">All Dept</span>`
+            : h.department.split(',').map(dep =>
+                `<span class="dept-tag">${dep.trim()}</span>`).join(' ');
+
+        const statusBadge = isPast
+            ? `<span class="badge badge-slate">✓ Completed</span>`
+            : `<span class="badge badge-green">⏳ Upcoming</span>`;
+
+        return `<tr id="hrow-${h.id}">
+            <td><input type="checkbox" class="row-cb" data-id="${h.id}" onchange="onRowCheck()"></td>
+            <td><div class="holiday-name-cell">
+                <span class="type-dot" style="background:${typeInfo.dot}"></span>
+                ${escHtml(h.name)}
+            </div></td>
+            <td style="color:#475569;font-size:12px;">${dateStr}</td>
+            <td><span class="badge badge-slate">${day}</span></td>
+            <td><span class="badge ${typeInfo.cls}">${typeInfo.emoji} ${h.type}</span></td>
+            <td>${deptHtml}</td>
+            <td style="color:#64748B;">${h.repeat_yearly ? '🔄 Yes' : '—'}</td>
+            <td>${statusBadge}</td>
+            <td>
+                <div class="row-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openEditModal(${h.id})">✏️</button>
+                    <button class="btn btn-secondary btn-sm" onclick="openDeleteModal(${h.id},'${escAttr(h.name)}')">🗑</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    const n = shownHolidays.length;
+    document.getElementById('tableCountLabel').textContent = `${n} holiday${n !== 1 ? 's' : ''}`;
+    document.getElementById('footerInfo').textContent = `1–${n} of ${n} holidays`;
+}
+
+function typeStyle(type) {
+    if (type === 'Full Day')     return { cls:'badge-green',  dot:'#059669', emoji:'🌕' };
+    if (type === 'First Half')   return { cls:'badge-blue',   dot:'#1D4ED8', emoji:'🌗' };
+    if (type === 'Second Half')  return { cls:'badge-purple', dot:'#7C3AED', emoji:'🌓' };
+    return { cls:'badge-slate', dot:'#94A3B8', emoji:'📅' };
+}
+
+function showTableLoading() {
+    document.getElementById('holidayTableBody').innerHTML =
+        '<tr class="state-row"><td colspan="9">Loading…</td></tr>';
+    document.getElementById('tableCountLabel').textContent = 'Loading…';
+}
+
+function showTableError(msg) {
+    document.getElementById('holidayTableBody').innerHTML =
+        `<tr class="state-row error"><td colspan="9">Error: ${escHtml(msg)}</td></tr>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════════
+function updateStats() {
+    const total     = allHolidays.length;
+    const completed = allHolidays.filter(h => new Date(h.date + 'T00:00:00') < todayDate).length;
+    const upcoming  = total - completed;
+    const yearly    = allHolidays.filter(h => h.repeat_yearly).length;
+    document.getElementById('statTotal').textContent     = total;
+    document.getElementById('statCompleted').textContent = completed;
+    document.getElementById('statUpcoming').textContent  = upcoming;
+    document.getElementById('statYearly').textContent    = yearly;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ADD / EDIT MODAL
+// ══════════════════════════════════════════════════════════════
+function openAddModal() {
+    editingId = null;
+    document.getElementById('modalHeadTitle').textContent = 'Add Holiday';
+    document.getElementById('fName').value   = '';
+    document.getElementById('fDate').value   = '';
+    document.getElementById('fDept').value   = 'All';
+    document.getElementById('fRepeat').checked = false;
+    document.getElementById('tFull').checked = true;
+    openModal('addModal');
+}
+
+function openEditModal(id) {
+    const h = allHolidays.find(x => x.id === id);
+    if (!h) return;
+    editingId = id;
+    document.getElementById('modalHeadTitle').textContent = 'Edit Holiday';
+    document.getElementById('fName').value    = h.name;
+    document.getElementById('fDate').value    = h.date;
+    document.getElementById('fDept').value    = h.department;
+    document.getElementById('fRepeat').checked = h.repeat_yearly;
+    document.querySelectorAll('input[name="fType"]').forEach(r => r.checked = r.value === h.type);
+    openModal('addModal');
+}
+
+async function saveHoliday() {
+    const name   = document.getElementById('fName').value.trim();
+    const date   = document.getElementById('fDate').value;
+    const type   = document.querySelector('input[name="fType"]:checked')?.value || 'Full Day';
+    const dept   = document.getElementById('fDept').value;
+    const repeat = document.getElementById('fRepeat').checked;
+    const [newYear, newMonth] = (date || '').split('-').map(v => parseInt(v, 10));
+
+    if (!name || !date) { toast('Please fill in Name and Date', 'error'); return; }
+
+    const payload = { name, date, type, department: dept, repeat_yearly: repeat };
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+        if (editingId) {
+            await HolidayAPI.update(editingId, payload);
+            toast('Holiday updated & attendance synced ✓');
+        } else {
+            await HolidayAPI.create(payload);
+            toast('Holiday added & attendance auto-marked ✓');
+        }
+        if (newYear) {
+            const yearSel = document.getElementById('yearFilter');
+            if (![...yearSel.options].some(o => o.value === String(newYear))) {
+                yearSel.insertAdjacentHTML('beforeend', `<option value="${newYear}">${newYear}</option>`);
+            }
+            yearSel.value = String(newYear);
+            calYear = newYear;
+        }
+        if (newMonth && Number.isFinite(newMonth)) {
+            calMonth = Math.max(0, Math.min(11, newMonth - 1));
+        }
+        closeModal('addModal');
+        await loadHolidays();
+        renderCalendar();
+    } catch (err) {
+        toast('Error: ' + err.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Holiday';
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════════════
+function openDeleteModal(id, name) {
+    deleteId = id;
+    document.getElementById('deleteTitle').textContent = `Delete "${name}"?`;
+    openModal('deleteModal');
+}
+
+async function confirmDelete() {
+    if (!deleteId) return;
+    try {
+        await HolidayAPI.delete(deleteId);
+        closeModal('deleteModal');
+        toast('Holiday deleted & attendance updated');
+        loadHolidays();
+    } catch (err) {
+        toast('Delete failed: ' + err.message, 'error');
+    }
+}
+
+function toggleSelectAll() {
+    const checked = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.row-cb').forEach(cb => cb.checked = checked);
+    onRowCheck();
+}
+
+function onRowCheck() {
+    const any = document.querySelectorAll('.row-cb:checked').length > 0;
+    document.getElementById('bulkDeleteBtn').style.display = any ? '' : 'none';
+}
+
+async function confirmBulkDelete() {
+    const ids = [...document.querySelectorAll('.row-cb:checked')].map(cb => parseInt(cb.dataset.id));
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} selected holiday(s)? This will update attendance records.`)) return;
+    try {
+        await HolidayAPI.bulkDelete(ids);
+        toast(`${ids.length} holidays deleted`);
+        document.getElementById('bulkDeleteBtn').style.display = 'none';
+        loadHolidays();
+    } catch (err) {
+        toast('Bulk delete failed: ' + err.message, 'error');
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════════════════════
+function exportCSV() {
+    const year = document.getElementById('yearFilter').value;
+    const token = localStorage.getItem('access_token');
+    // Build download link with auth header via fetch→blob
+    fetch(HolidayAPI.exportUrl(year), {
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => r.blob()).then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `holidays_${year || 'all'}.csv`;
+        a.click();
+        toast('Holidays exported as CSV');
+    }).catch(() => toast('Export failed', 'error'));
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BULK UPLOAD  (parse CSV client-side, POST each row)
+// ══════════════════════════════════════════════════════════════
+function openBulkModal() { openModal('bulkModal'); }
+let bulkFile = null;
+
+function handleFileSelect(input) {
+    bulkFile = input.files[0] || null;
+    if (bulkFile) toast(`File selected: ${bulkFile.name}`);
+}
+
+async function processBulkUpload() {
+    if (!bulkFile) { toast('Please select a file first', 'error'); return; }
+
+    const text  = await bulkFile.text();
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast('File appears empty', 'error'); return; }
+
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    let success = 0, failed = 0;
+
+    for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].split(',');
+        const row  = Object.fromEntries(headers.map((h, idx) => [h, (vals[idx] || '').trim()]));
+        const payload = {
+            name:          row['name']           || row['holiday name'] || '',
+            date:          row['date']            || '',
+            type:          row['type']            || 'Full Day',
+            department:    row['department']      || 'All',
+            repeat_yearly: row['repeat_yearly'] === 'true' || row['repeat_yearly'] === '1',
+        };
+        if (!payload.name || !payload.date) { failed++; continue; }
+        try { await HolidayAPI.create(payload); success++; }
+        catch { failed++; }
+    }
+
+    closeModal('bulkModal');
+    toast(`Imported ${success} holiday(s)${failed ? `, ${failed} failed` : ''}`);
+    loadHolidays();
+    bulkFile = null;
+    document.getElementById('bulkFile').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════════════════════════════
+function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    document.getElementById('calMonthLabel').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+    const monthHols = allHolidays.filter(h => {
+        const d = new Date(h.date + 'T00:00:00');
+        return d.getFullYear() === calYear && d.getMonth() === calMonth;
+    });
+
+    let html = DAY_NAMES.map(d => `<div class="cal-day-hdr">${d}</div>`).join('');
+
+    const firstDay    = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const prevDays    = new Date(calYear, calMonth, 0).getDate();
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+        html += `<div class="cal-cell other-month"><div class="cal-date">${prevDays - i}</div></div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const cellDate = new Date(calYear, calMonth, d);
+        const isToday  = cellDate.toDateString() === todayDate.toDateString();
+        const isWeekend = cellDate.getDay() === 0 || cellDate.getDay() === 6;
+        const dateStr  = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+        const dayHols = monthHols.filter(h => h.date === dateStr);
+        const chips   = dayHols.map(h => {
+            const cls = h.type === 'First Half' ? ' half-first' : h.type === 'Second Half' ? ' half-second' : '';
+            const label = h.name.length > 13 ? h.name.slice(0,12) + '…' : h.name;
+            return `<span class="cal-holiday-chip${cls}" title="${escHtml(h.name)} (${h.type})">${label}</span>`;
+        }).join('');
+
+        html += `<div class="cal-cell${isToday?' today':''}${isWeekend?' weekend':''}">
+            <div class="cal-date">${d}</div>${chips}
+        </div>`;
+    }
+
+    const totalCells = firstDay + daysInMonth;
+    const trailing   = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= trailing; i++) {
+        html += `<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+    }
+
+    grid.innerHTML = html;
+}
+
+function prevMonth() {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+}
+function nextMonth() {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════
+function toast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = `<span>${type === 'error' ? '❌' : '✅'}</span><span>${escHtml(msg)}</span>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+    return String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    const yearFilter = document.getElementById('yearFilter');
+    const thisYear = todayDate.getFullYear();
+    if (![...yearFilter.options].some(o => Number(o.value) === thisYear)) {
+        yearFilter.insertAdjacentHTML('beforeend', `<option value="${thisYear}">${thisYear}</option>`);
+    }
+    yearFilter.value = String(thisYear);
+
+    // sync cal to year filter default
+    calYear  = thisYear;
+    calMonth = todayDate.getMonth();
+    loadHolidays();
+});
+</script>
+</body>
+</html>
