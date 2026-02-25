@@ -979,8 +979,8 @@
                 const tr = document.createElement("tr");
                 const assignedName = t.assignee_name || t.assigned_user?.name || "-";
                 const assignedPhoto = getProfileImageUrl(t.assignee_profile_image || t.assigned_user?.profile_image);
-                const createdName = t.created_user?.name || "-";
-                const createdPhoto = getProfileImageUrl(t.created_user?.profile_image);
+                const createdName = t.created_by_name || t.created_user?.name || "-";
+                const createdPhoto = getProfileImageUrl(t.created_by_profile_image || t.created_user?.profile_image);
                 const assignedInitials = assignedName.split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
                 const createdInitials = createdName.split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
 

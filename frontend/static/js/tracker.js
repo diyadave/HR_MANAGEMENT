@@ -16,6 +16,7 @@
   let isClockedIn = false;
   let activeTask = null;
   let taskStartTime = null;
+  let stateRefreshInterval = null;
   // ==================== DOM ELEMENTS ====================
 let elements = {};
 
@@ -45,6 +46,22 @@ function initTrackerElements() {
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function isIstBreakNow() {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).formatToParts(new Date());
+
+    const hourPart = parts.find((p) => p.type === "hour");
+    const minutePart = parts.find((p) => p.type === "minute");
+    const hour = Number(hourPart?.value || 0);
+    const minute = Number(minutePart?.value || 0);
+    const totalMinutes = (hour * 60) + minute;
+    return totalMinutes >= (13 * 60) && totalMinutes < (14 * 60);
   }
 
   function stopAllIntervals() {
@@ -98,6 +115,8 @@ function startAttendanceTimer(initialSeconds) {
 
   // ==================== UPDATE UI ====================
   function updateUI() {
+    const breakTime = isIstBreakNow();
+
     // Update attendance UI
     if (isClockedIn) {
       elements.status.textContent = "Clocked In";
@@ -123,6 +142,23 @@ function startAttendanceTimer(initialSeconds) {
       elements.taskBtn.classList.remove("running");
       elements.taskBtn.disabled = !isClockedIn; // Disable if not clocked in
     }
+
+    if (breakTime) {
+      elements.status.textContent = "Break Time (IST)";
+      elements.clockBtn.disabled = true;
+      elements.taskBtn.disabled = true;
+    }
+  }
+
+  function emitStateChange() {
+    window.dispatchEvent(new CustomEvent("tracker:state-changed", {
+      detail: {
+        isClockedIn,
+        activeTask,
+        attendanceSeconds,
+        taskSeconds
+      }
+    }));
   }
 
   // ==================== LOAD STATE FROM BACKEND ====================
@@ -179,6 +215,7 @@ function startAttendanceTimer(initialSeconds) {
       stopTaskTimer();
     }
       updateUI();
+      emitStateChange();
 
     } catch (error) {
 
@@ -318,6 +355,9 @@ window.Tracker = {
 function safeInit() {
   if (initTrackerElements()) {
     loadState();
+    if (!stateRefreshInterval) {
+      stateRefreshInterval = setInterval(loadState, 30000);
+    }
   } else {
     // retry if DOM not ready yet
     setTimeout(safeInit, 100);

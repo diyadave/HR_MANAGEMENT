@@ -1,0 +1,782 @@
+<style>
+#hr-chat-root, #hr-chat-root * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+#hr-chat-root { z-index: 99999; }
+
+.hr-chat-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 14px 34px rgba(7, 51, 121, 0.34);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.hr-chat-fab:hover { transform: scale(1.06); box-shadow: 0 18px 38px rgba(7, 51, 121, 0.42); }
+.hr-chat-fab svg { width: 24px; height: 24px; }
+
+.hr-chat-fab-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    border: 2px solid #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.hr-chat-fab-badge.show { display: inline-flex; }
+
+.hr-chat-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 94px;
+    width: min(520px, calc(100vw - 24px));
+    height: min(700px, calc(100vh - 110px));
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 22px 56px rgba(15, 23, 42, 0.22);
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(22px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 99999;
+}
+
+.hr-chat-panel.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.hr-chat-panel.zoomed-out {
+    width: min(400px, calc(100vw - 24px));
+    height: min(540px, calc(100vh - 126px));
+}
+.hr-chat-panel.expanded {
+    right: 10px;
+    bottom: 10px;
+    width: min(960px, calc(100vw - 20px));
+    height: min(900px, calc(100vh - 20px));
+}
+
+.hr-chat-header {
+    background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+}
+
+.hr-chat-header-title { font-size: 15px; font-weight: 700; }
+.hr-chat-header-actions { display: flex; align-items: center; gap: 8px; }
+
+.hr-chat-header-btn {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-radius: 10px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 9px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.hr-chat-zoom-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    position: relative;
+}
+
+.hr-chat-zoom-icon::before,
+.hr-chat-zoom-icon::after {
+    content: "";
+    position: absolute;
+    background: #ffffff;
+    border-radius: 2px;
+}
+
+.hr-chat-zoom-icon::before {
+    width: 10px;
+    height: 2px;
+    left: 2px;
+    top: 6px;
+}
+
+.hr-chat-zoom-icon::after {
+    width: 2px;
+    height: 10px;
+    left: 6px;
+    top: 2px;
+}
+
+.hr-chat-zoom-icon.minus::after {
+    display: none;
+}
+
+.hr-chat-expand-icon {
+    width: 13px;
+    height: 13px;
+    border: 2px solid #ffffff;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+}
+
+.hr-chat-expand-icon.compress::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 2px solid #ffffff;
+    border-radius: 1px;
+}
+
+.hr-chat-body { min-height: 0; display: grid; grid-template-columns: 44% 56%; }
+
+.hr-chat-left {
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.hr-chat-section-title {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 11px 12px 6px;
+}
+
+.hr-chat-item {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 9px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f7;
+    cursor: pointer;
+}
+
+.hr-chat-item:hover { background: #f1f5f9; }
+.hr-chat-item.active { background: #e9efff; border-left: 3px solid #073379; padding-left: 9px; }
+
+.hr-chat-avatar-wrap { position: relative; width: 36px; height: 36px; }
+.hr-chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #073379 0%, #1e40af 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hr-chat-online-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #f8fafc;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.hr-chat-item-text { min-width: 0; }
+.hr-chat-item-name { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hr-chat-item-last { font-size: 12px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+.hr-chat-unread {
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.hr-chat-right { display: grid; grid-template-rows: 56px minmax(0, 1fr) 62px; min-width: 0; min-height: 0; }
+
+.hr-chat-main-head { border-bottom: 1px solid #e2e8f0; padding: 9px 11px; display: flex; align-items: center; gap: 8px; }
+.hr-chat-main-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+.hr-chat-main-sub { font-size: 11px; color: #64748b; }
+
+.hr-chat-messages { background: #f8fafc; overflow-y: auto; padding: 12px; min-height: 0; }
+
+.hr-chat-row { display: flex; flex-direction: column; margin-bottom: 10px; }
+.hr-chat-row.sent { align-items: flex-end; }
+.hr-chat-row.received { align-items: flex-start; }
+
+.hr-chat-bubble { max-width: 82%; border-radius: 12px; padding: 9px 11px; font-size: 13px; line-height: 1.45; word-break: break-word; }
+.hr-chat-row.sent .hr-chat-bubble { background: #073379; color: #fff; border-bottom-right-radius: 5px; }
+.hr-chat-row.received .hr-chat-bubble { background: #e2e8f0; color: #1e293b; border-bottom-left-radius: 5px; }
+.hr-chat-time { font-size: 10px; color: #64748b; margin-top: 3px; }
+
+.hr-chat-input-wrap { border-top: 1px solid #e2e8f0; padding: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.hr-chat-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 9px 11px;
+    font-size: 13px;
+    outline: none;
+    min-width: 0;
+}
+
+.hr-chat-input:focus { border-color: #1e40af; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12); }
+
+.hr-chat-send {
+    border: 1px solid #073379;
+    background: #073379;
+    color: #fff;
+    border-radius: 12px;
+    padding: 0 15px;
+    min-width: 70px;
+    height: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.hr-chat-empty { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 26px; }
+
+.hr-chat-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    padding: 14px;
+}
+
+.hr-chat-modal.show { display: flex; }
+
+.hr-chat-modal-card {
+    width: min(420px, 100%);
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 14px;
+}
+
+.hr-chat-modal-card h4 { font-size: 15px; color: #0f172a; margin: 0 0 12px; }
+.hr-chat-modal-row { margin-bottom: 10px; }
+.hr-chat-modal-row label { display: block; font-size: 12px; color: #334155; margin-bottom: 5px; }
+.hr-chat-modal-row input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.hr-chat-member-list { border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; max-height: 180px; overflow-y: auto; }
+.hr-chat-member-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; margin-bottom: 6px; }
+
+.hr-chat-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.hr-chat-btn-secondary, .hr-chat-btn-primary {
+    border-radius: 10px;
+    padding: 7px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.hr-chat-btn-secondary { border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+.hr-chat-btn-primary { border: 1px solid #073379; background: #073379; color: #fff; }
+
+@media (max-width: 520px) {
+    .hr-chat-fab { right: 8px; bottom: 8px; }
+    .hr-chat-panel {
+        right: 8px;
+        bottom: 78px;
+        width: calc(100vw - 16px);
+        height: min(86vh, 640px);
+    }
+    .hr-chat-panel.zoomed-out {
+        width: calc(100vw - 16px);
+        height: min(78vh, 560px);
+    }
+    .hr-chat-body {
+        grid-template-columns: 40% 60%;
+    }
+}
+</style>
+
+<div id="hr-chat-root">
+    <button class="hr-chat-fab" id="hrChatFab" type="button" aria-label="Open chat">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M7 10H17M7 14H13M6 4H18C19.1046 4 20 4.89543 20 6V15C20 16.1046 19.1046 17 18 17H12L8.3 20.2C7.65112 20.7615 6.65 20.3005 6.65 19.45V17H6C4.89543 17 4 16.1046 4 15V6C4 4.89543 4.89543 4 6 4Z" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="hr-chat-fab-badge" id="hrChatFabBadge">0</span>
+    </button>
+
+    <div class="hr-chat-panel" id="hrChatPanel">
+        <div class="hr-chat-header">
+            <div class="hr-chat-header-title">Company Chat</div>
+            <div class="hr-chat-header-actions">
+                <button id="hrChatCreateGroupBtn" class="hr-chat-header-btn" type="button">+ Group</button>
+                <button id="hrChatExpandBtn" class="hr-chat-header-btn" type="button" aria-label="Open full view" title="Full view">
+                    <span id="hrChatExpandIcon" class="hr-chat-expand-icon" aria-hidden="true"></span>
+                </button>
+                <button id="hrChatZoomBtn" class="hr-chat-header-btn" type="button" aria-label="Zoom out chat" title="Zoom out">
+                    <span id="hrChatZoomIcon" class="hr-chat-zoom-icon minus" aria-hidden="true"></span>
+                </button>
+                <button id="hrChatCloseBtn" class="hr-chat-header-btn" type="button">X</button>
+            </div>
+        </div>
+
+        <div class="hr-chat-body">
+            <div class="hr-chat-left">
+                <div class="hr-chat-section-title">Conversations</div>
+                <div id="hrChatConversationList"></div>
+                <div class="hr-chat-section-title">Employees</div>
+                <div id="hrChatEmployeeList"></div>
+            </div>
+
+            <div class="hr-chat-right">
+                <div class="hr-chat-main-head">
+                    <div class="hr-chat-avatar-wrap">
+                        <div class="hr-chat-avatar" id="hrChatMainAvatar">--</div>
+                        <span class="hr-chat-online-dot" id="hrChatMainOnline" style="display:none;"></span>
+                    </div>
+                    <div>
+                        <div class="hr-chat-main-name" id="hrChatMainName">Select a chat</div>
+                        <div class="hr-chat-main-sub" id="hrChatMainSub">Internal messaging</div>
+                    </div>
+                </div>
+                <div class="hr-chat-messages" id="hrChatMessages"></div>
+                <div class="hr-chat-input-wrap">
+                    <input id="hrChatInput" class="hr-chat-input" type="text" placeholder="Type your message" maxlength="2000" />
+                    <button id="hrChatSendBtn" class="hr-chat-send" type="button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hr-chat-modal" id="hrChatGroupModal">
+        <div class="hr-chat-modal-card">
+            <h4>Create Group</h4>
+            <div class="hr-chat-modal-row">
+                <label for="hrChatGroupName">Group Name</label>
+                <input id="hrChatGroupName" type="text" maxlength="120" placeholder="Example: Frontend Team" />
+            </div>
+            <div class="hr-chat-modal-row">
+                <label>Members</label>
+                <div class="hr-chat-member-list" id="hrChatGroupMemberList"></div>
+            </div>
+            <div class="hr-chat-modal-actions">
+                <button id="hrChatGroupCancel" class="hr-chat-btn-secondary" type="button">Cancel</button>
+                <button id="hrChatGroupCreate" class="hr-chat-btn-primary" type="button">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window.__HR_CHAT_READY__) return;
+    window.__HR_CHAT_READY__ = true;
+
+    var api = window.API;
+    if (!api) return;
+
+    var rawUser = localStorage.getItem("user");
+    var parsedUser = null;
+    try { parsedUser = rawUser ? JSON.parse(rawUser) : null; } catch (_) { parsedUser = null; }
+
+    var currentUserId = Number(localStorage.getItem("user_id")) || Number(parsedUser && parsedUser.id) || 0;
+    var currentUserRole = (localStorage.getItem("user_role") || (parsedUser && parsedUser.role) || "").toLowerCase();
+    var accessToken = localStorage.getItem("access_token") || "";
+    if (!currentUserId) return;
+
+    var panel = document.getElementById("hrChatPanel");
+    var fab = document.getElementById("hrChatFab");
+    var fabBadge = document.getElementById("hrChatFabBadge");
+    var closeBtn = document.getElementById("hrChatCloseBtn");
+    var expandBtn = document.getElementById("hrChatExpandBtn");
+    var expandIcon = document.getElementById("hrChatExpandIcon");
+    var zoomBtn = document.getElementById("hrChatZoomBtn");
+    var zoomIcon = document.getElementById("hrChatZoomIcon");
+    var createGroupBtn = document.getElementById("hrChatCreateGroupBtn");
+    var conversationListEl = document.getElementById("hrChatConversationList");
+    var employeeListEl = document.getElementById("hrChatEmployeeList");
+    var messagesEl = document.getElementById("hrChatMessages");
+    var inputEl = document.getElementById("hrChatInput");
+    var sendBtn = document.getElementById("hrChatSendBtn");
+    var mainAvatar = document.getElementById("hrChatMainAvatar");
+    var mainOnline = document.getElementById("hrChatMainOnline");
+    var mainName = document.getElementById("hrChatMainName");
+    var mainSub = document.getElementById("hrChatMainSub");
+
+    var groupModal = document.getElementById("hrChatGroupModal");
+    var groupName = document.getElementById("hrChatGroupName");
+    var groupMemberList = document.getElementById("hrChatGroupMemberList");
+    var groupCancelBtn = document.getElementById("hrChatGroupCancel");
+    var groupCreateBtn = document.getElementById("hrChatGroupCreate");
+
+    if (currentUserRole !== "admin") createGroupBtn.style.display = "none";
+
+    var state = {
+        conversations: [],
+        users: [],
+        activeConversationId: null,
+        socket: null,
+        messageIds: new Set(),
+        loadedOnce: false
+    };
+
+    function esc(v) {
+        return String(v || "").replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c];
+        });
+    }
+
+    function initials(name) {
+        var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return "--";
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    function fmtTime(ts) {
+        if (!ts) return "";
+        var d = new Date(ts);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function totalUnread() {
+        return state.conversations.reduce(function (acc, c) { return acc + (Number(c.unread_count) || 0); }, 0);
+    }
+
+    function updateFabBadge() {
+        var n = totalUnread();
+        if (n > 0) {
+            fabBadge.textContent = n > 99 ? "99+" : String(n);
+            fabBadge.classList.add("show");
+        } else {
+            fabBadge.classList.remove("show");
+        }
+    }
+
+    function activeConversation() {
+        return state.conversations.find(function (c) { return c.id === state.activeConversationId; }) || null;
+    }
+
+    function renderConversations() {
+        var sorted = state.conversations.slice().sort(function (a, b) {
+            return new Date(b.last_message_timestamp || 0).getTime() - new Date(a.last_message_timestamp || 0).getTime();
+        });
+
+        if (!sorted.length) {
+            conversationListEl.innerHTML = '<div class="hr-chat-empty">No conversations yet</div>';
+            return;
+        }
+
+        conversationListEl.innerHTML = sorted.map(function (c) {
+            var isActive = c.id === state.activeConversationId;
+            var unread = Number(c.unread_count) > 0 ? '<span class="hr-chat-unread">' + Number(c.unread_count) + "</span>" : "";
+            var onlineMember = (c.members || []).find(function (m) { return m.id !== currentUserId && m.is_online; });
+            var dot = onlineMember ? '<span class="hr-chat-online-dot"></span>' : "";
+            return (
+                '<div class="hr-chat-item ' + (isActive ? "active" : "") + '" data-conversation-id="' + c.id + '">' +
+                    '<div class="hr-chat-avatar-wrap"><div class="hr-chat-avatar">' + esc(initials(c.name)) + "</div>" + dot + "</div>" +
+                    '<div class="hr-chat-item-text">' +
+                        '<div class="hr-chat-item-name">' + esc(c.name) + "</div>" +
+                        '<div class="hr-chat-item-last">' + esc(c.last_message || "Start conversation") + "</div>" +
+                    "</div>" +
+                    unread +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    function renderUsers() {
+        if (!state.users.length) {
+            employeeListEl.innerHTML = '<div class="hr-chat-empty">No employees found</div>';
+            return;
+        }
+        employeeListEl.innerHTML = state.users.map(function (u) {
+            var dot = u.is_online ? '<span class="hr-chat-online-dot"></span>' : "";
+            return (
+                '<div class="hr-chat-item" data-user-id="' + u.id + '">' +
+                    '<div class="hr-chat-avatar-wrap"><div class="hr-chat-avatar">' + esc(initials(u.name)) + "</div>" + dot + "</div>" +
+                    '<div class="hr-chat-item-text">' +
+                        '<div class="hr-chat-item-name">' + esc(u.name) + "</div>" +
+                        '<div class="hr-chat-item-last">' + esc((u.designation || u.role || "Employee")) + "</div>" +
+                    "</div>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    function updateMainHeader(conv) {
+        if (!conv) {
+            mainAvatar.textContent = "--";
+            mainName.textContent = "Select a chat";
+            mainSub.textContent = "Internal messaging";
+            mainOnline.style.display = "none";
+            return;
+        }
+        mainAvatar.textContent = initials(conv.name);
+        mainName.textContent = conv.name;
+        mainSub.textContent = conv.is_group ? "Group conversation" : "Direct message";
+        var onlineMember = (conv.members || []).find(function (m) { return m.id !== currentUserId && m.is_online; });
+        mainOnline.style.display = onlineMember ? "block" : "none";
+    }
+
+    function renderMessages(messages) {
+        if (!messages.length) {
+            messagesEl.innerHTML = '<div class="hr-chat-empty">No messages yet</div>';
+            return;
+        }
+        messagesEl.innerHTML = messages.map(function (m) {
+            var side = Number(m.sender_id) === currentUserId ? "sent" : "received";
+            return (
+                '<div class="hr-chat-row ' + side + '">' +
+                    '<div class="hr-chat-bubble">' + esc(m.message) + "</div>" +
+                    '<div class="hr-chat-time">' + esc(fmtTime(m.timestamp)) + "</div>" +
+                "</div>"
+            );
+        }).join("");
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function loadConversations() {
+        state.conversations = await api.getChatConversations();
+        renderConversations();
+        updateFabBadge();
+    }
+
+    async function loadUsers() {
+        state.users = await api.getChatUsers();
+        renderUsers();
+        if (currentUserRole === "admin") {
+            groupMemberList.innerHTML = state.users.map(function (u) {
+                return (
+                    '<label class="hr-chat-member-item">' +
+                        '<input type="checkbox" value="' + u.id + '" />' +
+                        '<span>' + esc(u.name) + ' (' + esc(u.role) + ")</span>" +
+                    "</label>"
+                );
+            }).join("");
+        }
+    }
+
+    async function openConversation(conversationId) {
+        state.activeConversationId = Number(conversationId);
+        renderConversations();
+        var conv = activeConversation();
+        updateMainHeader(conv);
+        try {
+            var messages = await api.getChatMessages(state.activeConversationId, 80);
+            state.messageIds.clear();
+            messages.forEach(function (m) { state.messageIds.add(m.id); });
+            renderMessages(messages);
+            if (typeof api.markChatRead === "function") {
+                api.markChatRead(state.activeConversationId).catch(function () {});
+            }
+            state.conversations = state.conversations.map(function (c) {
+                if (c.id === state.activeConversationId) c.unread_count = 0;
+                return c;
+            });
+            renderConversations();
+            updateFabBadge();
+        } catch (_) {
+            messagesEl.innerHTML = '<div class="hr-chat-empty">Unable to load messages right now.</div>';
+        }
+    }
+
+    async function startPrivateChat(userId) {
+        var conversation = await api.createPrivateChat(Number(userId));
+        var exists = state.conversations.find(function (c) { return c.id === conversation.id; });
+        if (!exists) state.conversations.unshift(conversation);
+        await openConversation(conversation.id);
+    }
+
+    async function sendMessage() {
+        var text = inputEl.value.trim();
+        if (!text || !state.activeConversationId) return;
+        inputEl.value = "";
+        var sent = await api.sendChatMessage(state.activeConversationId, text);
+        state.messageIds.add(sent.id);
+        var conv = state.conversations.find(function (c) { return c.id === state.activeConversationId; });
+        if (conv) {
+            conv.last_message = sent.message;
+            conv.last_message_timestamp = sent.timestamp;
+        }
+        await openConversation(state.activeConversationId);
+    }
+
+    function websocketUrl() {
+        var base = "ws://127.0.0.1:8000";
+        if (window.BASE_URL && /^https?:\/\//.test(window.BASE_URL)) {
+            base = window.BASE_URL.replace(/^http/i, "ws");
+        }
+        return base + "/ws/chat/" + encodeURIComponent(currentUserId) + "?token=" + encodeURIComponent(accessToken);
+    }
+
+    function connectWebSocket() {
+        if (!accessToken) return;
+        try {
+            state.socket = new WebSocket(websocketUrl());
+            state.socket.onmessage = function (event) {
+                var data = null;
+                try { data = JSON.parse(event.data); } catch (_) { return; }
+                if (!data || !data.conversation_id || !data.id) return;
+
+                var conv = state.conversations.find(function (c) { return c.id === data.conversation_id; });
+                if (!conv) {
+                    loadConversations().catch(function () {});
+                    return;
+                }
+
+                conv.last_message = data.message;
+                conv.last_message_timestamp = data.timestamp;
+                if (Number(data.sender_id) !== currentUserId && state.activeConversationId !== data.conversation_id) {
+                    conv.unread_count = Number(conv.unread_count || 0) + 1;
+                }
+                renderConversations();
+                updateFabBadge();
+
+                if (state.activeConversationId === data.conversation_id && !state.messageIds.has(data.id)) {
+                    openConversation(state.activeConversationId).catch(function () {});
+                }
+            };
+
+            state.socket.onclose = function () {
+                setTimeout(connectWebSocket, 3000);
+            };
+        } catch (_) {}
+    }
+
+    async function initialLoad() {
+        await Promise.all([loadConversations(), loadUsers()]);
+        if (state.conversations.length) {
+            await openConversation(state.conversations[0].id);
+        } else {
+            updateMainHeader(null);
+            renderMessages([]);
+        }
+    }
+
+    fab.addEventListener("click", function () {
+        panel.classList.toggle("open");
+        if (panel.classList.contains("open")) {
+            if (!state.loadedOnce) {
+                initialLoad().catch(function () {});
+                state.loadedOnce = true;
+            }
+            inputEl.focus();
+        }
+    });
+
+    closeBtn.addEventListener("click", function () { panel.classList.remove("open"); });
+    expandBtn.addEventListener("click", function () {
+        var isExpanded = panel.classList.toggle("expanded");
+        if (isExpanded) {
+            panel.classList.remove("zoomed-out");
+            if (zoomIcon) zoomIcon.classList.add("minus");
+        }
+        expandBtn.setAttribute("aria-label", isExpanded ? "Exit full view" : "Open full view");
+        expandBtn.setAttribute("title", isExpanded ? "Exit full view" : "Full view");
+        if (expandIcon) expandIcon.classList.toggle("compress", isExpanded);
+    });
+    zoomBtn.addEventListener("click", function () {
+        panel.classList.remove("expanded");
+        if (expandIcon) expandIcon.classList.remove("compress");
+        expandBtn.setAttribute("aria-label", "Open full view");
+        expandBtn.setAttribute("title", "Full view");
+        var isZoomedOut = panel.classList.toggle("zoomed-out");
+        zoomBtn.setAttribute("aria-label", isZoomedOut ? "Restore chat size" : "Zoom out chat");
+        zoomBtn.setAttribute("title", isZoomedOut ? "Restore size" : "Zoom out");
+        if (zoomIcon) {
+            zoomIcon.classList.toggle("minus", !isZoomedOut);
+        }
+    });
+
+    conversationListEl.addEventListener("click", function (event) {
+        var item = event.target.closest("[data-conversation-id]");
+        if (!item) return;
+        openConversation(Number(item.getAttribute("data-conversation-id"))).catch(function () {});
+    });
+
+    employeeListEl.addEventListener("click", function (event) {
+        var item = event.target.closest("[data-user-id]");
+        if (!item) return;
+        startPrivateChat(Number(item.getAttribute("data-user-id"))).catch(function () {});
+    });
+
+    sendBtn.addEventListener("click", function () { sendMessage().catch(function () {}); });
+    inputEl.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage().catch(function () {});
+        }
+    });
+
+    createGroupBtn.addEventListener("click", function () {
+        if (currentUserRole !== "admin") return;
+        groupModal.classList.add("show");
+    });
+    groupCancelBtn.addEventListener("click", function () { groupModal.classList.remove("show"); });
+    groupModal.addEventListener("click", function (event) {
+        if (event.target === groupModal) groupModal.classList.remove("show");
+    });
+
+    groupCreateBtn.addEventListener("click", function () {
+        var name = groupName.value.trim();
+        if (!name) return;
+        var memberIds = Array.from(groupMemberList.querySelectorAll("input[type='checkbox']:checked"))
+            .map(function (el) { return Number(el.value); })
+            .filter(Boolean);
+
+        api.createGroupChat({ name: name, member_ids: memberIds }).then(function (conversation) {
+            state.conversations.unshift(conversation);
+            groupName.value = "";
+            Array.from(groupMemberList.querySelectorAll("input[type='checkbox']")).forEach(function (el) { el.checked = false; });
+            groupModal.classList.remove("show");
+            renderConversations();
+            updateFabBadge();
+            openConversation(conversation.id).catch(function () {});
+        }).catch(function () {});
+    });
+
+    connectWebSocket();
+})();
+</script>

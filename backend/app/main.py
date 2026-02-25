@@ -4,6 +4,7 @@ from app.database.session import engine
 from app.database.base import Base
 from app.models.user import User
 from app.models.user_session import UserSession
+from app.models.chat import ChatConversation, ChatConversationMember, ChatMessage
 from app.routes import admin
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -21,6 +22,7 @@ from app.models.attendance_edit_log import AttendanceEditLog
 from app.models.research import ResearchColumn, ResearchRow, ResearchCell, ResearchColumnPermission, ResearchDocument, ResearchDocumentPermission
 from app.schemas.research import ResearchFileCreate, ResearchFileOut, CellUpdate
 from app.routes import research,holiday
+from app.routes import chat
 
 app = FastAPI()
 
@@ -56,6 +58,8 @@ app.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 app.include_router(profile.router)
 app.include_router(research.router)
 app.include_router(holiday.router)
+app.include_router(chat.router)
+app.include_router(chat.ws_router)
 
 
 

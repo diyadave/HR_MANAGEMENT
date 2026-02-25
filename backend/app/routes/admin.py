@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, extract, inspect, or_, text
 from typing import List, Optional
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timezone, timedelta
 from calendar import monthrange
 
 from app.database.session import get_db
@@ -19,6 +19,7 @@ from app.models.leave import Leave
 from app.models.project import Project
 from app.models.task import Task
 from app.models.task_time_log import TaskTimeLog
+from app.services.attendance_service import auto_close_open_attendances_for_user
 
 from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate
 from app.schemas.task import TaskCreate, TaskOut
@@ -146,6 +147,9 @@ def get_all_tasks(
             "assigned_to": task.assigned_to,
             "assignee_name": task.assigned_user.name if task.assigned_user else None,
             "assignee_profile_image": task.assigned_user.profile_image if task.assigned_user else None,
+            "created_by": task.created_by,
+            "created_by_name": task.created_user.name if task.created_user else None,
+            "created_by_profile_image": task.created_user.profile_image if task.created_user else None,
             "priority": task.priority,
             "status": task.status,
             "due_date": task.due_date,
@@ -219,6 +223,16 @@ def compute_total_seconds(clock_in_time: Optional[datetime], clock_out_time: Opt
     return int((clock_out_time - clock_in_time).total_seconds())
 
 
+def infer_clock_in_time(attendance: Optional[Attendance]) -> Optional[datetime]:
+    if not attendance:
+        return None
+    if attendance.clock_in_time:
+        return attendance.clock_in_time
+    if attendance.clock_out_time and (attendance.total_seconds or 0) > 0:
+        return attendance.clock_out_time - timedelta(seconds=int(attendance.total_seconds or 0))
+    return None
+
+
 def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]:
     direct = db.query(Holiday).filter(extract("month", Holiday.date) == month, extract("year", Holiday.date) == year).all()
     repeating = db.query(Holiday).filter(Holiday.repeat_yearly == True, extract("month", Holiday.date) == month).all()
@@ -257,6 +271,10 @@ def status_from_attendance(attendance: Optional[Attendance]) -> str:
     if attendance.half_day_type in {"first_half", "second_half"}:
         return "halfday"
 
+    # Manual late override should remain late even if computed hours are below full-day threshold.
+    if attendance.is_late and attendance.clock_in_time:
+        return "late"
+
     # Live tracker awareness: if currently clocked-in, reflect status immediately.
     if attendance.clock_in_time and not attendance.clock_out_time:
         clock_in_local = attendance.clock_in_time.astimezone(timezone.utc).time()
@@ -272,7 +290,7 @@ def status_from_attendance(attendance: Optional[Attendance]) -> str:
 
     if attendance.clock_in_time and attendance.clock_in_time.astimezone(timezone.utc).time() > LATE_AFTER and status == "present":
         status = "late"
-    if attendance.is_late and status in {"present", "late"}:
+    if attendance.is_late and attendance.clock_in_time:
         status = "late"
     return status
 
@@ -444,6 +462,8 @@ def get_attendance_details(
     else:
         status = status_from_attendance(attendance)
 
+    display_clock_in = infer_clock_in_time(attendance)
+
     return {
         "employee": {
             "id": employee.id,
@@ -453,7 +473,7 @@ def get_attendance_details(
         "attendance_id": attendance.id if attendance else None,
         "date": target_date.isoformat(),
         "status": status,
-        "clock_in_time": attendance.clock_in_time.isoformat() if attendance and attendance.clock_in_time else None,
+        "clock_in_time": display_clock_in.isoformat() if display_clock_in else None,
         "clock_out_time": attendance.clock_out_time.isoformat() if attendance and attendance.clock_out_time else None,
         "total_seconds": int(attendance.total_seconds or 0) if attendance else 0,
         "half_day_type": attendance.half_day_type if attendance else None,
@@ -542,7 +562,12 @@ def mark_attendance(
         )
         attendance.is_late = False
         if not attendance.clock_in_time and not attendance.clock_out_time:
-            attendance.total_seconds = 4 * 3600
+            if attendance.half_day_type == "second_half":
+                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 14, 0, tzinfo=timezone.utc)
+                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+            else:
+                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=timezone.utc)
+                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 13, 0, tzinfo=timezone.utc)
     elif status == "late":
         attendance.half_day_type = None
         attendance.is_late = True
@@ -691,27 +716,43 @@ def get_productivity(
 ):
     users = db.query(User).filter(User.role == "employee").all()
     result = []
+    now = datetime.now(timezone.utc)
+    month_start = datetime(year, month, 1, tzinfo=timezone.utc)
+    month_end = datetime(
+        year + 1 if month == 12 else year,
+        1 if month == 12 else month + 1,
+        1,
+        tzinfo=timezone.utc
+    )
 
     for user in users:
+        # Keep attendance rows consistent by closing stale active sessions server-side.
+        auto_close_open_attendances_for_user(user.id, db, now=now)
+
         attendance_records = db.query(Attendance).filter(
             Attendance.user_id == user.id,
             extract("month", Attendance.date) == month,
             extract("year", Attendance.date) == year
         ).all()
-        attendance_seconds = sum([(a.total_seconds or 0) for a in attendance_records])
+        attendance_seconds = 0
+        for record in attendance_records:
+            total = int(record.total_seconds or 0)
+            if record.clock_in_time:
+                attendance_day_end = datetime.combine(record.date, time.max, tzinfo=timezone.utc)
+                total += int((min(now, attendance_day_end) - record.clock_in_time).total_seconds())
+            attendance_seconds += max(total, 0)
 
         logs = db.query(TaskTimeLog).filter(
             TaskTimeLog.user_id == user.id,
-            extract("month", TaskTimeLog.start_time) == month,
-            extract("year", TaskTimeLog.start_time) == year
+            TaskTimeLog.start_time < month_end,
+            or_(TaskTimeLog.end_time == None, TaskTimeLog.end_time >= month_start)
         ).all()
-        now = datetime.now(timezone.utc)
         task_seconds = 0
         for log in logs:
-            if log.end_time:
-                task_seconds += int((log.end_time - log.start_time).total_seconds())
-            else:
-                task_seconds += int((now - log.start_time).total_seconds())
+            segment_start = max(log.start_time, month_start)
+            segment_end = min(log.end_time or now, month_end)
+            if segment_end > segment_start:
+                task_seconds += int((segment_end - segment_start).total_seconds())
 
         idle_seconds = max(0, attendance_seconds - task_seconds)
         overtime_seconds = max(0, attendance_seconds - (9 * 3600))

@@ -16,263 +16,208 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #f8fafc;
             color: #1e293b;
-            line-height: 1.5;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Sidebar Container */
         #sidebar-container {
             position: fixed;
             top: 0;
             left: 0;
-            width: 240px;
+            width: 260px;
             height: 100vh;
             z-index: 1000;
         }
 
-        /* Main Content */
+        
+
         .main-content {
-            margin-left: 240px;
-            margin-right: 260px;
-            padding: 20px;
+            margin-left: 260px;
+            margin-right: 200px;
+            padding: 24px;
             min-height: 100vh;
         }
 
-        /* Page Header */
         .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .header-profile-link {
-            width: 42px;
-            height: 42px;
-            border-radius: 999px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            overflow: hidden;
-            color: #334155;
-            flex-shrink: 0;
-        }
-
-        .header-profile-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .header-profile-fallback {
-            font-size: 14px;
-            font-weight: 600;
+            margin-bottom: 24px;
         }
 
         .page-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 4px;
-            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
         }
 
-        .page-subtitle {
-            font-size: 12px;
+        .welcome-message {
+            font-size: 14px;
             color: #64748b;
         }
 
-        /* Today Status - Compact Single Card */
-        .status-card {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-        }
-
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        .status-item {
-            text-align: left;
-        }
-
-        .status-label {
-            font-size: 11px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+        .welcome-message strong {
+            color: #073379;
             font-weight: 600;
         }
 
-        .status-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
+        /* Compact KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
-        .status-value.active {
-            color: #073379;
-        }
-
-        .status-subtext {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        /* Section Container */
-        .section {
+        .kpi-card {
             background: #ffffff;
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 18px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .section-header {
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+
+        .card.compact {
+            padding: 16px;
+        }
+
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .section-title {
-            font-size: 14px;
+        .card-title {
+            font-size: 16px;
             font-weight: 600;
             color: #0f172a;
         }
 
-        .section-link {
-            font-size: 12px;
+        .card-link {
+            font-size: 13px;
             color: #073379;
             text-decoration: none;
             font-weight: 500;
         }
 
-        .section-link:hover {
+        .card-link:hover {
             text-decoration: underline;
         }
 
-        /* Tasks Table */
-        .tasks-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Task List */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .tasks-table th {
-            text-align: left;
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 8px 10px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .tasks-table td {
-            padding: 10px;
-            font-size: 13px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .tasks-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .tasks-table tr:hover {
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
             background: #f8fafc;
+            transition: background-color 0.2s;
         }
 
-        .task-name {
-            font-weight: 500;
-            color: #0f172a;
+        .task-item:hover {
+            background-color: #f1f5f9;
         }
 
         .task-status {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-pending { background: #f59e0b; }
+        .status-in_progress { background: #3b82f6; }
+        .status-completed { background: #10b981; }
+        .status-overdue { background: #ef4444; }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .task-project {
             font-size: 11px;
-            font-weight: 500;
-        }
-
-        .task-status.pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .task-status.in-progress {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .task-status.completed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .task-due {
-            font-size: 12px;
             color: #64748b;
         }
 
-        .task-action {
-            padding: 4px 12px;
-            background: #073379;
-            color: white;
-            border: none;
-            border-radius: 4px;
+        .task-deadline {
             font-size: 11px;
+            color: #64748b;
             font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
         }
 
-        .task-action:hover {
-            background: #052654;
-        }
-
-        .task-action:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-        }
-
-        /* Notices List */
-        .notices-list {
+        /* Notice List */
+        .notice-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .notice-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .notice-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border-left: 3px solid #073379;
         }
 
         .notice-title {
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: #0f172a;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .notice-date {
@@ -280,45 +225,148 @@
             color: #64748b;
         }
 
-        /* Leave Summary */
-        .leave-summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .leave-item {
-            text-align: center;
+        /* Leave Status */
+        .leave-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 12px;
             background: #f8fafc;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .leave-count {
-            font-size: 24px;
-            font-weight: 700;
-            color: #073379;
-            margin-bottom: 4px;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
 
         .leave-label {
-            font-size: 11px;
+            font-size: 13px;
             color: #64748b;
+        }
+
+        .leave-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .leave-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: 500;
         }
 
-        /* Two Column Layout for smaller sections */
-        .two-column-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .badge-approved {
+            background: #d1fae5;
+            color: #059669;
         }
 
-        /* Responsive */
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Project Progress */
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .progress-label {
+            font-size: 13px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .progress-percent {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #073379 0%, #1e40af 100%);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .action-icon {
+            font-size: 18px;
+            color: #073379;
+        }
+
+        /* Responsive Design */
         @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            #tracker-container {
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                right: 0;
+                left: 0;
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-top: 1px solid #e2e8f0;
+                padding: 12px;
+                z-index: 1001;
+            }
+
             .main-content {
                 margin-right: 0;
+                margin-bottom: 80px;
             }
         }
 
@@ -328,387 +376,375 @@
                 padding: 16px;
             }
 
-            .page-header {
-                gap: 10px;
+            #sidebar-container {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
 
-            .status-grid {
+            #sidebar-container.active {
+                transform: translateX(0);
+            }
+
+            .kpi-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
             }
 
-            .two-column-grid {
+            .dashboard-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .leave-summary {
-                grid-template-columns: 1fr;
-                gap: 10px;
+                gap: 16px;
             }
 
             .page-title {
                 font-size: 20px;
             }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 480px) {
-            .status-grid {
+            .kpi-grid {
                 grid-template-columns: 1fr;
-                gap: 10px;
             }
-
-            .tasks-table {
-                font-size: 12px;
-            }
-
-            .tasks-table th,
-            .tasks-table td {
-                padding: 8px 6px;
-            }
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar Container (loaded dynamically) -->
     <div id="sidebar-container"></div>
+    <div id="tracker-container"></div>
 
-    <!-- Tracker Container (loaded dynamically) -->
-<div id="tracker-container"></div>
-    <!-- Main Content -->
     <div class="main-content">
-                <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h1 class="page-title">Dashboard</h1>
-                <p class="page-subtitle">Welcome back, <span id="employee-name">John Doe</span> � Today is <span id="current-date"></span></p>
-            </div>
-            <a href="../employee/profile.html" class="header-profile-link" id="headerProfileLink" title="Profile">
-                <span class="header-profile-fallback" id="headerProfileFallback">U</span>
-            </a>
+            <h1 class="page-title">My Dashboard</h1>
+            <div class="welcome-message" id="welcomeMessage">Welcome back, <strong>Employee</strong></div>
         </div>
 
-        <!-- Today Status - Compact Card -->
-        <div class="status-card">
-            <div class="status-grid">
-                <div class="status-item">
-                    <div class="status-label">Clock In</div>
-                    <div class="status-value" id="clockin-time">--:--</div>
-                    <div class="status-subtext" id="clock-status-text">Not clocked in</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Hours Today</div>
-                    <div class="status-value" id="hours-today">00:00</div>
-                    <div class="status-subtext">Total time</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Active Task</div>
-                    <div class="status-value active" id="active-task-name" style="font-size: 14px; line-height: 1.3;">None</div>
-                    <div class="status-subtext" id="active-task-time">--:--:--</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Task Timer</div>
-                    <div class="status-value" id="task-timer">00:00:00</div>
-                    <div class="status-subtext">Current session</div>
-                </div>
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value" id="total-tasks">0</div>
+                <div class="kpi-label">My Tasks</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="completed-tasks">0</div>
+                <div class="kpi-label">Completed</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="pending-tasks">0</div>
+                <div class="kpi-label">Pending</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="projects-count">0</div>
+                <div class="kpi-label">Projects</div>
             </div>
         </div>
 
-        <!-- My Tasks Section -->
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">My Tasks</h2>
-                <a href="my_tasks.html" class="section-link">View all tasks →</a>
+        <div class="dashboard-grid">
+            <!-- My Tasks -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">My Recent Tasks</h2>
+                    <a href="tasks.html" class="card-link">View All</a>
+                </div>
+                <div class="task-list" id="recentTasksList">
+                    <div class="task-item">
+                        <div class="task-name">Loading tasks...</div>
+                    </div>
+                </div>
             </div>
-            <table class="tasks-table">
-                <thead>
-                    <tr>
-                        <th>Task Name</th>
-                        <th>Status</th>
-                        <th>Due Date</th>
-                        <th style="text-align: center;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="my-tasks-body">
-            
-                <tr>
-                    <td colspan="4" class="loading">Loading tasks...</td>
-                </tr>
-                </tbody>
-            </table>
+
+            <!-- Project Progress -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">My Projects Progress</h2>
+                </div>
+                <div id="projectProgressList">
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">Loading projects...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Status -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Leave Status</h2>
+                    <a href="leaves.html" class="card-link">View All</a>
+                </div>
+                <div class="leave-status">
+                    <span class="leave-label">Leaves Taken</span>
+                    <span class="leave-value" id="leaves-taken">0</span>
+                </div>
+                <div class="leave-status">
+                    <span class="leave-label">Leaves Remaining</span>
+                    <span class="leave-value" id="leaves-remaining">0</span>
+                </div>
+                <div id="recentLeavesList"></div>
+            </div>
+
+            <!-- Recent Notices -->
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Notices</h2>
+                    <a href="notices.html" class="card-link">View All</a>
+                </div>
+                <div class="notice-list" id="noticeList">
+                    <div class="notice-item">
+                        <div class="notice-title">Loading notices...</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Two Column Grid for Notices and Leave Summary -->
-        <div class="two-column-grid">
-            <!-- Notices Section -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Recent Notices</h2>
-                    <a href="notices.html" class="section-link">View all →</a>
-                </div>
-
-                <div class="notices-list" id="noticePreview">
-                    <div class="loading">Loading notices...</div>
-                </div>
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Quick Actions</h2>
             </div>
-
-            <!-- Leave Summary Section -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Leave Summary</h2>
-                    <a href="leaves.html" class="section-link">Apply for leave →</a>
-                </div>
-                <div class="leave-summary">
-                    <div class="leave-item">
-                        <div class="leave-count" id="leavePending">0</div>
-                        <div class="leave-label">Pending Approval</div>
-                    </div>
-                    <div class="leave-item">
-                       <div class="leave-count" id="leaveApproved">0</div>
-                        <div class="leave-label">Approved This Month</div>
-                    </div>
-                    <div class="leave-item">
-                    <div class="leave-count" id="leaveRejected">0</div>
-                        <div class="leave-label">Remaining Balance</div>
-                    </div>
-                </div>
+            <div class="quick-actions">
+                <a href="tasks.html" class="action-btn">
+                    <span class="action-icon">📋</span>
+                    View Tasks
+                </a>
+                <a href="attendance.html" class="action-btn">
+                    <span class="action-icon">⏰</span>
+                    Mark Attendance
+                </a>
+                <a href="leaves.html" class="action-btn">
+                    <span class="action-icon">🌴</span>
+                    Apply Leave
+                </a>
+                <a href="profile.html" class="action-btn">
+                    <span class="action-icon">👤</span>
+                    My Profile
+                </a>
             </div>
         </div>
     </div>
 
-    <script src="../../static/js/api.js"></script>
-<script>
-function safeText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-}
+    <script>
+        // Load sidebar
+        fetch("../shared/sidebar_employee.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
 
-function formatHm(seconds) {
-    const safe = Math.max(Number(seconds || 0), 0);
-    const hours = Math.floor(safe / 3600);
-    const minutes = Math.floor((safe % 3600) / 60);
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-}
+                const current = location.pathname.split("/").pop();
+                document.querySelectorAll(".sidebar a").forEach(link => {
+                    if (link.getAttribute("href")?.includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            })
+            .catch(err => console.error("Failed to load sidebar:", err));
 
-function formatHms(seconds) {
-    const safe = Math.max(Number(seconds || 0), 0);
-    const hours = Math.floor(safe / 3600);
-    const minutes = Math.floor((safe % 3600) / 60);
-    const secs = safe % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-}
-
-function updateCurrentDate() {
-    const el = document.getElementById("current-date");
-    if (!el) return;
-    el.textContent = new Date().toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-    });
-}
-
-function highlightActivePage() {
-    const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
-    const pageName = currentPage.replace(".html", "");
-    document.querySelectorAll(".nav-item").forEach((item) => {
-        const itemPage = item.getAttribute("data-page");
-        item.classList.toggle("active", itemPage === pageName);
-    });
-}
-
-async function loadSidebar() {
-    try {
-        const response = await fetch("../shared/sidebar_employee.html");
-        if (!response.ok) throw new Error("Sidebar not found");
-        document.getElementById("sidebar-container").innerHTML = await response.text();
-        highlightActivePage();
-    } catch (error) {
-        console.error("Error loading sidebar:", error);
-        document.getElementById("sidebar-container").innerHTML =
-            '<div style="padding: 20px; color: #64748b; font-size: 12px;">Sidebar unavailable</div>';
-    }
-}
-
-function renderAttendance(active) {
-    if (!active) {
-        safeText("clockin-time", "--:--");
-        safeText("hours-today", "00:00");
-        safeText("clock-status-text", "Not clocked in");
-        return;
-    }
-
-    const seconds = Number(active.worked_seconds || 0);
-    const running = Boolean(active.is_running);
-    safeText("clockin-time", running ? "Running" : "--:--");
-    safeText("hours-today", formatHm(seconds));
-    safeText("clock-status-text", running ? "Working" : "Not clocked in");
-}
-
-function renderActiveTask(task) {
-    safeText("active-task-name", task?.title || task?.task_title || "None");
-}
-
-function renderTasks(tasks) {
-    const tbody = document.getElementById("my-tasks-body");
-    if (!tbody) return;
-
-    const list = Array.isArray(tasks) ? tasks : [];
-    if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="4">No tasks assigned</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = list.slice(0, 5).map((task) => `
-        <tr>
-            <td class="task-name">${task.title || "Untitled"}</td>
-            <td><span class="task-status ${task.status || "pending"}">${task.status || "pending"}</span></td>
-            <td class="task-due">${task.due_date ? new Date(task.due_date).toLocaleDateString() : "-"}</td>
-            <td style="text-align:center;"><a href="tasks.html" class="task-action">Open</a></td>
-        </tr>
-    `).join("");
-}
-
-function renderNotices(notices) {
-    const container = document.getElementById("noticePreview");
-    if (!container) return;
-
-    const list = Array.isArray(notices) ? notices : [];
-    if (!list.length) {
-        container.innerHTML = '<div class="loading" style="padding: 10px 0;">No notices</div>';
-        return;
-    }
-
-    container.innerHTML = list.slice(0, 3).map((n) => `
-        <div class="notice-item">
-            <div class="notice-title">${n.title || "Notice"}</div>
-            <div class="notice-date">${n.created_at ? new Date(n.created_at).toLocaleDateString() : "-"}</div>
-        </div>
-    `).join("");
-}
-
-function renderLeaves(leaves) {
-    const list = Array.isArray(leaves) ? leaves : [];
-    safeText("leavePending", list.filter((l) => l.status === "pending").length);
-    safeText("leaveApproved", list.filter((l) => l.status === "approved").length);
-    safeText("leaveRejected", list.filter((l) => l.status === "rejected").length);
-}
-
-function applyHeaderProfile(profile) {
-    const link = document.getElementById("headerProfileLink");
-    const fallback = document.getElementById("headerProfileFallback");
-    const nameEl = document.getElementById("employee-name");
-    if (!link || !fallback) return;
-
-    let userName = "User";
-    const userRaw = localStorage.getItem("user");
-    if (userRaw) {
-        try {
-            const parsed = JSON.parse(userRaw);
-            if (parsed?.name) userName = parsed.name;
-        } catch {}
-    }
-    if (nameEl) {
-        nameEl.textContent = profile?.name || userName;
-    }
-    fallback.textContent = userName.charAt(0).toUpperCase();
-
-    const imgPath = profile?.profile_image;
-    if (!imgPath) return;
-
-    const oldImg = link.querySelector("img");
-    if (oldImg) oldImg.remove();
-
-    const img = document.createElement("img");
-    img.className = "header-profile-img";
-    img.alt = "Profile";
-    img.src = imgPath.startsWith("http") ? imgPath : `http://127.0.0.1:8000${imgPath}`;
-    img.onerror = () => img.remove();
-    link.prepend(img);
-}
-
-function syncDashboardFromTracker() {
-    if (!window.Tracker || typeof window.Tracker.getState !== "function") return;
-    const state = window.Tracker.getState();
-    if (!state) return;
-
-    safeText("clockin-time", state.isClockedIn ? "Running" : "--:--");
-    safeText("clock-status-text", state.isClockedIn ? "Working" : "Not clocked in");
-    safeText("hours-today", formatHm(state.attendanceSeconds || 0));
-    safeText("task-timer", formatHms(state.taskSeconds || 0));
-    safeText("active-task-name", state.activeTask?.title || "None");
-}
-
-async function loadDashboard() {
-    if (!window.API) {
-        console.error("API helper is not available on dashboard.");
-        renderAttendance(null);
-        renderActiveTask(null);
-        renderTasks([]);
-        renderNotices([]);
-        renderLeaves([]);
-        return;
-    }
-
-    const results = await Promise.allSettled([
-        window.API.getActiveAttendance(),
-        window.API.getMyTasks(),
-        window.API.getActiveTask(),
-        window.API.getNotices(),
-        window.API.getMyLeaves(),
-        window.API.getProfile()
-    ]);
-
-    renderAttendance(results[0].status === "fulfilled" ? results[0].value : null);
-    renderTasks(results[1].status === "fulfilled" ? results[1].value : []);
-    renderActiveTask(results[2].status === "fulfilled" ? results[2].value : null);
-    renderNotices(results[3].status === "fulfilled" ? results[3].value : []);
-    renderLeaves(results[4].status === "fulfilled" ? results[4].value : []);
-    applyHeaderProfile(results[5].status === "fulfilled" ? results[5].value : null);
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-    updateCurrentDate();
-    await loadSidebar();
-
-    try {
-        if (typeof window.loadGlobalTracker === "function") {
-            await window.loadGlobalTracker();
-        } else if (typeof window.loadTracker === "function") {
-            await window.loadTracker();
+        // Helper functions
+        function safeText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
         }
-    } catch (err) {
-        console.error("Tracker init failed:", err);
-    }
 
-    try {
-        await loadDashboard();
-        syncDashboardFromTracker();
-        setInterval(syncDashboardFromTracker, 1000);
-    } catch (err) {
-        console.error("Dashboard init failed:", err);
-        renderAttendance(null);
-        renderActiveTask(null);
-        renderTasks([]);
-        renderNotices([]);
-        renderLeaves([]);
-    }
-});
-</script>
-<script src="../../static/js/tracker.js"></script>
-<script src="../../static/js/loadTracker.js"></script>
+        function formatDate(dateStr) {
+            if (!dateStr) return "-";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        }
+
+        function escapeHtml(v) {
+            if (v === null || v === undefined) return "";
+            return String(v)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function getStatusClass(status) {
+            switch(status?.toLowerCase()) {
+                case 'pending': return 'status-pending';
+                case 'in_progress': return 'status-in_progress';
+                case 'completed': return 'status-completed';
+                case 'overdue': return 'status-overdue';
+                default: return 'status-pending';
+            }
+        }
+
+        // Load employee dashboard data
+        async function loadEmployeeDashboard() {
+            if (!localStorage.getItem("access_token")) {
+                window.location.href = "../auth/login.html";
+                return;
+            }
+            
+            if (!window.API) return;
+
+            try {
+                // Get user info for welcome message
+                const userStr = localStorage.getItem("user");
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    document.getElementById("welcomeMessage").innerHTML = `Welcome back, <strong>${escapeHtml(user.name || 'Employee')}</strong>`;
+                }
+
+                // Fetch all required data
+                const [tasks, projects, leaves, notices] = await Promise.all([
+                    API.getMyTasks(10, false),
+                    API.getMyProjects(),
+                    API.getMyLeaves(),
+                    API.getNotices()
+                ]);
+
+                const taskList = tasks || [];
+                const projectList = projects || [];
+                const leaveList = leaves || [];
+                const noticeList = notices || [];
+
+                // Update task stats
+                const totalTasks = taskList.length;
+                const completedTasks = taskList.filter(t => t.status === "completed").length;
+                const pendingTasks = taskList.filter(t => t.status !== "completed").length;
+
+                safeText("total-tasks", totalTasks);
+                safeText("completed-tasks", completedTasks);
+                safeText("pending-tasks", pendingTasks);
+                safeText("projects-count", projectList.length);
+
+                // Calculate leave stats (assuming 20 total leaves per year)
+                const totalLeavesPerYear = 20;
+                const approvedLeaves = leaveList.filter(l => l.status === "approved").length;
+                const leavesTaken = approvedLeaves;
+                const leavesRemaining = totalLeavesPerYear - leavesTaken;
+
+                safeText("leaves-taken", leavesTaken);
+                safeText("leaves-remaining", leavesRemaining);
+
+                // Render recent tasks
+                const recentTasksEl = document.getElementById("recentTasksList");
+                if (recentTasksEl) {
+                    if (taskList.length === 0) {
+                        recentTasksEl.innerHTML = '<div class="task-item"><div class="task-name">No tasks assigned</div></div>';
+                    } else {
+                        recentTasksEl.innerHTML = taskList.slice(0, 5).map(t => `
+                            <div class="task-item">
+                                <div class="task-status ${getStatusClass(t.status)}"></div>
+                                <div class="task-info">
+                                    <div class="task-name">${escapeHtml(t.title || "Untitled Task")}</div>
+                                    <div class="task-project">${escapeHtml(t.project_name || "No Project")}</div>
+                                </div>
+                                <div class="task-deadline">${t.due_date ? formatDate(t.due_date) : 'No deadline'}</div>
+                            </div>
+                        `).join("");
+                    }
+                }
+
+                // Render project progress
+                const projectProgressEl = document.getElementById("projectProgressList");
+                if (projectProgressEl) {
+                    if (projectList.length === 0) {
+                        projectProgressEl.innerHTML = '<div class="progress-item"><div class="progress-label">No projects assigned</div></div>';
+                    } else {
+                        projectProgressEl.innerHTML = projectList.slice(0, 4).map(p => {
+                            const projectTasks = taskList.filter(t => Number(t.project_id) === Number(p.id));
+                            const total = projectTasks.length;
+                            const done = projectTasks.filter(t => t.status === "completed").length;
+                            const pct = total ? Math.round((done / total) * 100) : 0;
+                            return `
+                                <div class="progress-item">
+                                    <div class="progress-header">
+                                        <div class="progress-label">${escapeHtml(p.name || "Untitled Project")}</div>
+                                        <div class="progress-percent">${pct}%</div>
+                                    </div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                                </div>
+                            `;
+                        }).join("");
+                    }
+                }
+
+                // Render recent leaves
+                const recentLeavesEl = document.getElementById("recentLeavesList");
+                if (recentLeavesEl) {
+                    if (leaveList.length === 0) {
+                        recentLeavesEl.innerHTML = '<div class="notice-item">No leave applications</div>';
+                    } else {
+                        recentLeavesEl.innerHTML = leaveList.slice(0, 3).map(l => `
+                            <div class="notice-item">
+                                <div class="notice-title">${escapeHtml(l.leave_type || "Leave")} - ${formatDate(l.start_date)}</div>
+                                <div class="notice-date">
+                                    Status: <span class="leave-badge badge-${l.status || 'pending'}">${escapeHtml(l.status || 'pending')}</span>
+                                </div>
+                            </div>
+                        `).join("");
+                    }
+                }
+
+                // Render notices
+                const noticesEl = document.getElementById("noticeList");
+                if (noticesEl) {
+                    if (noticeList.length === 0) {
+                        noticesEl.innerHTML = '<div class="notice-item">No notices available</div>';
+                    } else {
+                        noticesEl.innerHTML = noticeList.slice(0, 4).map(n => `
+                            <div class="notice-item">
+                                <div class="notice-title">${escapeHtml(n.title || "Notice")}</div>
+                                <div class="notice-date">Posted ${formatDate(n.created_at)}</div>
+                            </div>
+                        `).join("");
+                    }
+                }
+
+            } catch (err) {
+                console.error("Dashboard load failed:", err);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener("DOMContentLoaded", function() {
+            loadEmployeeDashboard();
+            
+            // Refresh every 30 seconds
+            setInterval(loadEmployeeDashboard, 30000);
+        });
+    </script>
+
+    <!-- Load API and Tracker -->
+    <script src="../../static/js/api.js"></script>
+    <script src="../../static/js/tracker.js"></script>
+    <script src="../../static/js/loadTracker.js"></script>
+    
+    <!-- Load Chat Component exactly like admin side -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch("../shared/chat.html")
+                .then(res => res.text())
+                .then(html => {
+                    const host = document.createElement("div");
+                    host.innerHTML = html;
+
+                    const scripts = Array.from(host.querySelectorAll("script")).map(oldScript => {
+                        const newScript = document.createElement("script");
+                        if (oldScript.src) {
+                            newScript.src = oldScript.src;
+                        } else {
+                            newScript.textContent = oldScript.textContent;
+                        }
+                        oldScript.remove();
+                        return newScript;
+                    });
+
+                    while (host.firstChild) {
+                        document.body.appendChild(host.firstChild);
+                    }
+
+                    scripts.forEach(script => document.body.appendChild(script));
+                })
+                .catch(err => console.error("Failed to load chat component:", err));
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

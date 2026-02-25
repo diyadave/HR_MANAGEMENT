@@ -91,6 +91,15 @@
   height: 16px;
 }
 
+.nav-icon i {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .nav-text {
   flex: 1;
 }
@@ -118,7 +127,7 @@
 }
 </style>
 <!-- frontend/templates/shared/sidebar_employee.html -->
- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <aside class="sidebar">
   <div class="sidebar-header">
     <h1 class="sidebar-title">DooOn</h1>
@@ -130,55 +139,93 @@
   <nav class="sidebar-nav">
     <div class="nav-section">
       <div class="nav-label">MAIN</div>
-     <a href="../employee/dashboard.html" class="nav-item" data-page="dashboard">
+      <a href="../employee/dashboard.html" class="nav-item" data-page="dashboard">
         <span class="nav-icon"><i class="bi bi-grid"></i></span>
         <span class="nav-text">Dashboard</span>
-        </a>
+      </a>
 
-        <a href="../employee/my_project.html" class="nav-item" data-page="my_project">
-        <span class="nav-icon"><i class="bi bi-check2-square"></i></span>
+      <a href="../employee/my_project.html" class="nav-item" data-page="my_project">
+        <span class="nav-icon"><i class="bi bi-folder"></i></span>
         <span class="nav-text">My Project</span>
-        </a>
-         
-        <a href="../employee/tasks.html" class="nav-item" data-page="tasks">
+      </a>
+       
+      <a href="../employee/tasks.html" class="nav-item" data-page="tasks">
         <span class="nav-icon"><i class="bi bi-check2-square"></i></span>
         <span class="nav-text">My Tasks</span>
-        </a>
-
-     
+      </a>
     </div>
+
     <div class="nav-section">
-        <a href="../employee/research.html" class="nav-item">
-        <span class="nav-icon"><i class="bi bi-people"></i></span>
+      <div class="nav-label">WORK</div>
+      <a href="../employee/research.html" class="nav-item" data-page="research">
+        <!-- UPDATED: Trending Up Arrow for Growth Desk (using bi-graph-up-arrow) -->
+        <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
         <span class="nav-text">Growth Desk</span>
-    </a>
+      </a>
+    </div>
+
     <div class="nav-section">
-        <a href="../employee/attendance.html" class="nav-item">
-        <span class="nav-icon"><i class="bi bi-people"></i></span>
+      <div class="nav-label">HR</div>
+      <a href="../employee/attendance.html" class="nav-item" data-page="attendance">
+        <span class="nav-icon"><i class="bi bi-calendar-check"></i></span>
         <span class="nav-text">Attendance</span>
-    </a>
-   <!--- <a href="../employee/timesheet.html" class="nav-item">
-        <span class="nav-icon"><i class="bi bi-clock"></i></span>
-        <span class="nav-text">Timesheet</span>
-        </a>-->
-      <a href="../employee/leaves.html" class="nav-item">
+      </a>
+      
+      <a href="../employee/leaves.html" class="nav-item" data-page="leaves">
         <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
         <span class="nav-text">Leaves</span>
-        </a>
+      </a>
     </div>
+
     <div class="nav-section">
-        <a href="../employee/notices.html" class="nav-item">
+      <div class="nav-label">COMMUNICATION</div>
+      <a href="../employee/notices.html" class="nav-item" data-page="notices">
         <span class="nav-icon"><i class="bi bi-bell"></i></span>
         <span class="nav-text">Notices</span>
-        </a>
-       <a href="../employee/profile.html" class="nav-item">
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">ACCOUNT</div>
+      <a href="../employee/profile.html" class="nav-item" data-page="profile">
         <span class="nav-icon"><i class="bi bi-person"></i></span>
         <span class="nav-text">Profile</span>
-        </a>
-       <a href="#" class="nav-item" onclick="handleLogout(event)">
+      </a>
+      
+      <a href="#" class="nav-item" onclick="handleLogout(event)">
         <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
         <span class="nav-text">Logout</span>
-        </a>
+      </a>
     </div>
   </nav>
 </aside>
+
+<script>
+  // Handle logout
+  function handleLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+      // In real app, handle logout
+      alert('Logout functionality would be implemented here');
+      // window.location.href = 'login.html';
+    }
+  }
+
+  // Highlight active page
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
+    
+    // Remove all active classes
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Add active class to current page
+    document.querySelectorAll('[data-page]').forEach(item => {
+      const itemPage = item.getAttribute('data-page');
+      if (itemPage === currentPage) {
+        item.classList.add('active');
+      }
+    });
+  });
+</script>

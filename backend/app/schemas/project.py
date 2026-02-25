@@ -43,6 +43,9 @@ class ProjectOut(BaseModel):
     owner: Optional[UserOut] = None
     team_members: Optional[List[UserOut]] = []
     tasks: Optional[List[TaskOut]] = []
+    task_count: int = 0
+    project_progress: int = 0
+    total_hours: float = 0.0
 
     class Config:
         from_attributes = True

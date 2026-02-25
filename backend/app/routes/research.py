@@ -337,6 +337,38 @@ def add_row(
 
 
 # =========================
+# DELETE ROW FROM EXCEL FILE
+# =========================
+@router.delete("/rows/{row_id}")
+def delete_row(
+    row_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    row = db.query(ResearchRow).filter(ResearchRow.id == row_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Row not found")
+
+    file_id = row.file_id
+
+    # Delete row cells explicitly for DB engines where FK cascade may not be enforced.
+    db.query(ResearchCell).filter(ResearchCell.row_id == row_id).delete()
+    db.delete(row)
+    db.flush()
+
+    # Keep row numbers contiguous after delete.
+    rows = db.query(ResearchRow).filter(
+        ResearchRow.file_id == file_id
+    ).order_by(ResearchRow.row_number.asc(), ResearchRow.id.asc()).all()
+
+    for index, r in enumerate(rows, start=1):
+        r.row_number = index
+
+    db.commit()
+    return {"message": "Row deleted", "file_id": file_id}
+
+
+# =========================
 # ADD COLUMN TO EXCEL FILE
 # (unchanged)
 # =========================

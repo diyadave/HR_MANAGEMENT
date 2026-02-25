@@ -1,4 +1,5 @@
 const BASE_URL = "http://127.0.0.1:8000";
+window.BASE_URL = BASE_URL;
 
 let refreshPromise = null;
 
@@ -29,6 +30,8 @@ function saveAuthSession(authData, stayLoggedIn = false) {
     localStorage.setItem("access_token", authData.access_token);
     localStorage.setItem("refresh_token", authData.refresh_token);
     localStorage.setItem("user", JSON.stringify(authData.user || null));
+    if (authData.user && authData.user.id !== undefined) localStorage.setItem("user_id", String(authData.user.id));
+    if (authData.user && authData.user.role) localStorage.setItem("user_role", String(authData.user.role).toLowerCase());
 
     if (stayLoggedIn) {
         localStorage.setItem("remember_me", "true");
@@ -43,6 +46,8 @@ function clearAuthState() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_role");
     localStorage.removeItem("remember_me");
     sessionStorage.removeItem("active_session");
 }
@@ -76,6 +81,8 @@ async function refreshAccessToken() {
         setAuthTokens(data.access_token, data.refresh_token);
         if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
+            if (data.user.id !== undefined) localStorage.setItem("user_id", String(data.user.id));
+            if (data.user.role) localStorage.setItem("user_role", String(data.user.role).toLowerCase());
         }
         return data.access_token;
     }).finally(() => {
@@ -282,6 +289,17 @@ window.API = {
     getProfile: () => apiRequest("/profile/"),
     updateProfile: (data) => apiRequest("/profile/", "PUT", data),
 
+    // Chat
+    getChatUsers: () => apiRequest("/chat/users"),
+    getChatConversations: () => apiRequest("/chat/conversations"),
+    getChatMessages: (conversationId, limit = 50) =>
+        apiRequest(`/chat/conversations/${conversationId}/messages?limit=${limit}`),
+    createPrivateChat: (userId) => apiRequest("/chat/conversations/private", "POST", { user_id: userId }),
+    createGroupChat: (data) => apiRequest("/chat/conversations/group", "POST", data),
+    sendChatMessage: (conversationId, message) =>
+        apiRequest("/chat/messages", "POST", { conversation_id: conversationId, message }),
+    markChatRead: (conversationId) => apiRequest(`/chat/conversations/${conversationId}/read`, "PUT"),
+
     updateAdminProfile: (formData) =>
         apiRequest("/admin/profile", "PUT", formData, { isFormData: true }),
 
@@ -299,3 +317,65 @@ window.API = {
 
     request: apiRequest
 };
+
+function normalizePath(path) {
+    const clean = String(path || "").split("?")[0].split("#")[0];
+    return clean.replace(/\/+$/, "");
+}
+
+function highlightSidebarActive() {
+    const container = document.getElementById("sidebar-container");
+    if (!container) return;
+
+    const currentPath = normalizePath(window.location.pathname);
+    const items = container.querySelectorAll(".nav-item[href], .submenu-item[href]");
+
+    items.forEach((item) => item.classList.remove("active"));
+    container.querySelectorAll(".submenu.expanded, .nav-parent.expanded").forEach((el) => {
+        el.classList.remove("expanded");
+    });
+
+    let activeItem = null;
+    items.forEach((item) => {
+        const href = item.getAttribute("href");
+        if (!href || href === "#") return;
+        try {
+            const targetPath = normalizePath(new URL(href, window.location.href).pathname);
+            if (targetPath && targetPath === currentPath) {
+                activeItem = item;
+            }
+        } catch {
+            // Ignore malformed URLs in sidebar links.
+        }
+    });
+
+    if (!activeItem) return;
+    activeItem.classList.add("active");
+
+    if (activeItem.classList.contains("submenu-item")) {
+        const submenu = activeItem.closest(".submenu");
+        const parent = activeItem.closest(".nav-parent");
+        if (submenu) submenu.classList.add("expanded");
+        if (parent) {
+            parent.classList.add("expanded");
+            const trigger = parent.querySelector(".nav-item");
+            if (trigger) trigger.classList.add("active");
+        }
+    }
+}
+
+window.highlightSidebarActive = highlightSidebarActive;
+
+document.addEventListener("DOMContentLoaded", () => {
+    highlightSidebarActive();
+
+    const container = document.getElementById("sidebar-container");
+    if (!container) return;
+
+    const observer = new MutationObserver(() => {
+        highlightSidebarActive();
+    });
+    observer.observe(container, { childList: true, subtree: true });
+});
+
+window.addEventListener("popstate", highlightSidebarActive);

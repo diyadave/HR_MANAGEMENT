@@ -579,6 +579,27 @@
         let activeTaskTimer = null;
         let isClockedIn = false;
 
+        async function syncRuntimeState() {
+            try {
+                const [attendance, activeTask] = await Promise.all([
+                    API.getActiveAttendance(),
+                    API.getActiveTask()
+                ]);
+                isClockedIn = Boolean(attendance?.is_running);
+                activeTaskId = activeTask?.id || activeTask?.task_id || null;
+            } catch (error) {
+                // Fallback to tracker state if API state fetch fails
+                if (window.Tracker) {
+                    const state = window.Tracker.getState();
+                    activeTaskId = state.activeTask?.id || null;
+                    isClockedIn = Boolean(state.isClockedIn);
+                } else {
+                    activeTaskId = null;
+                    isClockedIn = false;
+                }
+            }
+        }
+
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', async () => {
             if (!localStorage.getItem('access_token')) {
@@ -587,6 +608,7 @@
             }
 
             await loadSidebar();
+            await syncRuntimeState();
             await loadTasks();
             setupEventListeners();
             startTaskTimerUpdate();
@@ -623,6 +645,13 @@
                     closeHistoryModal();
                 }
             });
+
+            window.addEventListener('tracker:state-changed', (event) => {
+                const detail = event.detail || {};
+                isClockedIn = Boolean(detail.isClockedIn);
+                activeTaskId = detail.activeTask?.id || detail.activeTask?.task_id || null;
+                renderTasks(filteredTasks);
+            });
         }
 
         // ==================== LOAD TASKS ====================
@@ -630,13 +659,7 @@
             try {
                 const tasks = await API.getMyTasks(15, false);
                 allTasks = tasks;
-                
-                // Get active task from tracker
-                if (window.Tracker) {
-                    const state = window.Tracker.getState();
-                    activeTaskId = state.activeTask?.id || null;
-                    isClockedIn = state.isClockedIn;
-                }
+                await syncRuntimeState();
                 
                 applyFilters();
                 populateFilters();

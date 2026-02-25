@@ -8,596 +8,765 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
+        /* ─────────────────────────────────────────
+           ENTERPRISE HR — Clean Minimal System UI
+           Inspired by BambooHR / Zoho People
+        ───────────────────────────────────────── */
+        :root {
+            --blue:         #073379;
+            --blue-hover:   #052a65;
+            --blue-faint:   #f0f4ff;
+            --text-dark:    #1a2332;
+            --text-mid:     #52616e;
+            --text-light:   #8e9daa;
+            --border:       #e5e9ed;
+            --border-faint: #f0f2f4;
+            --bg:           #f6f8fa;
+            --white:        #ffffff;
+            --radius:       5px;
+
+            /* Status — desaturated, icon-only intent */
+            --c-present:  #1a8a52;
+            --c-absent:   #b0b8c1;
+            --c-late:     #c08a00;
+            --c-halfday:  #7566d6;
+            --c-holiday:  #c07a00;
+            --c-leave:    #6e59b5;
+            
+        }
+
+        *, *::before, *::after {
+            margin: 0; padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
         }
 
         body {
-            background-color: #F8FAFC;
-            color: #0F172A;
+            background: var(--bg);
+            color: var(--text-dark);
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* ── Layout ── */
         .container {
             padding: 24px 32px;
-            margin-left: 260px; /* Assuming sidebar width */
+            margin-left: 260px;
         }
 
-        /* Header */
+        /* ── Page Header ── */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .breadcrumb {
-            color: #64748B;
-            font-size: 12px;
-            margin-bottom: 8px;
+            font-size: 11.5px;
+            color: var(--text-light);
+            margin-bottom: 4px;
         }
 
         .page-title {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 600;
-            color: #0F172A;
+            color: var(--text-dark);
+            letter-spacing: -0.2px;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 8px;
         }
 
         .icon-button {
-            background: none;
-            border: none;
-            color: #64748B;
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--text-mid);
             cursor: pointer;
             width: 32px;
             height: 32px;
-            border-radius: 6px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s;
+            transition: background 0.15s, color 0.15s;
         }
-
         .icon-button:hover {
-            background-color: #F1F5F9;
+            background: var(--border-faint);
+            color: var(--text-dark);
         }
 
         .profile-placeholder {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            background-color: #073379;
+            background: var(--blue);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 11px;
         }
 
-        /* Filter Bar */
+        /* ── Filter Bar ── */
         .filter-bar {
             display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-            padding: 16px;
-            background-color: white;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            align-items: flex-end;
             flex-wrap: wrap;
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
-            min-width: 160px;
+            gap: 3px;
+            min-width: 150px;
         }
 
         .filter-label {
-            font-size: 11px;
-            color: #64748B;
-            margin-bottom: 4px;
+            font-size: 10.5px;
+            color: var(--text-light);
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .filter-select {
-            padding: 6px 12px;
-            border: 1px solid #E5E7EB;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #0F172A;
-            background-color: white;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 12.5px;
+            color: var(--text-dark);
+            background: var(--white);
             height: 32px;
+            outline: none;
+            transition: border-color 0.15s;
+            cursor: pointer;
+        }
+        .filter-select:focus {
+            border-color: #8eaad8;
         }
 
-        /* Action Buttons */
+        /* ── Action Bar ── */
         .action-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 8px;
         }
 
         .action-buttons {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         .btn {
-            padding: 6px 16px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 0 14px;
+            border-radius: var(--radius);
+            font-size: 12.5px;
             font-weight: 500;
             cursor: pointer;
             border: 1px solid transparent;
             height: 32px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            white-space: nowrap;
+            outline: none;
         }
 
         .btn-primary {
-            background-color: #073379;
+            background: var(--blue);
             color: white;
-            border-color: #073379;
+            border-color: var(--blue);
         }
-
         .btn-primary:hover {
-            background-color: #052962;
+            background: var(--blue-hover);
+            border-color: var(--blue-hover);
+        }
+        .btn-primary:active {
+            opacity: 0.92;
         }
 
         .btn-secondary {
-            background-color: white;
-            color: #0F172A;
-            border-color: #E5E7EB;
+            background: var(--white);
+            color: var(--text-mid);
+            border-color: var(--border);
         }
-
         .btn-secondary:hover {
-            background-color: #F8FAFC;
-            border-color: #CBD5E1;
+            background: var(--bg);
+            color: var(--text-dark);
+            border-color: #c8d0d8;
         }
 
-        /* Legend */
+        .btn-danger {
+            background: var(--white);
+            color: #c0392b;
+            border-color: #e8c8c4;
+        }
+        .btn-danger:hover {
+            background: #fdf3f2;
+        }
+
+        /* ── Legend — inline minimal text ── */
         .legend {
             display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            padding: 12px 0;
-            font-size: 12px;
-            color: #64748B;
+            gap: 16px;
+            align-items: center;
             flex-wrap: wrap;
         }
 
         .legend-item {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            font-size: 11.5px;
+            color: var(--text-mid);
+            white-space: nowrap;
         }
 
+        /* icon in legend — plain colored symbol, no bg */
         .icon {
-            font-size: 14px;
+            font-size: 11px;
+            display: inline-block;
+            line-height: 1;
         }
+        .icon-present { color: var(--c-present); }
+        .icon-absent  { color: var(--c-absent);  }
+        .icon-halfday { color: var(--c-halfday); }
+        .icon-late    { color: var(--c-late);    }
+        .icon-holiday { color: var(--c-holiday); }
+        .icon-leave   { color: var(--c-leave);   }
+        
 
-        /* Table */
+        /* ── Table Container ── */
         .table-container {
-            background-color: white;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
         }
 
         .table-wrapper {
             overflow-x: auto;
-            max-height: calc(100vh - 320px);
+            max-height: calc(100vh - 280px);
         }
 
         .attendance-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
+            min-width: 1100px;
         }
 
+        /* Sticky header */
         .attendance-table thead {
-            background-color: #F1F5F9;
+            background: #f9fafb;
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
+        .attendance-table thead::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--border);
+        }
+
         .attendance-table th {
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 12px;
+            padding: 9px 4px;
+            font-size: 10.5px;
             font-weight: 600;
-            color: #0F172A;
+            color: var(--text-light);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #E5E7EB;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--border);
             white-space: nowrap;
+            text-align: center;
         }
 
+        /* Employee th left-aligned */
+        .attendance-table th.employee-col {
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        /* Data rows */
         .attendance-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #E5E7EB;
-            color: #0F172A;
-            font-size: 13px;
+            padding: 7px 4px;
+            border-bottom: 1px solid var(--border-faint);
+            color: var(--text-dark);
+            font-size: 12.5px;
+            background: var(--white);
         }
 
-        .attendance-table tbody tr:hover {
-            background-color: #F8FAFC;
+        .attendance-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
+        .attendance-table tbody tr:hover td {
+            background: #fafbfd;
+        }
+        .attendance-table tbody tr:hover .employee-col {
+            background: #fafbfd;
+        }
+
+        /* Sticky employee column */
         .employee-col {
             position: sticky;
             left: 0;
-            background-color: white;
-            border-right: 1px solid #E5E7EB;
+            background: var(--white);
+            border-right: 1px solid var(--border-faint);
             min-width: 200px;
+            z-index: 5;
         }
 
-        .employee-name {
-            font-weight: 500;
+        .attendance-table td.employee-col {
+            padding-left: 16px;
         }
 
-        .employee-details {
-            font-size: 11px;
-            color: #64748B;
-            margin-top: 2px;
-        }
         .employee-cell {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
         }
+
         .employee-avatar-btn {
             border: none;
             background: transparent;
             padding: 0;
             cursor: pointer;
-            border-radius: 8px;
+            flex-shrink: 0;
         }
+
         .employee-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #073379, #1e40af);
-            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            background: #e8eef8;
+            color: var(--blue);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 10.5px;
+            font-weight: 600;
             overflow: hidden;
-            border: 1px solid #E5E7EB;
         }
         .employee-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+        }
+
+        .employee-name {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 12.5px;
+            line-height: 1.3;
+        }
+        .employee-details {
+            font-size: 10.5px;
+            color: var(--text-light);
+            margin-top: 1px;
+        }
+
+        /* ── Date header cells ── */
+        .date-header {
+            text-align: center;
+            min-width: 36px;
+            padding: 8px 2px;
+        }
+
+        .date-number {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
             display: block;
+            line-height: 1;
+        }
+
+        .weekday {
+            font-size: 9px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: block;
+            margin-top: 2px;
         }
 
         .date-cell {
             text-align: center;
-            min-width: 48px;
-            padding: 8px 4px;
+            min-width: 36px;
+            padding: 4px 2px;
         }
 
-        .date-header {
-            text-align: center;
-            min-width: 48px;
-        }
-
-        .date-number {
-            font-size: 11px;
-            color: #64748B;
-            margin-bottom: 2px;
-        }
-
-        .weekday {
-            font-size: 10px;
-            color: #64748B;
-            text-transform: uppercase;
-        }
-
+        /* ── Status icon cells — NO heavy backgrounds ── */
         .status-icon {
-            font-size: 16px;
-            width: 28px;
-            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            width: 28px;
+            height: 28px;
             margin: 0 auto;
         }
+
         .day-cell {
-            width: 30px;
-            height: 30px;
+            width: 26px;
+            height: 26px;
             margin: 0 auto;
-            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border: 1px solid transparent;
-            transition: all 0.15s ease;
+            border-radius: 3px;
+            transition: background 0.12s;
+            position: relative;
         }
         .day-cell:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
+            background: var(--border-faint);
         }
+
         .attendance-icon {
-            font-size: 16px;
+            font-size: 12px;
             line-height: 1;
-        }
-        .day-cell.half-first {
-            background: linear-gradient(to right, #bbf7d0 50%, transparent 50%);
-        }
-        .day-cell.half-second {
-            background: linear-gradient(to right, transparent 50%, #bbf7d0 50%);
+            font-weight: 600;
+            display: block;
         }
 
-        .status-present { color: #059669; }
-        .status-late { color: #D97706; }
-        .status-absent { color: #DC2626; }
-        .status-halfday { color: #073379; }
-        .status-holiday { color: #64748B; }
-        .status-leave { color: #7C3AED; }
-        .status-dayoff { color: #475569; }
+        /* Status colours — icon only, no fill backgrounds */
+        .status-present { color: var(--c-present); }
+        .status-late    { color: var(--c-late);    }
+        .status-absent  { color: var(--c-absent);  }
+        .status-halfday { color: var(--c-halfday); }
+        .status-holiday { color: var(--c-holiday); }
+        .status-leave   { color: var(--c-leave);   }
+     
 
+        /* Half-day: only a faint left/right underline hint, no gradient fill */
+        /* Half Day — Clean Split Star */
+        .day-cell.half-left .attendance-icon,
+        .day-cell.half-right .attendance-icon {
+            position: relative;
+            font-size: 14px;
+            font-weight: 700;
+            background: linear-gradient(
+                to right,
+                var(--c-halfday) 50%,
+                #d9dbe3 50%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .day-cell.half-right .attendance-icon {
+            background: linear-gradient(
+                to right,
+                #d9dbe3 50%,
+                var(--c-halfday) 50%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* ── Total / Summary ── */
         .total-col {
             font-weight: 600;
             text-align: center;
-            background-color: #F8FAFC;
-            border-left: 1px solid #E5E7EB;
-        }
-
-        .summary-row {
-            background-color: #F8FAFC;
-            font-weight: 500;
+            background: #fafbfd;
+            border-left: 1px solid var(--border-faint);
+            color: var(--blue);
+            font-size: 12px;
+            min-width: 48px;
         }
 
         .summary-row td {
-            border-top: 2px solid #E5E7EB;
+            background: #f9fafb;
+            border-top: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-mid);
+            font-size: 12px;
         }
 
-        /* Loading state */
+        /* ── Loading / Error ── */
         .loading {
             text-align: center;
             padding: 40px;
-            color: #64748B;
+            color: var(--text-light);
+            font-size: 13px;
         }
-
-        /* Error state */
         .error {
             text-align: center;
             padding: 40px;
-            color: #DC2626;
+            color: #c0392b;
         }
+
+        /* ── Scrollbar — subtle ── */
+        .table-wrapper::-webkit-scrollbar { height: 5px; width: 5px; }
+        .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #d0d7de;
+            border-radius: 10px;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #b0bac3; }
+
+        /* ── Modal Overlay ── */
         .employee-modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(10, 20, 40, 0.35);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 1200;
-            padding: 16px;
+            padding: 20px;
         }
         .employee-modal-overlay.show {
             display: flex;
         }
+
         .employee-modal {
-            width: min(760px, 100%);
+            width: min(720px, 100%);
             max-height: 90vh;
             overflow: auto;
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #E5E7EB;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
         }
+
         .employee-modal-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 18px;
-            border-bottom: 1px solid #E5E7EB;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--white);
         }
+        .employee-modal-head h3 {
+            font-size: 14px !important;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
         .employee-modal-close {
-            border: none;
-            background: transparent;
+            border: 1px solid var(--border);
+            background: var(--white);
             cursor: pointer;
-            color: #64748B;
-            font-size: 20px;
+            color: var(--text-light);
+            font-size: 16px;
             line-height: 1;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.12s, color 0.12s;
         }
+        .employee-modal-close:hover {
+            background: var(--bg);
+            color: var(--text-dark);
+        }
+
         .employee-modal-body {
-            padding: 18px;
+            padding: 20px;
             display: grid;
-            grid-template-columns: 220px 1fr;
-            gap: 18px;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
         }
+
         .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 12px;
+            width: 100px;
+            height: 100px;
+            border-radius: 6px;
             object-fit: cover;
             display: block;
             margin: 0 auto 10px;
-            border: 1px solid #E5E7EB;
-            background: #F1F5F9;
+            border: 1px solid var(--border);
         }
         .profile-fallback {
-            width: 120px;
-            height: 120px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #073379, #1e40af);
-            color: #fff;
+            width: 100px;
+            height: 100px;
+            border-radius: 6px;
+            background: #e8eef8;
+            color: var(--blue);
             margin: 0 auto 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 26px;
             font-weight: 700;
         }
+
         .employee-metrics {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
         .metric {
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 10px;
-            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            background: var(--bg);
         }
         .metric h4 {
-            font-size: 11px;
-            color: #64748B;
-            margin-bottom: 4px;
-            font-weight: 600;
+            font-size: 10px;
+            color: var(--text-light);
+            margin-bottom: 3px;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
         .metric p {
             font-size: 18px;
             font-weight: 700;
-            color: #0F172A;
+            color: var(--text-dark);
         }
+
         .employee-list-mini {
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            margin-top: 8px;
+            background: var(--bg);
         }
         .employee-list-mini h5 {
-            font-size: 12px;
-            color: #475569;
-            margin-bottom: 8px;
+            font-size: 10.5px;
+            color: var(--text-light);
+            margin-bottom: 7px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
         .employee-list-mini ul {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            font-size: 13px;
-            color: #334155;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-mid);
         }
+
+        /* ── Attendance Form ── */
         .attendance-form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
+            gap: 12px;
         }
-        .attendance-form-grid .full {
-            grid-column: 1 / -1;
+        .attendance-form-grid .full { grid-column: 1 / -1; }
+
+        .attendance-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
         .attendance-form-group label {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 12px;
-            color: #475569;
+            font-size: 11px;
+            color: var(--text-mid);
+            font-weight: 500;
         }
         .attendance-form-group input,
         .attendance-form-group select,
         .attendance-form-group textarea {
             width: 100%;
             padding: 7px 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 13px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 12.5px;
+            color: var(--text-dark);
+            background: var(--white);
+            outline: none;
+            transition: border-color 0.15s;
         }
+        .attendance-form-group input:focus,
+        .attendance-form-group select:focus,
+        .attendance-form-group textarea:focus {
+            border-color: #8eaad8;
+        }
+        .attendance-form-group input[readonly] {
+            background: var(--bg);
+            color: var(--text-mid);
+        }
+        .attendance-form-group input:disabled,
+        .attendance-form-group select:disabled,
+        .attendance-form-group textarea:disabled {
+            background: var(--bg);
+            cursor: not-allowed;
+            color: var(--text-light);
+        }
+
         .form-ctrl {
-            background: #fff;
-            border: 1px solid #dbe3ee;
-            border-radius: 6px;
-            min-height: 36px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-height: 34px;
+            padding: 6px 10px;
+            font-size: 12.5px;
+            color: var(--text-dark);
+            outline: none;
+            transition: border-color 0.15s;
+            width: 100%;
         }
+        .form-ctrl:focus { border-color: #8eaad8; }
+
         .attendance-form-group textarea {
-            min-height: 74px;
+            min-height: 72px;
             resize: vertical;
+            line-height: 1.5;
         }
+
         .attendance-modal-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
             margin-top: 14px;
         }
+
         .checkbox-line {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            font-size: 12.5px;
+            color: var(--text-mid);
+            cursor: pointer;
+            padding: 6px 0;
+        }
+        .checkbox-line input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--blue);
+            cursor: pointer;
         }
 
-        /* Scrollbar styling */
-        .table-wrapper::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 4px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
+        /* ── Responsive ── */
         @media (max-width: 1024px) {
-            .container {
-                margin-left: 0;
-                padding: 16px;
-            }
-            .filter-bar {
-                gap: 10px;
-            }
-            .filter-group {
-                min-width: 140px;
-            }
+            .container { margin-left: 0; padding: 14px; }
+            .filter-bar { gap: 8px; }
+            .filter-group { min-width: 130px; }
         }
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .header-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-group {
-                width: 100%;
-            }
-            .employee-modal-body {
-                grid-template-columns: 1fr;
-            }
-            .employee-metrics {
-                grid-template-columns: 1fr;
-            }
+            .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .header-actions { width: 100%; justify-content: flex-end; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-group { width: 100%; }
+            .employee-modal-body { grid-template-columns: 1fr; }
+            .employee-metrics { grid-template-columns: 1fr 1fr; }
+            .legend { gap: 10px; }
         }
     </style>
 </head>
@@ -670,13 +839,12 @@
                 <button class="btn btn-secondary">Export</button>
             </div>
             <div class="legend">
-                <div class="legend-item"><span class="icon">⭐</span> Holiday</div>
-                <div class="legend-item"><span class="icon">📅</span> Day Off</div>
-                <div class="legend-item"><span class="icon">✔</span> Present</div>
-                <div class="legend-item"><span class="icon">★</span> Half Day</div>
-                <div class="legend-item"><span class="icon">⏰</span> Late</div>
-                <div class="legend-item"><span class="icon">✖</span> Absent</div>
-                <div class="legend-item"><span class="icon">🚫</span> On Leave</div>
+                <div class="legend-item"><span class="icon icon-holiday">&#10022;</span> Holiday</div>
+                <div class="legend-item"><span class="icon icon-present">&#10003;</span> Present</div>
+                <div class="legend-item"><span class="icon icon-halfday">&#9734;</span> Half Day</div>
+                <div class="legend-item"><span class="icon icon-late">&#8987;</span> Late</div>
+                <div class="legend-item"><span class="icon icon-absent">&#10005;</span> Absent</div>
+                <div class="legend-item"><span class="icon icon-leave">&#8856;</span> On Leave</div>
             </div>
         </div>
 
@@ -747,8 +915,8 @@
                         <label>Status</label>
                         <select id="attStatus">
                             <option value="present">Present</option>
-                            <option value="halfday_first">Halfday First</option>
-                            <option value="halfday_second">Halfday Second</option>
+                            <option value="halfday_first">first Half</option>
+                            <option value="halfday_second">Second Half</option>
                             <option value="late">Late</option>
                             <option value="absent">Absent</option>
                         </select>
@@ -899,28 +1067,74 @@
             return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
         }
 
-        function getStatusIcon(status) {
+        function normalizeStatus(status) {
+            const value = String(status || "").toLowerCase();
+            if (value === "halfday_first" || value === "halfday_second") return "halfday";
+            if (value === "on_leave") return "leave";
+            return value || "absent";
+        }
+        function getStatusIcon(status, detail = {}) {
+            const normalized = normalizeStatus(status);
+
+            // Late auto-detection from clock-in
+            if (detail.clock_in_time) {
+                const clockIn = new Date(detail.clock_in_time);
+                const lateThreshold = new Date(clockIn);
+                lateThreshold.setHours(9, 30, 0, 0);
+
+                if (clockIn > lateThreshold) {
+                    return "\u231B"; // ⏰ Late
+                }
+            }
+
+            if (normalized === "halfday") {
+                return "\u2605"; // ★ star
+            }
+
             return {
-                holiday: "\u2B50",
-                leave: "\uD83D\uDEAB",
-                present: "\u2714",
-                late: "\u23F0",
-                halfday: "\u2605",
-                absent: "\u2716",
-                dayoff: "\uD83D\uDCC5"
-            }[status] || "\u2716";
+                holiday: "\u2726",
+                leave: "\u2298",
+                present: "\u2713",
+                absent: "\u2717",
+            }[normalized] || "\u2717";
         }
 
-        function getStatusClass(status) {
+        function getStatusClass(status, detail = {}) {
+        const normalized = normalizeStatus(status);
+
+            if (detail.clock_in_time) {
+                const clockIn = new Date(detail.clock_in_time);
+                const lateThreshold = new Date(clockIn);
+                lateThreshold.setHours(9, 30, 0, 0);
+
+                if (clockIn > lateThreshold) {
+                    return "status-late";
+                }
+            }
+
             return {
                 present: "status-present",
-                late: "status-late",
                 absent: "status-absent",
                 halfday: "status-halfday",
                 holiday: "status-holiday",
                 leave: "status-leave",
-                dayoff: "status-dayoff"
-            }[status] || "";
+            }[normalized] || "status-absent";
+        }
+
+        function getStatusLabel(status, detail = {}) {
+            const normalized = normalizeStatus(status);
+            if (normalized === "halfday") {
+                if (detail.half_day_type === "first_half") return "Half Day (First Half)";
+                if (detail.half_day_type === "second_half") return "Half Day (Second Half)";
+                return "Half Day";
+            }
+            return {
+                holiday: "Holiday",
+                leave: "On Leave",
+                present: "Present",
+                late: "Late",
+                absent: "Absent",
+            }[normalized] || "Absent";
         }
 
         function renderHeader() {
@@ -970,14 +1184,35 @@
 
                 for (let d = 1; d <= days; d++) {
                     const detail = emp.day_details?.[d] || {};
-                    const status = detail.status || emp.days?.[d] || "absent";
-                    const halfClass = status === "halfday"
-                        ? (detail.half_day_type === "first_half" ? "half-first" : detail.half_day_type === "second_half" ? "half-second" : "")
-                        : "";
+                    const status = normalizeStatus(detail.status || emp.days?.[d] || "absent");
+                   let halfClass = "";
+
+                    if (status === "halfday") {
+
+                        // 1️⃣ First priority → backend half_day_type
+                        if (detail.half_day_type === "first_half") {
+                            halfClass = "half-left";
+                        } 
+                        else if (detail.half_day_type === "second_half") {
+                            halfClass = "half-right";
+                        }
+
+                        // 2️⃣ Fallback → derive from clock-in time
+                        else if (detail.clock_in_time) {
+                            const clockIn = new Date(detail.clock_in_time);
+                            const hour = clockIn.getHours();
+
+                            if (hour < 13) {
+                                halfClass = "half-left";
+                            } else {
+                                halfClass = "half-right";
+                            }
+                        }
+                    }
                     row += `
                         <td class="date-cell">
-                            <div class="day-cell ${halfClass}" data-user-id="${emp.employee_id}" data-date="${isoDate(currentYear, currentMonth, d)}" onclick="openAttendanceDetails(this)">
-                                <span class="attendance-icon ${getStatusClass(status)}">${getStatusIcon(status)}</span>
+                            <div class="day-cell ${halfClass}" data-user-id="${emp.employee_id}" data-date="${isoDate(currentYear, currentMonth, d)}" title="${esc(getStatusLabel(status, detail))}" onclick="openAttendanceDetails(this)">
+                                <span class="attendance-icon ${getStatusClass(status, detail)}">${getStatusIcon(status, detail)}</span>
                             </div>
                         </td>
                     `;
@@ -1038,9 +1273,12 @@
             loadAttendance();
         }
 
-        async function loadAttendance() {
+        async function loadAttendance(options = {}) {
+            const silent = Boolean(options.silent);
             const tbody = document.getElementById("tableBody");
-            tbody.innerHTML = '<tr><td colspan="100" class="loading">Loading attendance data...</td></tr>';
+            if (!silent || !attendanceData.length) {
+                tbody.innerHTML = '<tr><td colspan="100" class="loading">Loading attendance data...</td></tr>';
+            }
             try {
                 const [attendance, tasks, projects] = await Promise.all([
                     API.getAdminAttendance(currentMonth, currentYear),
@@ -1058,7 +1296,9 @@
                 populateBulkEmployees(allAttendanceRaw);
             } catch (error) {
                 console.error("Failed to load attendance:", error);
-                tbody.innerHTML = `<tr><td colspan="100" class="error">Error loading data: ${esc(error.message)}</td></tr>`;
+                if (!silent || !attendanceData.length) {
+                    tbody.innerHTML = `<tr><td colspan="100" class="error">Error loading data: ${esc(error.message)}</td></tr>`;
+                }
             }
         }
 
@@ -1149,9 +1389,14 @@
 
         async function saveAttendanceChanges() {
             if (!selectedAttendance) return;
+            const selectedUserId = selectedAttendance.employee?.id || selectedAttendance.user_id;
+            if (!selectedUserId) {
+                alert("Employee ID missing for this attendance entry.");
+                return;
+            }
             const statusVal = document.getElementById("attStatus").value;
             const payload = {
-                user_id: selectedAttendance.employee.id,
+                user_id: selectedUserId,
                 date: document.getElementById("attDate").value,
                 clock_in_time: document.getElementById("attClockIn").value || null,
                 clock_out_time: document.getElementById("attClockOut").value || null,
@@ -1173,9 +1418,14 @@
 
         async function addManualEntry() {
             if (!selectedAttendance) return;
+            const selectedUserId = selectedAttendance.employee?.id || selectedAttendance.user_id;
+            if (!selectedUserId) {
+                alert("Employee ID missing for this attendance entry.");
+                return;
+            }
             const statusVal = document.getElementById("attStatus").value;
             const payload = {
-                user_id: selectedAttendance.employee.id,
+                user_id: selectedUserId,
                 date: document.getElementById("attDate").value,
                 status: statusVal,
                 clock_in_time: document.getElementById("attClockIn").value || null,
@@ -1274,15 +1524,14 @@
             if (attendanceAutoRefreshTimer) clearInterval(attendanceAutoRefreshTimer);
             attendanceAutoRefreshTimer = setInterval(() => {
                 if (!document.hidden) {
-                    loadAttendance();
+                    loadAttendance({ silent: true });
                 }
             }, 15000);
 
             document.addEventListener("visibilitychange", () => {
-                if (!document.hidden) loadAttendance();
+                if (!document.hidden) loadAttendance({ silent: true });
             });
         });
     </script>
 </body>
-</html> 
-
+</html>

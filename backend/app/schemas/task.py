@@ -77,6 +77,9 @@ class TaskOut(BaseModel):
     assigned_to: Optional[int] = None
     assignee_name: Optional[str] = None
     assignee_profile_image: Optional[str] = None
+    created_by: Optional[int] = None
+    created_by_name: Optional[str] = None
+    created_by_profile_image: Optional[str] = None
     priority: Optional[str] = None
     status: Optional[str] = None
     due_date: Optional[date]

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone, time
+from datetime import datetime, timedelta, timezone, time, date
 from fastapi import HTTPException
 
 from app.models.attendance import Attendance
@@ -8,23 +8,49 @@ MAX_WORK_SECONDS = 9 * 3600  # 9 hours
 BREAK_START_HOUR = 13  # 1 PM
 BREAK_END_HOUR = 14    # 2 PM
 OFFICE_END_HOUR = 18   # 6 PM
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _ensure_aware_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _break_window_utc_for_ist_date(day: date) -> tuple[datetime, datetime]:
+    break_start_ist = datetime.combine(day, time(hour=BREAK_START_HOUR, minute=0), tzinfo=IST)
+    break_end_ist = datetime.combine(day, time(hour=BREAK_END_HOUR, minute=0), tzinfo=IST)
+    return break_start_ist.astimezone(timezone.utc), break_end_ist.astimezone(timezone.utc)
+
+
+def _office_end_utc_for_ist_date(day: date) -> datetime:
+    office_end_ist = datetime.combine(day, time(hour=OFFICE_END_HOUR, minute=0), tzinfo=IST)
+    return office_end_ist.astimezone(timezone.utc)
+
+
+def is_break_time_ist(now: datetime | None = None) -> bool:
+    now = _ensure_aware_utc(now or datetime.now(timezone.utc)).astimezone(IST)
+    return BREAK_START_HOUR <= now.hour < BREAK_END_HOUR
 
 
 def calculate_work_seconds(clock_in: datetime, clock_out: datetime) -> int:
     """Calculate worked seconds after subtracting break-time overlap (1PM-2PM)."""
-    if not clock_in or not clock_out or clock_out <= clock_in:
+    if not clock_in or not clock_out:
+        return 0
+
+    clock_in = _ensure_aware_utc(clock_in)
+    clock_out = _ensure_aware_utc(clock_out)
+    if clock_out <= clock_in:
         return 0
 
     total_seconds = int((clock_out - clock_in).total_seconds())
     break_overlap = 0
 
-    current_day = clock_in.date()
-    last_day = clock_out.date()
-    tz = clock_in.tzinfo or timezone.utc
+    current_day = clock_in.astimezone(IST).date()
+    last_day = clock_out.astimezone(IST).date()
 
     while current_day <= last_day:
-        break_start = datetime.combine(current_day, time(hour=BREAK_START_HOUR, minute=0), tzinfo=tz)
-        break_end = datetime.combine(current_day, time(hour=BREAK_END_HOUR, minute=0), tzinfo=tz)
+        break_start, break_end = _break_window_utc_for_ist_date(current_day)
 
         overlap_start = max(clock_in, break_start)
         overlap_end = min(clock_out, break_end)
@@ -97,23 +123,27 @@ def close_open_attendances_for_user(user_id: int, close_at: datetime, db) -> int
 
 
 def auto_close_if_needed(attendance: Attendance, db, now: datetime | None = None) -> bool:
-    """Auto-close open attendance at 6PM (server-side)."""
+    """Auto-close open attendance at 1PM break start and 6PM office end (IST)."""
     if not attendance or not attendance.clock_in_time:
         return False
 
-    now = now or datetime.now(timezone.utc)
-    office_end = datetime.combine(
-        attendance.date,
-        time(hour=OFFICE_END_HOUR, minute=0),
-        tzinfo=timezone.utc
-    )
+    now = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    clock_in_utc = _ensure_aware_utc(attendance.clock_in_time)
+    local_day = clock_in_utc.astimezone(IST).date()
+    break_start, _ = _break_window_utc_for_ist_date(local_day)
+    office_end = _office_end_utc_for_ist_date(local_day)
 
-    if now < office_end:
-        return False
+    if clock_in_utc < break_start <= now:
+        _close_attendance(attendance, break_start, db)
+        db.commit()
+        return True
 
-    _close_attendance(attendance, office_end, db)
-    db.commit()
-    return True
+    if clock_in_utc < office_end <= now:
+        _close_attendance(attendance, office_end, db)
+        db.commit()
+        return True
+
+    return False
 
 
 def auto_close_open_attendances_for_user(user_id: int, db, now: datetime | None = None) -> int:
@@ -133,11 +163,17 @@ def auto_close_open_attendances_for_user(user_id: int, db, now: datetime | None 
 
 
 def clock_in(current_user, db):
-    now = datetime.now(timezone.utc)
+    now = _ensure_aware_utc(datetime.now(timezone.utc))
     today = now.date()
 
     # Close stale sessions before new clock-in.
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
+
+    if is_break_time_ist(now):
+        raise HTTPException(
+            status_code=400,
+            detail="Break time is active (1:00 PM to 2:00 PM IST). Please clock in after 2:00 PM IST."
+        )
 
     attendance = db.query(Attendance).filter(
         Attendance.user_id == current_user.id,

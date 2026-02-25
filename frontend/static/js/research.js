@@ -339,6 +339,13 @@ function renderExcel(data) {
         headerRow.appendChild(th);
     });
 
+    if (isAdmin()) {
+        const actionHeader = document.createElement("th");
+        actionHeader.textContent = "Action";
+        actionHeader.style.textAlign = "center";
+        headerRow.appendChild(actionHeader);
+    }
+
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
@@ -382,6 +389,25 @@ function renderExcel(data) {
 
             tr.appendChild(td);
         });
+
+        if (isAdmin()) {
+            const actionTd = document.createElement("td");
+            actionTd.style.textAlign = "center";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.title = `Delete row ${row.row_number}`;
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.style.cssText = "border:1px solid #fecaca;background:#fff1f2;color:#dc2626;width:30px;height:30px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;";
+            deleteBtn.onmouseenter = () => { deleteBtn.style.background = "#ffe4e6"; };
+            deleteBtn.onmouseleave = () => { deleteBtn.style.background = "#fff1f2"; };
+            deleteBtn.onclick = async () => {
+                await deleteRow(data.id, row.row_id, row.row_number);
+            };
+
+            actionTd.appendChild(deleteBtn);
+            tr.appendChild(actionTd);
+        }
 
         tbody.appendChild(tr);
     });
@@ -760,4 +786,15 @@ function formatDate(isoString, withTime = false) {
     if (!withTime) return date;
     const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     return `${date} · ${time}`;
+}
+
+async function deleteRow(fileId, rowId, rowNumber) {
+    if (!confirm(`Delete row ${rowNumber}?`)) return;
+    try {
+        await API.request(`/research/rows/${rowId}`, "DELETE");
+        loadFile(fileId);
+    } catch (err) {
+        console.error("Delete row error:", err);
+        alert(err?.message || "Failed to delete row");
+    }
 }

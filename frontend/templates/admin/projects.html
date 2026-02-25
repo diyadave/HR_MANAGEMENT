@@ -1051,6 +1051,12 @@ async function loadProjects() {
 
         projects.forEach(p => {
             const row = document.createElement("tr");
+            const taskCount = Number(p.task_count || (p.tasks ? p.tasks.length : 0) || 0);
+            const progressPercent = Number(
+                p.project_progress ??
+                (taskCount ? Math.round(((p.tasks || []).filter(t => t.status === "completed").length / taskCount) * 100) : 0)
+            ) || 0;
+            const totalHours = Number(p.total_hours || 0);
 
             row.innerHTML = `
                 <td class="project-name-cell">
@@ -1074,9 +1080,9 @@ async function loadProjects() {
                         ${p.status}
                     </span>
                 </td>
-                <td>0%</td>
-                <td class="stats-cell">0</td>
-                <td class="stats-cell">0</td>
+                <td>${progressPercent}%</td>
+                <td class="stats-cell">${taskCount}</td>
+                <td class="stats-cell">${totalHours.toFixed(1)}</td>
                 <td class="actions-cell">
                     <button class="action-btn action-view"
                     onclick="viewProject(${p.id})">

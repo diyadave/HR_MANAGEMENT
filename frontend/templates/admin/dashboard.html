@@ -675,6 +675,34 @@ fetch("../shared/sidebar_admin.html")
   });
 </script>
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    fetch("../shared/chat.html")
+        .then(res => res.text())
+        .then(html => {
+            const host = document.createElement("div");
+            host.innerHTML = html;
+
+            const scripts = Array.from(host.querySelectorAll("script")).map(oldScript => {
+                const newScript = document.createElement("script");
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
+                }
+                oldScript.remove();
+                return newScript;
+            });
+
+            while (host.firstChild) {
+                document.body.appendChild(host.firstChild);
+            }
+
+            scripts.forEach(script => document.body.appendChild(script));
+        });
+});
+</script>
+<script>
+    
 function safeText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;

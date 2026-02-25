@@ -15,7 +15,7 @@ from app.models.task_time_log import TaskTimeLog
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.attendance import Attendance
-from app.services.attendance_service import auto_close_open_attendances_for_user
+from app.services.attendance_service import auto_close_open_attendances_for_user, is_break_time_ist
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -217,6 +217,12 @@ def start_task(
 ):
     now = datetime.now(timezone.utc)
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
+
+    if is_break_time_ist(now):
+        raise HTTPException(
+            status_code=400,
+            detail="Task timer is disabled during break time (1:00 PM to 2:00 PM IST)."
+        )
 
     # Check if user is clocked in today
     today = now.date()

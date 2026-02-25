@@ -210,6 +210,27 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .refresh-btn {
+      padding: 6px 12px;
+      background: #073379;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    .refresh-btn:hover {
+      background: #052a5e;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
@@ -229,6 +250,7 @@
           <option value="2025-12">December 2025</option>
           <option value="2025-11">November 2025</option>
         </select>
+        <button class="refresh-btn" id="refreshBtn">Refresh</button>
       </div>
     </div>
 
@@ -253,7 +275,7 @@
 
     <div class="section">
       <div class="section-header">
-        <h2 class="section-title">Attendance Summary</h2>
+        <h2 class="section-title">Today's Summary</h2>
       </div>
       <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
         <div class="stat-item">
@@ -324,7 +346,7 @@
 
     // Format hours for display
     function formatHours(seconds) {
-      if (!seconds) return "0h";
+      if (!seconds) return "0h 0m";
       const hrs = Math.floor(seconds / 3600);
       const mins = Math.floor((seconds % 3600) / 60);
       return `${hrs}h ${mins}m`;
@@ -339,14 +361,6 @@
         document.getElementById("taskTime").textContent = formatTime(data.task_seconds || 0);
         document.getElementById("idleTime").textContent = formatTime(data.idle_seconds || 0);
         document.getElementById("overtime").textContent = formatTime(data.overtime_seconds || 0);
-        
-        // Update stats if available
-        if (data.stats) {
-          document.getElementById("presentDays").textContent = data.stats.present_days || "0";
-          document.getElementById("absentDays").textContent = data.stats.absent_days || "0";
-          document.getElementById("lateDays").textContent = data.stats.late_days || "0";
-          document.getElementById("avgHours").textContent = data.stats.avg_hours || "0h";
-        }
       } catch (error) {
         console.error("Summary load error:", error);
       }
@@ -354,6 +368,13 @@
 
     function parseMonthYear() {
       const value = document.getElementById("monthFilter").value || "";
+      if (!value) {
+        const now = new Date();
+        return {
+          month: now.getMonth() + 1,
+          year: now.getFullYear()
+        };
+      }
       const [yearStr, monthStr] = value.split("-");
       const year = parseInt(yearStr, 10);
       const month = parseInt(monthStr, 10);
@@ -392,15 +413,19 @@
       return `<span class="status-indicator ${css}"><span class="status-dot"></span>${label}</span>`;
     }
 
-    // Load attendance history (real API)
+    // Load attendance history
     async function loadHistory() {
       const tbody = document.getElementById("attendanceHistory");
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">Loading attendance records...</td></tr>`;
+      
       try {
         const { month, year } = parseMonthYear();
+        console.log(`Loading history for month: ${month}, year: ${year}`);
+        
         const data = await API.getAttendanceHistory(month, year);
         const records = data.records || [];
 
+        // Update stats
         document.getElementById("presentDays").textContent = data.stats?.present_days ?? 0;
         document.getElementById("absentDays").textContent = data.stats?.absent_days ?? 0;
         document.getElementById("lateDays").textContent = data.stats?.late_days ?? 0;
@@ -426,7 +451,7 @@
         }).join("");
       } catch (error) {
         console.error("History load error:", error);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:#DC2626;">Failed to load attendance records.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:#DC2626;">Failed to load attendance records: ${error.message}</td></tr>`;
       }
     }
 
@@ -444,16 +469,33 @@
     // Initialize page
     async function init() {
       await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
-        loadGlobalTracker(); 
       
-      await loadSummary();
-      await loadHistory();
+      // Load tracker
+      if (typeof loadGlobalTracker === 'function') {
+        loadGlobalTracker();
+      }
+      
+      // Load initial data
+      await Promise.all([
+        loadSummary(),
+        loadHistory()
+      ]);
       
       // Refresh summary every 30 seconds
       setInterval(loadSummary, 30000);
     }
 
+    // Event listeners
     document.getElementById("monthFilter").addEventListener("change", loadHistory);
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      loadSummary();
+      loadHistory();
+    });
+
+    // Listen for tracker state changes to refresh summary
+    window.addEventListener('tracker:state-changed', () => {
+      loadSummary();
+    });
 
     window.onload = init;
   </script>

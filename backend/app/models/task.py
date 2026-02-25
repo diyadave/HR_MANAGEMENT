@@ -70,3 +70,11 @@ class Task(Base):
     @property
     def assignee_profile_image(self):
         return self.assigned_user.profile_image if self.assigned_user else None
+
+    @property
+    def created_by_name(self):
+        return self.created_user.name if self.created_user else None
+
+    @property
+    def created_by_profile_image(self):
+        return self.created_user.profile_image if self.created_user else None
