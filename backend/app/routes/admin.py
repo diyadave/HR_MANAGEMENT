@@ -20,7 +20,14 @@ from app.models.leave import Leave
 from app.models.project import Project
 from app.models.task import Task
 from app.models.task_time_log import TaskTimeLog
-from app.services.attendance_service import auto_close_open_attendances_for_user
+from app.services.attendance_service import (
+    IST,
+    LATE_THRESHOLD,
+    auto_close_open_attendances_for_user,
+    get_attendance_status_meta,
+    get_attendance_worked_seconds,
+)
+from app.core.attendance_ws_manager import attendance_ws_manager
 
 from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate, AdminProfileUpdateSchema
 from app.schemas.task import TaskCreate, TaskOut
@@ -31,7 +38,6 @@ import shutil
 import os
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
-
 
 def _send_employee_credentials_safely(
     to_email: str,
@@ -86,12 +92,12 @@ def create_employee(
     db.refresh(employee)
 
     background_tasks.add_task(
-        _send_employee_credentials_safely,
-        to_email=employee.email,
-        employee_id=employee.employee_id,
-        temp_password=temp_password,
-        employee_name=employee.name
-    )
+            _send_employee_credentials_safely,
+            to_email=employee.email,
+            employee_id=employee.employee_id,
+            temp_password=temp_password,
+            employee_name=employee.name
+        )
 
     return {
         "employee_id": employee.employee_id,
@@ -174,8 +180,6 @@ def get_all_tasks(
 
     return result
 # ================= ATTENDANCE REPORT =================
-OFFICE_START = time(9, 0)
-LATE_AFTER = time(9, 30)
 
 
 def ensure_attendance_schema(db: Session) -> None:
@@ -216,7 +220,7 @@ def parse_time_on_date(target_date: date, value: Optional[str]) -> Optional[date
     try:
         parsed_dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
         if parsed_dt.tzinfo is None:
-            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+            parsed_dt = parsed_dt.replace(tzinfo=IST)
         return parsed_dt.astimezone(timezone.utc)
     except Exception:
         pass
@@ -226,7 +230,7 @@ def parse_time_on_date(target_date: date, value: Optional[str]) -> Optional[date
         hour = int(parts[0])
         minute = int(parts[1])
         second = int(parts[2]) if len(parts) > 2 else 0
-        return datetime(target_date.year, target_date.month, target_date.day, hour, minute, second, tzinfo=timezone.utc)
+        return datetime(target_date.year, target_date.month, target_date.day, hour, minute, second, tzinfo=IST).astimezone(timezone.utc)
     except Exception as exc:
         raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM, HH:MM:SS or ISO datetime") from exc
 
@@ -284,31 +288,7 @@ def status_from_attendance(attendance: Optional[Attendance]) -> str:
     if (attendance.working_from or "").lower() == "holiday":
         return "holiday"
 
-    if attendance.half_day_type in {"first_half", "second_half"}:
-        return "halfday"
-
-    # Manual late override should remain late even if computed hours are below full-day threshold.
-    if attendance.is_late and attendance.clock_in_time:
-        return "late"
-
-    # Live tracker awareness: if currently clocked-in, reflect status immediately.
-    if attendance.clock_in_time and not attendance.clock_out_time:
-        clock_in_local = attendance.clock_in_time.astimezone(timezone.utc).time()
-        return "late" if clock_in_local > LATE_AFTER else "present"
-
-    total_seconds = int(attendance.total_seconds or 0)
-    if total_seconds >= 9 * 3600:
-        status = "present"
-    elif total_seconds >= 4 * 3600:
-        status = "halfday"
-    else:
-        status = "absent"
-
-    if attendance.clock_in_time and attendance.clock_in_time.astimezone(timezone.utc).time() > LATE_AFTER and status == "present":
-        status = "late"
-    if attendance.is_late and attendance.clock_in_time:
-        status = "late"
-    return status
+    return get_attendance_status_meta(attendance)["status"]
 
 
 def serialize_attendance(attendance: Optional[Attendance]) -> dict:
@@ -363,12 +343,14 @@ def get_monthly_attendance(
     admin: User = Depends(get_current_admin)
 ):
     ensure_attendance_schema(db)
+    now = datetime.now(timezone.utc)
     users = db.query(User).filter(User.role == "employee").all()
     days_in_month = monthrange(year, month)[1]
     holiday_dates = get_holiday_dates_for_month(db, month, year)
     result = []
 
     for user in users:
+        auto_close_open_attendances_for_user(user.id, db, now=now)
         records = db.query(Attendance).filter(
             Attendance.user_id == user.id,
             extract("month", Attendance.date) == month,
@@ -395,8 +377,9 @@ def get_monthly_attendance(
                 status = "leave"
                 leave_days += 1
             else:
-                status = status_from_attendance(row)
-                if status in {"present", "late"}:
+                meta = get_attendance_status_meta(row, now) if row else {"status": "absent", "is_running": False, "is_late_entry": False, "is_overtime": False, "overtime_seconds": 0}
+                status = meta["status"]
+                if status in {"present", "late", "in_progress"}:
                     present_days += 1
                 elif status == "halfday":
                     half_days += 1
@@ -407,6 +390,13 @@ def get_monthly_attendance(
                 "half_day_type": row.half_day_type if row else None,
                 "manual_override": bool(row.manual_override) if row else False,
                 "is_late": bool(row.is_late) if row else False,
+                "clock_in_time": row.clock_in_time.isoformat() if row and row.clock_in_time else None,
+                "clock_out_time": row.clock_out_time.isoformat() if row and row.clock_out_time else None,
+                "total_seconds": get_attendance_worked_seconds(row, now) if row else 0,
+                "is_running": meta["is_running"] if row else False,
+                "is_late_entry": meta["is_late_entry"] if row else False,
+                "is_overtime": meta["is_overtime"] if row else False,
+                "overtime_seconds": meta["overtime_seconds"] if row else 0,
             }
 
         working_days = max(days_in_month - holidays - leave_days, 0)
@@ -442,7 +432,9 @@ def get_attendance_details(
     admin: User = Depends(get_current_admin)
 ):
     ensure_attendance_schema(db)
+    now = datetime.now(timezone.utc)
     target_date = parse_iso_date(date)
+    auto_close_open_attendances_for_user(user_id, db, now=now)
 
     employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
     if not employee:
@@ -476,9 +468,18 @@ def get_attendance_details(
     elif has_approved_leave:
         status = "leave"
     else:
-        status = status_from_attendance(attendance)
+        meta = get_attendance_status_meta(attendance, now) if attendance else {
+            "status": "absent",
+            "seconds": 0,
+            "is_running": False,
+            "is_late_entry": False,
+            "is_overtime": False,
+            "overtime_seconds": 0,
+        }
+        status = meta["status"]
 
     display_clock_in = infer_clock_in_time(attendance)
+    total_seconds = meta["seconds"]
 
     return {
         "employee": {
@@ -491,14 +492,17 @@ def get_attendance_details(
         "status": status,
         "clock_in_time": display_clock_in.isoformat() if display_clock_in else None,
         "clock_out_time": attendance.clock_out_time.isoformat() if attendance and attendance.clock_out_time else None,
-        "total_seconds": int(attendance.total_seconds or 0) if attendance else 0,
+        "total_seconds": total_seconds,
         "half_day_type": attendance.half_day_type if attendance else None,
         "is_late": bool(attendance.is_late) if attendance else False,
         "working_from": attendance.working_from if attendance else None,
         "location": attendance.location if attendance else None,
         "manual_override": bool(attendance.manual_override) if attendance else False,
         "edit_reason": attendance.edit_reason if attendance else None,
-        "is_active_tracker": bool(attendance and attendance.clock_in_time and not attendance.clock_out_time),
+        "is_active_tracker": meta["is_running"],
+        "is_late_entry": meta["is_late_entry"],
+        "is_overtime": meta["is_overtime"],
+        "overtime_seconds": meta["overtime_seconds"],
     }
 
 
@@ -579,25 +583,25 @@ def mark_attendance(
         attendance.is_late = False
         if not attendance.clock_in_time and not attendance.clock_out_time:
             if attendance.half_day_type == "second_half":
-                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 14, 0, tzinfo=timezone.utc)
-                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 14, 0, tzinfo=IST).astimezone(timezone.utc)
+                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
             else:
-                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=timezone.utc)
-                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 13, 0, tzinfo=timezone.utc)
+                attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=IST).astimezone(timezone.utc)
+                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 13, 0, tzinfo=IST).astimezone(timezone.utc)
     elif status == "late":
         attendance.half_day_type = None
         attendance.is_late = True
         if not attendance.clock_in_time:
-            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 45, tzinfo=timezone.utc)
+            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 45, tzinfo=IST).astimezone(timezone.utc)
         if not attendance.clock_out_time:
-            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
     elif status == "present":
         attendance.half_day_type = None
         attendance.is_late = False
         if not attendance.clock_in_time:
-            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=timezone.utc)
+            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=IST).astimezone(timezone.utc)
         if not attendance.clock_out_time:
-            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=timezone.utc)
+            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
     elif status == "holiday":
         attendance.clock_in_time = None
         attendance.clock_out_time = None
@@ -611,7 +615,7 @@ def mark_attendance(
     else:
         attendance.total_seconds = int(attendance.total_seconds or 0)
 
-    if attendance.clock_in_time and attendance.clock_in_time.astimezone(timezone.utc).time() > LATE_AFTER:
+    if attendance.clock_in_time and attendance.clock_in_time.astimezone(IST).time() > LATE_THRESHOLD:
         attendance.is_late = True
 
     db.flush()
@@ -628,12 +632,13 @@ def mark_attendance(
         new_payload=new_payload,
     )
     db.commit()
+    attendance_ws_manager.notify_attendance_change_threadsafe(user_id)
 
     return {
         "message": "Attendance saved",
         "attendance_id": attendance.id,
         "status": status_from_attendance(attendance),
-        "total_seconds": int(attendance.total_seconds or 0),
+        "total_seconds": get_attendance_worked_seconds(attendance),
     }
 
 
@@ -667,6 +672,7 @@ def delete_attendance_entry(
     )
     db.delete(attendance)
     db.commit()
+    attendance_ws_manager.notify_attendance_change_threadsafe(attendance.user_id)
     return {"message": "Attendance deleted"}
 
 
@@ -688,8 +694,9 @@ def bulk_mark_attendance(
     if payload.get("date"):
         target_dates = [parse_iso_date(str(payload["date"]))]
     else:
-        month = int(payload.get("month") or datetime.now(timezone.utc).month)
-        year = int(payload.get("year") or datetime.now(timezone.utc).year)
+        now_ist = datetime.now(timezone.utc).astimezone(IST)
+        month = int(payload.get("month") or now_ist.month)
+        year = int(payload.get("year") or now_ist.year)
         target_dates = [date(year, month, d) for d in range(1, monthrange(year, month)[1] + 1)]
 
     results = []

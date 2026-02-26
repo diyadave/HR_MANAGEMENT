@@ -14,7 +14,10 @@ from app.services.attendance_service import (
     clock_in,
     clock_out,
     auto_close_open_attendances_for_user,
-    calculate_work_seconds
+    get_attendance_worked_seconds,
+    get_attendance_status_meta,
+    get_ist_date,
+    IST
 )
 
 router = APIRouter()
@@ -36,6 +39,7 @@ def clock_out_route(
     db: Session = Depends(get_db)
 ):
     now = datetime.now(timezone.utc)
+    today = get_ist_date(now)
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
 
     attendance = db.query(Attendance).filter(
@@ -46,7 +50,7 @@ def clock_out_route(
     if not attendance:
         today_attendance = db.query(Attendance).filter(
             Attendance.user_id == current_user.id,
-            Attendance.date == now.date()
+            Attendance.date == today
         ).first()
         if today_attendance and today_attendance.clock_out_time:
             return {"message": "Already clocked out", "auto_closed": True}
@@ -63,22 +67,22 @@ def active_attendance(
     current_user=Depends(get_current_user)
 ):
     now = datetime.now(timezone.utc)
-    today = now.date()
+    today = get_ist_date(now)
 
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
 
     attendance = db.query(Attendance).filter(
-        Attendance.user_id == current_user.id,
-        Attendance.date == today
+    Attendance.user_id == current_user.id,
+    Attendance.date == today
     ).first()
-
     if not attendance:
         return {"worked_seconds": 0, "is_running": False}
 
-    worked_seconds = attendance.total_seconds or 0
+    if attendance.date != today:
+        return {"worked_seconds": 0, "is_running": False}
 
-    if attendance.clock_in_time and not attendance.clock_out_time:
-        worked_seconds += calculate_work_seconds(attendance.clock_in_time, now)
+    worked_seconds = attendance.total_seconds or 0
+    worked_seconds = get_attendance_worked_seconds(attendance, now)
 
     return {
         "worked_seconds": worked_seconds,
@@ -93,7 +97,7 @@ def attendance_summary(
     current_user=Depends(get_current_user)
 ):
     now = datetime.now(timezone.utc)
-    today = now.date()
+    today = get_ist_date(now)
 
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
 
@@ -102,17 +106,11 @@ def attendance_summary(
         Attendance.date == today
     ).first()
 
-    attendance_seconds = 0
-
-    if attendance:
-        attendance_seconds = attendance.total_seconds or 0
-
-        if attendance.clock_in_time and not attendance.clock_out_time:
-            attendance_seconds += calculate_work_seconds(attendance.clock_in_time, now)
+    attendance_seconds = get_attendance_worked_seconds(attendance, now)
 
     # -------- TASK TIME --------
-    start_of_day = datetime.combine(today, time.min, tzinfo=timezone.utc)
-    end_of_day = datetime.combine(today, time.max, tzinfo=timezone.utc)
+    start_of_day = datetime.combine(today, time.min, tzinfo=IST).astimezone(timezone.utc)
+    end_of_day = datetime.combine(today, time.max, tzinfo=IST).astimezone(timezone.utc)
 
     task_logs = db.query(TaskTimeLog).filter(
         TaskTimeLog.user_id == current_user.id,
@@ -149,8 +147,9 @@ def attendance_history(
     now = datetime.now(timezone.utc)
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
     
-    target_month = month or now.month
-    target_year = year or now.year
+    now_ist = now.astimezone(IST)
+    target_month = month or now_ist.month
+    target_year = year or now_ist.year
 
     # Get first and last day of the month
     first_day = datetime(target_year, target_month, 1, tzinfo=timezone.utc).date()
@@ -171,31 +170,17 @@ def attendance_history(
     present_days = 0
     late_days = 0
     total_work_seconds = 0
+    status_by_date = {}
 
     for r in records:
-        seconds = r.total_seconds or 0
-        
-        # Add ongoing work if clocked in but not out
-        if r.clock_in_time and not r.clock_out_time:
-            seconds += calculate_work_seconds(r.clock_in_time, now)
-
-        # Determine status based on attendance record
-        if r.clock_in_time:
-            if seconds >= 1 * 3600:  # Worked at least 1 hour
-                status = "present"
-                present_days += 1
-            else:
-                status = "absent"  # Less than 1 hour worked
-        else:
-            status = "absent"  # No clock-in
-
-        # Check for late arrival (after 9:10 AM)
-        if r.clock_in_time:
-            clock_in_local = r.clock_in_time.astimezone(timezone.utc)
-            if clock_in_local.hour > 9 or (clock_in_local.hour == 9 and clock_in_local.minute > 10):
-                late_days += 1
-                if status == "present":
-                    status = "late"
+        meta = get_attendance_status_meta(r, now)
+        seconds = meta["seconds"]
+        status = meta["status"]
+        if status in {"present", "in_progress"}:
+            present_days += 1
+        if status == "late":
+            late_days += 1
+        status_by_date[r.date] = status
 
         total_work_seconds += max(0, seconds)
 
@@ -204,7 +189,12 @@ def attendance_history(
             "clock_in_time": r.clock_in_time.isoformat() if r.clock_in_time else None,
             "clock_out_time": r.clock_out_time.isoformat() if r.clock_out_time else None,
             "total_seconds": max(0, seconds),
-            "status": status
+            "status": status,
+            "is_running": meta["is_running"],
+            "is_late_entry": meta["is_late_entry"],
+            "is_overtime": meta["is_overtime"],
+            "overtime_seconds": meta["overtime_seconds"],
+            "half_day_type": r.half_day_type
         })
 
     days_in_month = monthrange(target_year, target_month)[1]
@@ -217,10 +207,8 @@ def attendance_history(
         attendance_record = next((r for r in records if r.date == current_date), None)
         
         if not attendance_record:
-            # Weekend check (optional - you might want to exclude weekends)
-            # if current_date.weekday() < 5:  # Monday=0, Sunday=6
             absent_days += 1
-        elif attendance_record.clock_in_time is None:
+        elif status_by_date.get(current_date) == "absent":
             absent_days += 1
 
     return {

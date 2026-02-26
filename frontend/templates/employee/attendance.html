@@ -164,6 +164,10 @@
       background: #10B981;
     }
 
+    .status-progress .status-dot {
+      background: #3B82F6;
+    }
+
     .status-late .status-dot {
       background: #F59E0B;
     }
@@ -369,7 +373,7 @@
     function parseMonthYear() {
       const value = document.getElementById("monthFilter").value || "";
       if (!value) {
-        const now = new Date();
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
         return {
           month: now.getMonth() + 1,
           year: now.getFullYear()
@@ -382,6 +386,15 @@
         month: Number.isFinite(month) ? month : new Date().getMonth() + 1,
         year: Number.isFinite(year) ? year : new Date().getFullYear()
       };
+    }
+
+    let lastLiveRefreshAt = 0;
+    function refreshLiveAttendanceFromTracker() {
+      const nowMs = Date.now();
+      if (nowMs - lastLiveRefreshAt < 5000) return;
+      lastLiveRefreshAt = nowMs;
+      loadSummary();
+      loadHistory();
     }
 
     function formatDateLabel(isoDate) {
@@ -402,15 +415,40 @@
 
     function statusBadge(status) {
       const map = {
-        present: "status-present",
-        late: "status-late",
-        absent: "status-absent",
-        halfday: "status-halfday"
+        in_progress: { css: "status-present", icon: "🕒", label: "In Progress" },
+        present: { css: "status-present", icon: "✅", label: "Present" },
+        late: { css: "status-late", icon: "⚠", label: "Late" },
+        absent: { css: "status-absent", icon: "❌", label: "Absent" },
+        halfday: { css: "status-halfday", icon: "☆", label: "Half Day" },
+        holiday: { css: "status-present", icon: "🚩", label: "Holiday" },
+        leave: { css: "status-halfday", icon: "📅", label: "Leave" }
       };
-      const css = map[status] || "";
-      const label = status === "halfday" ? "Half Day" : status.charAt(0).toUpperCase() + status.slice(1);
-      if (!css) return `<span class="status-indicator">${label}</span>`;
-      return `<span class="status-indicator ${css}"><span class="status-dot"></span>${label}</span>`;
+      const config = map[status] || map.absent;
+      const css = config.css;
+      const label = config.label;
+      const icon = config.icon;
+      if (!css) return `<span class="status-indicator">${icon} ${label}</span>`;
+      return `<span class="status-indicator ${css}"><span class="status-dot"></span>${icon} ${label}</span>`;
+    }
+
+    function renderStatus(r) {
+      const status = r.status || "absent";
+      if (status === "in_progress") {
+        const label = r.is_late_entry ? "In Progress (Late Entry)" : "In Progress";
+        return `<span class="status-indicator status-progress"><span class="status-dot"></span>🕒 ${label}</span>`;
+      }
+
+      if (status === "present" && r.is_overtime) {
+        return `<span class="status-indicator status-present"><span class="status-dot"></span>⚡ Present (Overtime)</span>`;
+      }
+
+      if (status === "halfday") {
+        const halfIcon = r.half_day_type === "second_half" ? "★" : "☆";
+        const halfLabel = r.half_day_type === "second_half" ? "Half Day (Second Half)" : "Half Day (First Half)";
+        return `<span class="status-indicator status-halfday"><span class="status-dot"></span>${halfIcon} ${halfLabel}</span>`;
+      }
+
+      return statusBadge(status);
     }
 
     // Load attendance history
@@ -445,7 +483,7 @@
               <td>${formatClockTime(r.clock_in_time)}</td>
               <td>${clockOutLabel}</td>
               <td>${formatHours(r.total_seconds)}</td>
-              <td>${statusBadge(r.status || "absent")}</td>
+              <td>${renderStatus(r)}</td>
             </tr>
           `;
         }).join("");
@@ -482,7 +520,12 @@
       ]);
       
       // Refresh summary every 30 seconds
-      setInterval(loadSummary, 30000);
+      setInterval(() => {
+        if (!document.hidden) {
+          loadSummary();
+          loadHistory();
+        }
+      }, 15000);
     }
 
     // Event listeners
@@ -494,7 +537,7 @@
 
     // Listen for tracker state changes to refresh summary
     window.addEventListener('tracker:state-changed', () => {
-      loadSummary();
+      refreshLiveAttendanceFromTracker();
     });
 
     window.onload = init;

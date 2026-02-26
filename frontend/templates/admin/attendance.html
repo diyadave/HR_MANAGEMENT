@@ -448,6 +448,7 @@
 
         /* Status colours — icon only, no fill backgrounds */
         .status-present { color: var(--c-present); }
+        .status-in-progress { color: var(--blue); }
         .status-late    { color: var(--c-late);    }
         .status-absent  { color: var(--c-absent);  }
         .status-halfday { color: var(--c-halfday); }
@@ -1027,7 +1028,7 @@
                 });
             });
 
-        const now = new Date();
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
         let currentMonth = now.getMonth() + 1;
         let currentYear = now.getFullYear();
         let attendanceData = [];
@@ -1036,7 +1037,7 @@
         let allProjects = [];
         let allAttendanceRaw = [];
         let selectedAttendance = null;
-        let attendanceAutoRefreshTimer = null;
+        let attendanceStreamSocket = null;
 
         function esc(s) {
             return String(s || "")
@@ -1075,25 +1076,17 @@
         }
         function getStatusIcon(status, detail = {}) {
             const normalized = normalizeStatus(status);
-
-            // Late auto-detection from clock-in
-            if (detail.clock_in_time) {
-                const clockIn = new Date(detail.clock_in_time);
-                const lateThreshold = new Date(clockIn);
-                lateThreshold.setHours(9, 30, 0, 0);
-
-                if (clockIn > lateThreshold) {
-                    return "\u231B"; // ⏰ Late
-                }
-            }
+            if (normalized === "in_progress") return "\u2315";
+            if (normalized === "present" && detail.is_overtime) return "\u26A1";
+            if (normalized === "late") return "\u26A0";
 
             if (normalized === "halfday") {
-                return "\u2605"; // ★ star
+                return detail.half_day_type === "second_half" ? "\u2605" : "\u2606";
             }
 
             return {
-                holiday: "\u2726",
-                leave: "\u2298",
+                holiday: "\u2691",
+                leave: "📅",
                 present: "\u2713",
                 absent: "\u2717",
             }[normalized] || "\u2717";
@@ -1102,18 +1095,10 @@
         function getStatusClass(status, detail = {}) {
         const normalized = normalizeStatus(status);
 
-            if (detail.clock_in_time) {
-                const clockIn = new Date(detail.clock_in_time);
-                const lateThreshold = new Date(clockIn);
-                lateThreshold.setHours(9, 30, 0, 0);
-
-                if (clockIn > lateThreshold) {
-                    return "status-late";
-                }
-            }
-
             return {
+                in_progress: "status-in-progress",
                 present: "status-present",
+                late: "status-late",
                 absent: "status-absent",
                 halfday: "status-halfday",
                 holiday: "status-holiday",
@@ -1131,7 +1116,8 @@
             return {
                 holiday: "Holiday",
                 leave: "On Leave",
-                present: "Present",
+                in_progress: detail.is_late_entry ? "In Progress (Late Entry)" : "In Progress",
+                present: detail.is_overtime ? "Present (Overtime)" : "Present",
                 late: "Late",
                 absent: "Absent",
             }[normalized] || "Absent";
@@ -1300,6 +1286,43 @@
                     tbody.innerHTML = `<tr><td colspan="100" class="error">Error loading data: ${esc(error.message)}</td></tr>`;
                 }
             }
+        }
+
+        function getWsBaseUrl() {
+            const apiBase = (window.BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+            if (apiBase.startsWith("https://")) return `wss://${apiBase.slice("https://".length)}`;
+            if (apiBase.startsWith("http://")) return `ws://${apiBase.slice("http://".length)}`;
+            return `ws://${apiBase}`;
+        }
+
+        function connectAttendanceStreamSocket() {
+            if (attendanceStreamSocket && (
+                attendanceStreamSocket.readyState === WebSocket.OPEN ||
+                attendanceStreamSocket.readyState === WebSocket.CONNECTING
+            )) {
+                attendanceStreamSocket.close();
+            }
+
+            attendanceStreamSocket = new WebSocket(`${getWsBaseUrl()}/ws/attendance/stream`);
+
+            attendanceStreamSocket.onmessage = async (event) => {
+                try {
+                    const data = JSON.parse(event.data || "{}");
+                    if (data.type === "attendance_update") {
+                        await loadAttendance({ silent: true });
+                    }
+                } catch (error) {
+                    console.error("Attendance stream parse error:", error);
+                }
+            };
+
+            attendanceStreamSocket.onclose = () => {
+                setTimeout(connectAttendanceStreamSocket, 3000);
+            };
+
+            attendanceStreamSocket.onerror = (error) => {
+                console.error("Attendance stream socket error:", error);
+            };
         }
 
         function getProfileImageUrl(path) {
@@ -1506,6 +1529,7 @@
             }
 
             loadAttendance();
+            connectAttendanceStreamSocket();
             document.getElementById("closeEmployeeModalBtn").addEventListener("click", () => {
                 document.getElementById("employeeDetailModal").classList.remove("show");
             });
@@ -1520,13 +1544,6 @@
             document.getElementById("bulkMarkModal").addEventListener("click", (e) => {
                 if (e.target.id === "bulkMarkModal") closeBulkMarkModal();
             });
-
-            if (attendanceAutoRefreshTimer) clearInterval(attendanceAutoRefreshTimer);
-            attendanceAutoRefreshTimer = setInterval(() => {
-                if (!document.hidden) {
-                    loadAttendance({ silent: true });
-                }
-            }, 15000);
 
             document.addEventListener("visibilitychange", () => {
                 if (!document.hidden) loadAttendance({ silent: true });

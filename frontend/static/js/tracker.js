@@ -7,16 +7,17 @@
   }
 
   // ==================== STATE ====================
-  let attendanceInterval = null;
+  let ws = null;
   let taskInterval = null;
+  let renderInterval = null;
   
+  let lastServerSeconds = 0;
+  let lastSyncTime = 0;
   let attendanceSeconds = 0;
   let taskSeconds = 0;
   
   let isClockedIn = false;
   let activeTask = null;
-  let taskStartTime = null;
-  let stateRefreshInterval = null;
   // ==================== DOM ELEMENTS ====================
 let elements = {};
 
@@ -48,7 +49,7 @@ function initTrackerElements() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  function isIstBreakNow() {
+  function getIstHourMinute() {
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Kolkata",
       hour: "2-digit",
@@ -60,35 +61,97 @@ function initTrackerElements() {
     const minutePart = parts.find((p) => p.type === "minute");
     const hour = Number(hourPart?.value || 0);
     const minute = Number(minutePart?.value || 0);
+    return { hour, minute };
+  }
+
+  function isIstBreakNow() {
+    const { hour, minute } = getIstHourMinute();
     const totalMinutes = (hour * 60) + minute;
     return totalMinutes >= (13 * 60) && totalMinutes < (14 * 60);
   }
 
   function stopAllIntervals() {
-    if (attendanceInterval) {
-      clearInterval(attendanceInterval);
-      attendanceInterval = null;
-    }
     if (taskInterval) {
       clearInterval(taskInterval);
       taskInterval = null;
     }
+    if (renderInterval) {
+      clearInterval(renderInterval);
+      renderInterval = null;
+    }
   }
 
   // ==================== TIMER CONTROLS ====================
-function startAttendanceTimer(initialSeconds) {
-  if (attendanceInterval) {
-    clearInterval(attendanceInterval);
-  }
-  
-  attendanceSeconds = initialSeconds || 0;
-  elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
-  
-  attendanceInterval = setInterval(() => {
-    attendanceSeconds++;
+  async function syncAttendance() {
+    const data = await API.getActiveAttendance();
+    lastServerSeconds = data.worked_seconds || 0;
+    lastSyncTime = Date.now();
+    isClockedIn = data.is_running || false;
+    attendanceSeconds = lastServerSeconds;
     elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
-  }, 1000);
-}
+    updateClockButtonState();
+    emitStateChange();
+  }
+
+  function startRendering() {
+    if (renderInterval) clearInterval(renderInterval);
+    renderInterval = setInterval(() => {
+      if (!isClockedIn) {
+        attendanceSeconds = lastServerSeconds;
+        elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - lastSyncTime) / 1000);
+      const displaySeconds = lastServerSeconds + elapsed;
+      attendanceSeconds = displaySeconds;
+      elements.attendanceTimer.textContent = formatTime(displaySeconds);
+    }, 1000);
+  }
+
+  function getCurrentUserId() {
+    const rawId = localStorage.getItem("user_id");
+    if (rawId && !Number.isNaN(Number(rawId))) return Number(rawId);
+    try {
+      const rawUser = localStorage.getItem("user");
+      const parsed = rawUser ? JSON.parse(rawUser) : null;
+      if (parsed && parsed.id !== undefined && !Number.isNaN(Number(parsed.id))) {
+        return Number(parsed.id);
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  function connectAttendanceSocket(userId) {
+    if (!userId) return;
+
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      ws.close();
+    }
+
+    ws = new WebSocket(`ws://localhost:8000/ws/attendance/${userId}`);
+
+    ws.onmessage = async (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "attendance_update") {
+          await syncAttendance();
+          updateUI();
+        }
+      } catch (error) {
+        console.error("Attendance socket message error:", error);
+      }
+    };
+
+    ws.onclose = () => {
+      setTimeout(() => connectAttendanceSocket(userId), 3000);
+    };
+
+    ws.onerror = (error) => {
+      console.error("Attendance socket error:", error);
+    };
+  }
 
   function startTaskTimer(initialSeconds) {
     if (taskInterval) {
@@ -145,8 +208,23 @@ function startAttendanceTimer(initialSeconds) {
 
     if (breakTime) {
       elements.status.textContent = "Break Time (IST)";
-      elements.clockBtn.disabled = true;
       elements.taskBtn.disabled = true;
+    }
+    updateClockButtonState();
+  }
+
+  function updateClockButtonState() {
+    const { hour } = getIstHourMinute();
+
+    if (hour >= 13 && hour < 14) {
+      elements.clockBtn.disabled = true;
+      elements.clockBtn.textContent = "Break Time";
+    } else if (hour >= 18) {
+      elements.clockBtn.disabled = true;
+      elements.clockBtn.textContent = "Office Closed";
+    } else {
+      elements.clockBtn.disabled = false;
+      elements.clockBtn.textContent = isClockedIn ? "Clock Out" : "Clock In";
     }
   }
 
@@ -165,22 +243,7 @@ function startAttendanceTimer(initialSeconds) {
   async function loadState() {
     try {
       // Load attendance state
-      const attendance = await API.getActiveAttendance();
-      isClockedIn = attendance.is_running || false;
-      attendanceSeconds = attendance.worked_seconds || 0;
-      
-      elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
-      
-      if (isClockedIn) {
-      if (!attendanceInterval) {
-        startAttendanceTimer(attendanceSeconds);
-      }
-    } else {
-      if (attendanceInterval) {
-        clearInterval(attendanceInterval);
-        attendanceInterval = null;
-      }
-    }
+      await syncAttendance();
 
       // Load active task
       // Load active task
@@ -237,13 +300,7 @@ function startAttendanceTimer(initialSeconds) {
       if (isClockedIn) {
         // CLOCK OUT
         await API.clockOut();
-        
-        // Stop attendance timer
-        if (attendanceInterval) {
-          clearInterval(attendanceInterval);
-          attendanceInterval = null;
-        }
-        
+
         // Stop any running task
         if (activeTask) {
           try {
@@ -257,15 +314,13 @@ function startAttendanceTimer(initialSeconds) {
         
         // Reset state
         isClockedIn = false;
+        lastServerSeconds = 0;
         attendanceSeconds = 0;
         elements.attendanceTimer.textContent = formatTime(0);
         
       } else {
         // CLOCK IN
-        const response = await API.clockIn();
-        isClockedIn = true;
-        attendanceSeconds = response.worked_seconds || 0;
-        startAttendanceTimer(attendanceSeconds);
+        await API.clockIn();
       }
       
       // Reload full state to ensure sync
@@ -358,10 +413,22 @@ window.Tracker = {
   // Load initial state
 function safeInit() {
   if (initTrackerElements()) {
-    loadState();
-    if (!stateRefreshInterval) {
-      stateRefreshInterval = setInterval(loadState, 30000);
-    }
+    loadState().then(() => {
+      startRendering();
+      const currentUserId = getCurrentUserId();
+      if (currentUserId) {
+        connectAttendanceSocket(currentUserId);
+      }
+    }).catch((err) => {
+      console.error("Tracker init failed:", err);
+    });
+    setInterval(updateClockButtonState, 60000);
+    setInterval(() => {
+      const { hour, minute } = getIstHourMinute();
+      if (hour === 0 && minute === 0) {
+        location.reload();
+      }
+    }, 60000);
   } else {
     // retry if DOM not ready yet
     setTimeout(safeInit, 100);
