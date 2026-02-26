@@ -467,6 +467,14 @@
 
     <script>
         (function() {
+            function showMessage(message, type = 'info') {
+                if (window.showUIPopup) {
+                    window.showUIPopup(message, type);
+                } else {
+                    window.alert(message);
+                }
+            }
+
             // Wait for API to be loaded from external file
             function waitForAPI() {
                 return new Promise((resolve) => {
@@ -479,7 +487,7 @@
                                 resolve(window.API);
                             } else {
                                 console.error('API not loaded properly');
-                                alert('Failed to load API. Please refresh the page.');
+                                showMessage('Failed to load API. Please refresh the page.', 'error');
                             }
                         }, 100);
                     }
@@ -503,6 +511,10 @@
                 try {
                     const api = await waitForAPI();
                     const data = await api.getProfile();
+                    if (!data || typeof data !== 'object') {
+                        showMessage('No profile record found for your account.', 'warning');
+                        return;
+                    }
                     currentProfile = data;
 
                     // --- left card ---
@@ -572,7 +584,7 @@
 
                 } catch (err) {
                     console.error('loadProfile error:', err);
-                    alert('Could not load profile. Please check your connection.');
+                    showMessage(err.message || 'Could not load profile. Please check your connection.', 'error');
                 }
             }
 
@@ -612,9 +624,10 @@
                     await api.updateProfile(payload);
                     await loadProfile();                 // reload fresh data
                     enableEditMode(false);
+                    showMessage('Profile updated successfully.', 'success');
                 } catch (err) {
                     console.error('save failed', err);
-                    alert('Update failed. Please try again.');
+                    showMessage(err.message || 'Update failed. Please try again.', 'error');
                 }
             });
 
@@ -625,13 +638,13 @@
                 
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file');
+                    showMessage('Please select an image file.', 'warning');
                     return;
                 }
                 
                 // Validate file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('File size must be less than 2MB');
+                    showMessage('File size must be less than 2MB.', 'warning');
                     return;
                 }
 
@@ -639,9 +652,10 @@
                     const api = await waitForAPI();
                     await api.uploadProfileImage(file);
                     await loadProfile();  // refresh shows new image
+                    showMessage('Profile image updated successfully.', 'success');
                 } catch (err) {
                     console.error(err);
-                    alert('Image upload failed');
+                    showMessage(err.message || 'Image upload failed.', 'error');
                 }
             });
 

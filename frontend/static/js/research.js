@@ -559,7 +559,7 @@ async function renderDocumentView(data) {
     docCard.style.cursor = "default";
     docCard.innerHTML = `
         <div class="document-title" id="docTitle">${data.title || ""}</div>
-        <div class="document-content" id="docContent" style="max-height:none;overflow:auto;">${data.content || "<em style='color:var(--text-muted)'>No content yet.</em>"}</div>
+        <div class="document-content" id="docContent" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${data.content || "<em style='color:var(--text-muted)'>No content yet.</em>"}</div>
     `;
     docWrapper.appendChild(docCard);
     contentArea.appendChild(docWrapper);

@@ -824,6 +824,10 @@
 
             try {
                 currentAdmin = await API.getAdminProfile();
+                if (!currentAdmin || typeof currentAdmin !== 'object') {
+                    showAlert('No admin profile record found', 'error');
+                    return;
+                }
                 
                 // Update profile header
                 document.getElementById('profileName').textContent = currentAdmin.name;
@@ -870,6 +874,7 @@
                 const adminListEl = document.getElementById('adminList');
                 
                 if (!admins || admins.length === 0) {
+                    showAlert('No admin records found', 'error');
                     adminListEl.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No admins found</div>';
                     return;
                 }

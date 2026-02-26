@@ -204,6 +204,16 @@
             font-size: 12px;
             color: #64748b;
         }
+        
+        .task-description {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+            max-width: 420px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         /* Priority Dot */
         .priority-indicator {
@@ -730,7 +740,8 @@
                 // Determine button states
                 const isRunning = task.id === activeTaskId;
 
-                const canStart = !isRunning && isClockedIn && task.status !== 'completed';
+                const canShowStart = !isRunning && task.status !== 'completed';
+                const canStart = canShowStart && isClockedIn;
                 const canPause = isRunning;
                 const canComplete = task.status !== 'completed';
                 
@@ -755,6 +766,7 @@
                         <td>
                             <div class="task-name">${escapeHtml(task.title)}</div>
                             <div class="task-project">${escapeHtml(projectName)}</div>
+                            <div class="task-description">${escapeHtml(task.description || 'No description')}</div>
                         </td>
                         <td>
                             <div class="priority-indicator">
@@ -780,9 +792,10 @@
                         </td>
                         <td>
                            <div class="action-buttons">
-                            ${canStart ? `
+                            ${canShowStart ? `
                                 <button class="task-action-btn start"
-                                    onclick="handleStart(${task.id}, '${escapeHtml(task.title)}')">
+                                    onclick="handleStart(${task.id}, '${escapeHtml(task.title)}')"
+                                    ${canStart ? '' : 'disabled'}>
                                     Start
                                 </button>
                             ` : ''}
@@ -809,6 +822,10 @@
 
         // ==================== TASK ACTIONS ====================
         async function handleStart(taskId, taskTitle) {
+            if (!isClockedIn) {
+                alert('Clock in first to start task timer');
+                return;
+            }
             try {
                 const result = await API.startTask(taskId);
                 activeTaskId = taskId;

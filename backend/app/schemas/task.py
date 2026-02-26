@@ -1,11 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import date, datetime
 from typing import Optional, List
 from enum import Enum
 from app.schemas.user import UserOut
-from pydantic import BaseModel
-from datetime import date
-from typing import Optional
 
 class TaskStatusEnum(str, Enum):
     PENDING = "pending"
@@ -29,6 +26,15 @@ class TaskCreate(BaseModel):
     priority: Optional[str] = "medium"
     estimated_hours: Optional[float] = None
 
+    @field_validator("due_date")
+    @classmethod
+    def validate_due_date(cls, value: Optional[date]):
+        if value is None:
+            return value
+        if value < date.today():
+            raise ValueError("Due date must be today or an upcoming date")
+        return value
+
 
 # ---------- UPDATE ----------
 class TaskUpdate(BaseModel):
@@ -39,6 +45,15 @@ class TaskUpdate(BaseModel):
     assigned_to: Optional[int] = None
     priority: Optional[str] = None
     estimated_hours: Optional[float] = None
+
+    @field_validator("due_date")
+    @classmethod
+    def validate_due_date(cls, value: Optional[date]):
+        if value is None:
+            return value
+        if value < date.today():
+            raise ValueError("Due date must be today or an upcoming date")
+        return value
 
 
 # ---------- TIME LOG SCHEMA ----------

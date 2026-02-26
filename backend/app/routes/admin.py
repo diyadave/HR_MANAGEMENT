@@ -6,6 +6,7 @@ from sqlalchemy import and_, extract, inspect, or_, text
 from typing import List, Optional
 from datetime import date, datetime, time, timezone, timedelta
 from calendar import monthrange
+from pydantic import ValidationError
 
 from app.database.session import get_db
 from app.core.dependencies import get_current_admin
@@ -21,7 +22,7 @@ from app.models.task import Task
 from app.models.task_time_log import TaskTimeLog
 from app.services.attendance_service import auto_close_open_attendances_for_user
 
-from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate
+from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate, AdminProfileUpdateSchema
 from app.schemas.task import TaskCreate, TaskOut
 
 from app.utils.email import send_employee_credentials
@@ -811,23 +812,36 @@ def update_admin_profile(
     current_admin: User = Depends(get_current_admin)
 ):
     """Update admin profile information"""
+    try:
+        validated = AdminProfileUpdateSchema(
+            name=name,
+            email=email,
+            phone=phone,
+            department=department,
+            designation=designation,
+        )
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=exc.errors()) from exc
     
     # Check email uniqueness if changing
-    if email and email != current_admin.email:
-        existing = db.query(User).filter(User.email == email).first()
+    if email is not None and not validated.email:
+        raise HTTPException(status_code=422, detail="Email is required")
+
+    if validated.email and validated.email != current_admin.email:
+        existing = db.query(User).filter(User.email == validated.email).first()
         if existing:
             raise HTTPException(status_code=400, detail="Email already exists")
-        current_admin.email = email
+        current_admin.email = validated.email
     
     # Update basic info
-    if name:
-        current_admin.name = name
-    if phone:
-        current_admin.phone = phone
-    if department:
-        current_admin.department = department
-    if designation:
-        current_admin.designation = designation
+    if validated.name:
+        current_admin.name = validated.name
+    if phone is not None:
+        current_admin.phone = validated.phone
+    if department is not None:
+        current_admin.department = validated.department
+    if designation is not None:
+        current_admin.designation = validated.designation
     
     # Handle password change
     if new_password:

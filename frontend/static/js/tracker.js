@@ -293,6 +293,10 @@ function startAttendanceTimer(initialSeconds) {
         activeTask = null;
         
       } else {
+        if (!isClockedIn) {
+          alert("Clock in first to start task timer.");
+          return;
+        }
         // START TASK - Redirect to tasks page to select a task
         window.location.href = "../employee/tasks.html";
         return;

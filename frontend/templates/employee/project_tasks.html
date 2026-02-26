@@ -830,6 +830,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", loadProjectData);
+        document.addEventListener("DOMContentLoaded", setDueDateMinimums);
         // Load sidebar
         fetch("../shared/sidebar_employee.html")
             .then(res => res.text())
@@ -955,6 +956,7 @@
             document.getElementById("editPriority").value = task.priority || 'medium';
             document.getElementById("editHours").value = task.estimated_hours || '';
             document.getElementById("editDueDate").value = task.due_date || '';
+            setDueDateMinimums();
 
             // Show modal - use style.display = "flex"
             document.getElementById("editModal").style.display = "flex";
@@ -967,13 +969,19 @@
 
         async function saveTask() {
             if (!selectedTaskId) return;
+            const dueDate = document.getElementById("editDueDate").value || null;
+            const today = new Date().toISOString().split("T")[0];
+            if (dueDate && dueDate < today) {
+                alert("Due date must be today or an upcoming date");
+                return;
+            }
             try {
                 await apiRequest(`/tasks/${selectedTaskId}`, "PUT", {
                     title: document.getElementById("editTitle").value,
                     status: document.getElementById("editStatus").value,
                     priority: document.getElementById("editPriority").value,
                     estimated_hours: parseFloat(document.getElementById("editHours").value) || null,
-                    due_date: document.getElementById("editDueDate").value || null
+                    due_date: dueDate
                 });
                 closeEditModal();    // ✅ CLOSE MODAL AFTER SAVE
                 await loadProjectData(); // reload table
@@ -986,6 +994,7 @@
         // ========== CREATE MODAL CONTROLS ==========
         function openCreateTaskModal() {
             document.getElementById("createTaskModal").style.display = "flex";
+            setDueDateMinimums();
         }
 
         function closeCreateModal() {
@@ -1007,8 +1016,14 @@
         async function createTask() {
             const title = document.getElementById("taskTitle").value.trim();
             const assignedTo = document.getElementById("taskAssignee").value;
+            const dueDate = document.getElementById("taskDueDate").value || null;
             if (!title || !assignedTo) {
                 alert("Title and assignee are required");
+                return;
+            }
+            const today = new Date().toISOString().split("T")[0];
+            if (dueDate && dueDate < today) {
+                alert("Due date must be today or an upcoming date");
                 return;
             }
 
@@ -1017,7 +1032,7 @@
                     title,
                     description: document.getElementById("taskDescription").value.trim(),
                     assigned_to: Number(assignedTo),
-                    due_date: document.getElementById("taskDueDate").value || null,
+                    due_date: dueDate,
                     project_id: Number(projectId),
                     priority: document.getElementById("taskPriority").value,
                     estimated_hours: document.getElementById("taskEstimatedHours").value ? Number(document.getElementById("taskEstimatedHours").value) : null
@@ -1047,7 +1062,16 @@
             const editModal = document.getElementById("editModal");
             if (createModal) createModal.style.display = "none";
             if (editModal) editModal.style.display = "none";
+            setDueDateMinimums();
         });
+
+        function setDueDateMinimums() {
+            const today = new Date().toISOString().split("T")[0];
+            const createDue = document.getElementById("taskDueDate");
+            const editDue = document.getElementById("editDueDate");
+            if (createDue) createDue.min = today;
+            if (editDue) editDue.min = today;
+        }
     </script>
     <script src="../../static/js/api.js"></script>
 <script src="../../static/js/tracker.js"></script>

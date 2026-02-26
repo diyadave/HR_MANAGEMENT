@@ -205,9 +205,13 @@
   function handleLogout(event) {
     event.preventDefault();
     if (confirm('Are you sure you want to logout?')) {
-      // In real app, handle logout
-      alert('Logout functionality would be implemented here');
-      // window.location.href = 'login.html';
+      if (window.API && typeof window.API.logout === 'function') {
+        window.API.logout();
+      } else if (window.showUIPopup) {
+        window.showUIPopup('Logout action is not available right now.', 'error');
+      } else {
+        window.location.href = '../auth/login.html';
+      }
     }
   }
 

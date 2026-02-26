@@ -481,31 +481,31 @@
         <div class="summary-strip">
             <div class="summary-item">
                 <div>
-                    <div class="summary-count">287</div>
+                    <div class="summary-count" id="summaryTotal">0</div>
                     <div class="summary-label">Total Leaves</div>
                 </div>
-                <span class="summary-badge badge-total">+5%</span>
+                <span class="summary-badge badge-total" id="summaryTotalPct">0%</span>
             </div>
             <div class="summary-item">
                 <div>
-                    <div class="summary-count">238</div>
+                    <div class="summary-count" id="summaryApproved">0</div>
                     <div class="summary-label">Approved</div>
                 </div>
-                <span class="summary-badge badge-approved">83%</span>
+                <span class="summary-badge badge-approved" id="summaryApprovedPct">0%</span>
             </div>
             <div class="summary-item">
                 <div>
-                    <div class="summary-count">18</div>
+                    <div class="summary-count" id="summaryPending">0</div>
                     <div class="summary-label">Pending</div>
                 </div>
-                <span class="summary-badge badge-pending">6%</span>
+                <span class="summary-badge badge-pending" id="summaryPendingPct">0%</span>
             </div>
             <div class="summary-item">
                 <div>
-                    <div class="summary-count">31</div>
+                    <div class="summary-count" id="summaryRejected">0</div>
                     <div class="summary-label">Rejected</div>
                 </div>
-                <span class="summary-badge badge-rejected">11%</span>
+                <span class="summary-badge badge-rejected" id="summaryRejectedPct">0%</span>
             </div>
         </div>
 
@@ -513,57 +513,45 @@
         <div class="filter-row">
             <div class="filter-group">
                 <label class="filter-label">Employee</label>
-                <select class="filter-select">
-                    <option>All Employees</option>
-                    <option>Alex Johnson</option>
-                    <option>Sarah Miller</option>
-                    <option>Michael Chen</option>
-                    <option>David Wilson</option>
-                    <option>Rebecca Jones</option>
+                <select class="filter-select" id="filterEmployee">
+                    <option value="">All Employees</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Month</label>
-                <select class="filter-select">
-                    <option>February 2026</option>
-                    <option>January 2026</option>
-                    <option>December 2025</option>
-                    <option>November 2025</option>
+                <select class="filter-select" id="filterMonth">
+                    <option value="">All Months</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Year</label>
-                <select class="filter-select">
-                    <option>2026</option>
-                    <option>2025</option>
-                    <option>2024</option>
+                <select class="filter-select" id="filterYear">
+                    <option value="">All Years</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Leave Type</label>
-                <select class="filter-select">
-                    <option>All Types</option>
-                    <option>Annual Leave</option>
-                    <option>Sick Leave</option>
-                    <option>Emergency Leave</option>
-                    <option>Personal Leave</option>
-                    <option>Maternity Leave</option>
-                    <option>Paternity Leave</option>
+                <select class="filter-select" id="filterLeaveType">
+                    <option value="">All Types</option>
+                    <option value="annual">Annual Leave</option>
+                    <option value="casual">Casual Leave</option>
+                    <option value="sick">Sick Leave</option>
+                    <option value="unpaid">Unpaid Leave</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Status</label>
-                <select class="filter-select">
-                    <option>All Status</option>
-                    <option>Approved</option>
-                    <option>Pending</option>
-                    <option>Rejected</option>
-                    <option>Cancelled</option>
+                <select class="filter-select" id="filterStatus">
+                    <option value="">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="cancelled">Cancelled</option>
                 </select>
             </div>
             <div class="filter-actions">
-                <button class="btn-filter btn-apply">Apply Filters</button>
-                <button class="btn-filter btn-reset">Reset</button>
+                <button class="btn-filter btn-apply" id="applyFiltersBtn">Apply Filters</button>
+                <button class="btn-filter btn-reset" id="resetFiltersBtn">Reset</button>
             </div>
         </div>
 
@@ -580,7 +568,7 @@
                             <th>Status</th>
                             <!--<th>Paid / Unpaid</th>
                             <th>Approved By</th>-->
-                            <th>Action</th>
+                            <th>Reason</th>
                         </tr>
                     </thead>
                     <tbody id="leaveTableBody">
@@ -593,140 +581,216 @@
     </div>
 
     <script>
-        // Toggle details expansion
-        function toggleDetails(button) {
-            const row = button.closest('tr');
-            const detailsRow = row.nextElementSibling;
-            const detailsDiv = detailsRow.querySelector('.details-expanded');
-            const isVisible = detailsDiv.style.display === 'block';
-            
-            // Close all other expanded details
-            document.querySelectorAll('.details-expanded').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Update all button text
-            document.querySelectorAll('.btn-view').forEach(btn => {
-                btn.innerHTML = '<span>👁</span> View Details';
-            });
-            
-            // Toggle current
-            if (!isVisible) {
-                detailsDiv.style.display = 'block';
-                button.innerHTML = '<span>👁</span> Hide Details';
-                // Scroll into view if needed
-                detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const escapeHtml = (v) => String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    const state = {
+        leaves: [],
+        filtered: []
+    };
+
+    function showMessage(message, type = "info") {
+        if (window.showUIPopup) {
+            window.showUIPopup(message, type);
+        } else {
+            alert(message);
+        }
+    }
+
+    function getProfileImageUrl(path) {
+        if (!path) return null;
+        const p = String(path).trim();
+        if (p.startsWith("http://") || p.startsWith("https://")) return p;
+        if (p.startsWith("/uploads/")) return `http://127.0.0.1:8000${p}`;
+        if (p.startsWith("uploads/")) return `http://127.0.0.1:8000/${p}`;
+        return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "-";
+        return new Date(dateStr + "T00:00:00").toLocaleDateString();
+    }
+
+    function formatLeaveType(type) {
+        const map = {
+            annual: "Annual Leave",
+            casual: "Casual Leave",
+            sick: "Sick Leave",
+            unpaid: "Unpaid Leave"
+        };
+        return map[type] || type || "-";
+    }
+
+    function formatDurationType(type) {
+        const map = {
+            full_day: "Full Day",
+            first_half: "First Half",
+            second_half: "Second Half",
+            duration: "Duration"
+        };
+        return map[type] || type || "-";
+    }
+
+    function populateFilterOptions() {
+        const employeeSelect = document.getElementById("filterEmployee");
+        const monthSelect = document.getElementById("filterMonth");
+        const yearSelect = document.getElementById("filterYear");
+        const employees = new Map();
+        const years = new Set();
+
+        state.leaves.forEach((leave) => {
+            if (leave.employee?.id) {
+                employees.set(String(leave.employee.id), leave.employee.name || leave.employee.employee_id || `Employee ${leave.employee.id}`);
             }
+            if (leave.start_date) {
+                years.add(new Date(leave.start_date + "T00:00:00").getFullYear());
+            }
+        });
+
+        [...employees.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = name;
+            employeeSelect.appendChild(option);
+        });
+
+        for (let m = 1; m <= 12; m += 1) {
+            const option = document.createElement("option");
+            option.value = String(m);
+            option.textContent = new Date(2026, m - 1, 1).toLocaleString("en-US", { month: "long" });
+            monthSelect.appendChild(option);
         }
 
-        // Filter functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const applyBtn = document.querySelector('.btn-apply');
-            const resetBtn = document.querySelector('.btn-reset');
-            
-            if (applyBtn) {
-                applyBtn.addEventListener('click', function() {
-                    alert('Filters applied. In a real app, this would filter the table data.');
-                });
-            }
-            
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-select, .filter-input').forEach(el => {
-                        if (el.tagName === 'SELECT') {
-                            el.selectedIndex = 0;
-                        } else {
-                            el.value = '';
-                        }
-                    });
-                    alert('Filters reset.');
-                });
-            }
+        [...years].sort((a, b) => b - a).forEach((year) => {
+            const option = document.createElement("option");
+            option.value = String(year);
+            option.textContent = String(year);
+            yearSelect.appendChild(option);
+        });
+    }
+
+    function updateSummary(items) {
+        const total = items.length;
+        const approved = items.filter((x) => x.status === "approved").length;
+        const pending = items.filter((x) => x.status === "pending").length;
+        const rejected = items.filter((x) => x.status === "rejected").length;
+        const pct = (v) => (total ? `${Math.round((v / total) * 100)}%` : "0%");
+
+        document.getElementById("summaryTotal").textContent = String(total);
+        document.getElementById("summaryApproved").textContent = String(approved);
+        document.getElementById("summaryPending").textContent = String(pending);
+        document.getElementById("summaryRejected").textContent = String(rejected);
+        document.getElementById("summaryTotalPct").textContent = "100%";
+        document.getElementById("summaryApprovedPct").textContent = pct(approved);
+        document.getElementById("summaryPendingPct").textContent = pct(pending);
+        document.getElementById("summaryRejectedPct").textContent = pct(rejected);
+    }
+
+    function renderLeaveTable(items) {
+        const tbody = document.getElementById("leaveTableBody");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(items) || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748B;">No leave records found.</td></tr>`;
+            return;
+        }
+
+        items.forEach((leave) => {
+            const empName = leave.employee?.name || "-";
+            const initials = empName.split(" ").map((p) => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+            const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
+            const status = String(leave.status || "pending");
+
+            const row = `
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="employee-avatar">${
+                                photoUrl
+                                    ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
+                                    : `${escapeHtml(initials)}`
+                            }</div>
+                            <div class="employee-info">
+                                <div class="employee-name">${escapeHtml(empName)}</div>
+                                <div class="employee-id">${escapeHtml(leave.employee?.employee_id || "")}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${formatDate(leave.start_date)} - ${formatDate(leave.end_date)}</td>
+                    <td>${formatDurationType(leave.duration_type)} (${Number(leave.total_days || 0).toFixed(1).replace(".0", "")} day)</td>
+                    <td>${formatLeaveType(leave.leave_type)}</td>
+                    <td><span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status.toUpperCase())}</span></td>
+                    <td title="${escapeHtml(leave.reason || "")}">${escapeHtml(leave.reason || "-")}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function applyFilters() {
+        const employeeId = document.getElementById("filterEmployee").value;
+        const month = document.getElementById("filterMonth").value;
+        const year = document.getElementById("filterYear").value;
+        const leaveType = document.getElementById("filterLeaveType").value;
+        const status = document.getElementById("filterStatus").value;
+
+        state.filtered = state.leaves.filter((leave) => {
+            const start = leave.start_date ? new Date(leave.start_date + "T00:00:00") : null;
+            if (employeeId && String(leave.employee?.id || "") !== employeeId) return false;
+            if (month && start && (start.getMonth() + 1) !== Number(month)) return false;
+            if (year && start && start.getFullYear() !== Number(year)) return false;
+            if (leaveType && leave.leave_type !== leaveType) return false;
+            if (status && leave.status !== status) return false;
+            return true;
         });
 
-        // Close details when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.btn-view') && !event.target.closest('.details-expanded')) {
-                document.querySelectorAll('.details-expanded').forEach(el => {
-                    el.style.display = 'none';
-                });
-                document.querySelectorAll('.btn-view').forEach(btn => {
-                    btn.innerHTML = '<span>👁</span> View Details';
-                });
-            }
-        });
+        renderLeaveTable(state.filtered);
+        updateSummary(state.filtered);
+    }
 
-     
-        </script>
-        <script>
-        fetch("../shared/sidebar_admin.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("sidebar-container").innerHTML = html;
+    function resetFilters() {
+        document.getElementById("filterEmployee").value = "";
+        document.getElementById("filterMonth").value = "";
+        document.getElementById("filterYear").value = "";
+        document.getElementById("filterLeaveType").value = "";
+        document.getElementById("filterStatus").value = "";
+        state.filtered = [...state.leaves];
+        renderLeaveTable(state.filtered);
+        updateSummary(state.filtered);
+        showMessage("Filters reset.", "success");
+    }
 
-            const current = location.pathname.split("/").pop();
-            document.querySelectorAll(".sidebar a").forEach(link => {
-            if (link.getAttribute("href")?.includes(current)) {
-                link.classList.add("active");
-            }
-            });
-        });
-        const escapeHtml = (v) => String(v ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-        const getProfileImageUrl = (path) => {
-          if (!path) return null;
-          const p = String(path);
-          if (p.startsWith("http://") || p.startsWith("https://")) return p;
-          return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
-        };
-async function loadAllLeaves() {
-  const data = await API.getLeaves("approved");
-  const tbody = document.getElementById("leaveTableBody");
-  tbody.innerHTML = "";
+    async function loadAllLeaves() {
+        try {
+            state.leaves = await API.getLeaves();
+            state.filtered = [...state.leaves];
+            populateFilterOptions();
+            renderLeaveTable(state.filtered);
+            updateSummary(state.filtered);
+        } catch (err) {
+            console.error("Failed to load leaves", err);
+            showMessage(err.message || "Failed to load leave records.", "error");
+        }
+    }
 
-  data.forEach(leave => {
-    const empName = leave.employee?.name || "-";
-    const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
-    const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
-    const row = `
-      <tr>
-        <td>
-          <div class="employee-cell">
-            <div class="employee-avatar">${
-              photoUrl
-                ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
-                : `${escapeHtml(initials)}`
-            }</div>
-            <div class="employee-info">
-              <div class="employee-name">${escapeHtml(empName)}</div>
-              <div class="employee-id">${escapeHtml(leave.employee?.employee_id || "")}</div>
-            </div>
-          </div>
-        </td>
-        <td>${leave.start_date} - ${leave.end_date}</td>
-        <td>${leave.total_days}</td>
-        <td>${leave.reason}</td>
-        <td>
-          <span class="status-badge status-${leave.status}">
-            ${leave.status}
-          </span>
-        </td>
-        <td>-</td>
-      </tr>
-    `;
-    tbody.innerHTML += row;
-  });
-}
-document.addEventListener("DOMContentLoaded", function () {
-  loadAllLeaves();
-});
-async function approveLeave(id) { return id; }
-async function rejectLeave(id) { return id; }
-        </script>
+    async function loadSidebar() {
+        const response = await fetch("../shared/sidebar_admin.html");
+        const html = await response.text();
+        document.getElementById("sidebar-container").innerHTML = html;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadSidebar();
+        await loadAllLeaves();
+        document.getElementById("applyFiltersBtn").addEventListener("click", applyFilters);
+        document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
+    });
+</script>
 
 </body>
 </html>
+

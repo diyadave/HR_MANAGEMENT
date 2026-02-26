@@ -33,18 +33,9 @@ def update_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-
-    current_user.phone = data.phone
-    current_user.address = data.address
-    current_user.date_of_birth = data.date_of_birth
-    current_user.gender = data.gender
-    current_user.marital_status = data.marital_status
-    current_user.blood_group = data.blood_group
-    current_user.emergency_contact_name = data.emergency_contact_name
-    current_user.emergency_contact_phone = data.emergency_contact_phone
-    current_user.bank_name = data.bank_name
-    current_user.account_number = data.account_number
-    current_user.ifsc_code = data.ifsc_code
+    updates = data.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(current_user, field, value)
 
     db.commit()
     db.refresh(current_user)

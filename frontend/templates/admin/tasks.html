@@ -1162,6 +1162,7 @@
             document.querySelectorAll('.employee-option').forEach(item => {
                 item.classList.remove('selected');
             });
+            setDueDateMin();
         }
 
         function setDefaultDate() {
@@ -1171,6 +1172,15 @@
             const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
             const day = String(tomorrow.getDate()).padStart(2, '0');
             document.getElementById('taskDueDate').value = `${year}-${month}-${day}`;
+            setDueDateMin();
+        }
+
+        function setDueDateMin() {
+            const today = new Date().toISOString().split('T')[0];
+            const dueDateInput = document.getElementById('taskDueDate');
+            if (dueDateInput) {
+                dueDateInput.min = today;
+            }
         }
 
         // Create task
@@ -1197,6 +1207,11 @@
             }
             if (!dueDate) {
                 showToast('Please select a due date', 'warning');
+                return;
+            }
+            const today = new Date().toISOString().split('T')[0];
+            if (dueDate < today) {
+                showToast('Due date must be today or an upcoming date', 'warning');
                 return;
             }
 

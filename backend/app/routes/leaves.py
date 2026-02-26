@@ -20,14 +20,12 @@ def apply_leave(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-
-    if payload.start_date > payload.end_date:
-        raise HTTPException(status_code=400, detail="Invalid date range")
-
-    total_days = (payload.end_date - payload.start_date).days + 1
-
-    if payload.duration_type == "half":
+    if payload.duration_type == "duration":
+        total_days = float((payload.end_date - payload.start_date).days + 1)
+    elif payload.duration_type in {"first_half", "second_half"}:
         total_days = 0.5
+    else:
+        total_days = 1.0
 
     leave = Leave(
         user_id=current_user.id,

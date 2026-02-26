@@ -1,5 +1,106 @@
 const BASE_URL = "http://127.0.0.1:8000";
 window.BASE_URL = BASE_URL;
+const nativeAlert = typeof window.alert === "function" ? window.alert.bind(window) : null;
+
+let uiPopupStyleInjected = false;
+
+function ensureUiPopupStyles() {
+    if (uiPopupStyleInjected) return;
+    const style = document.createElement("style");
+    style.id = "uiPopupStyles";
+    style.textContent = `
+        .ui-popup-wrap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10060;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: min(92vw, 380px);
+        }
+        .ui-popup {
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+            font-size: 13px;
+            line-height: 1.4;
+            transform: translateY(-8px);
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .ui-popup.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .ui-popup-success {
+            border-color: #86efac;
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .ui-popup-error {
+            border-color: #fca5a5;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .ui-popup-warning {
+            border-color: #fcd34d;
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .ui-popup-info {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+    `;
+    document.head.appendChild(style);
+    uiPopupStyleInjected = true;
+}
+
+function getUiPopupWrap() {
+    let wrap = document.getElementById("uiPopupWrap");
+    if (wrap) return wrap;
+    wrap = document.createElement("div");
+    wrap.id = "uiPopupWrap";
+    wrap.className = "ui-popup-wrap";
+    document.body.appendChild(wrap);
+    return wrap;
+}
+
+function showUIPopup(message, type = "info", timeoutMs = 3500) {
+    const text = String(message || "").trim();
+    if (!text) return;
+
+    if (!document.body || !document.head) {
+        if (nativeAlert) nativeAlert(text);
+        return;
+    }
+
+    ensureUiPopupStyles();
+    const wrap = getUiPopupWrap();
+    const popup = document.createElement("div");
+    const safeType = ["success", "error", "warning", "info"].includes(type) ? type : "info";
+
+    popup.className = `ui-popup ui-popup-${safeType}`;
+    popup.textContent = text;
+    wrap.appendChild(popup);
+
+    requestAnimationFrame(() => popup.classList.add("show"));
+
+    setTimeout(() => {
+        popup.classList.remove("show");
+        setTimeout(() => popup.remove(), 220);
+    }, timeoutMs);
+}
+
+window.showUIPopup = showUIPopup;
+window.alert = function patchedAlert(message) {
+    showUIPopup(message, "info");
+};
 
 let refreshPromise = null;
 
@@ -121,6 +222,13 @@ async function apiRequest(endpoint, method = "GET", body = null, options = {}) {
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
+        if (Array.isArray(err.detail)) {
+            const message = err.detail
+                .map((item) => item?.msg || item?.message)
+                .filter(Boolean)
+                .join(", ");
+            throw new Error(message || "Request failed");
+        }
         throw new Error(err.detail || "Request failed");
     }
 

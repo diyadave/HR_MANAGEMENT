@@ -284,17 +284,17 @@
     <div class="balance-grid">
       <div class="balance-item">
         <div class="balance-label">Available</div>
-        <div class="balance-value">18</div>
+        <div class="balance-value" id="availableBalance">0</div>
         <div class="balance-subtext">days remaining this year</div>
       </div>
       <div class="balance-item">
         <div class="balance-label">Pending</div>
-        <div class="balance-value">2</div>
+        <div class="balance-value" id="pendingBalance">0</div>
         <div class="balance-subtext">awaiting approval</div>
       </div>
       <div class="balance-item">
         <div class="balance-label">Used</div>
-        <div class="balance-value">7</div>
+        <div class="balance-value" id="usedBalance">0</div>
         <div class="balance-subtext">days used this year</div>
       </div>
     </div>
@@ -307,7 +307,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Leave Type</label>
-            <select class="form-select" required>
+            <select id="leaveType" class="form-select" required>
               <option value="">Select leave type</option>
               <option value="casual">Casual Leave</option>
               <option value="sick">Sick Leave</option>
@@ -317,23 +317,29 @@
           </div>
           <div class="form-group">
             <label class="form-label">Duration</label>
-            <select class="form-select" required>
+            <select id="durationType" class="form-select" required>
               <option value="">Select duration</option>
-              <option value="full">Full Day</option>
-              <option value="half">Half Day</option>
+              <option value="full_day">Full Day</option>
+              <option value="first_half">First Half</option>
+              <option value="second_half">Second Half</option>
+              <option value="duration">Duration (From-To)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">From Date</label>
-            <input type="date" class="form-input" required>
+          <div class="form-group" id="singleDateGroup">
+            <label class="form-label">Date</label>
+            <input id="singleDate" type="date" class="form-input" required>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="fromDateGroup" style="display:none;">
+            <label class="form-label">From Date</label>
+            <input id="fromDate" type="date" class="form-input">
+          </div>
+          <div class="form-group" id="toDateGroup" style="display:none;">
             <label class="form-label">To Date</label>
-            <input type="date" class="form-input" required>
+            <input id="toDate" type="date" class="form-input">
           </div>
           <div class="form-group full-width">
             <label class="form-label">Reason</label>
-            <textarea class="form-textarea" placeholder="Please provide a reason for your leave" required></textarea>
+            <textarea id="leaveReason" class="form-textarea" placeholder="Please provide a reason for your leave" required></textarea>
           </div>
         </div>
         <div class="form-actions">
@@ -360,153 +366,223 @@
               <th>Applied On</th>
             </tr>
           </thead>
-          <tbody id="leaveHistoryBody">
-            <tr>
-              <td>Casual Leave</td>
-              <td>Feb 10, 2026</td>
-              <td>Feb 11, 2026</td>
-              <td>2</td>
-              <td>Personal work</td>
-              <td><span class="badge badge-pending">Pending</span></td>
-              <td>Feb 02, 2026</td>
-            </tr>
-            <tr>
-              <td>Sick Leave</td>
-              <td>Jan 27, 2026</td>
-              <td>Jan 27, 2026</td>
-              <td>0.5</td>
-              <td>Medical appointment</td>
-              <td><span class="badge badge-approved">Approved</span></td>
-              <td>Jan 26, 2026</td>
-            </tr>
-            <tr>
-              <td>Annual Leave</td>
-              <td>Jan 20, 2026</td>
-              <td>Jan 22, 2026</td>
-              <td>3</td>
-              <td>Family vacation</td>
-              <td><span class="badge badge-approved">Approved</span></td>
-              <td>Jan 10, 2026</td>
-            </tr>
-            <tr>
-              <td>Casual Leave</td>
-              <td>Jan 15, 2026</td>
-              <td>Jan 15, 2026</td>
-              <td>1</td>
-              <td>Attending wedding</td>
-              <td><span class="badge badge-approved">Approved</span></td>
-              <td>Jan 08, 2026</td>
-            </tr>
-            <tr>
-              <td>Sick Leave</td>
-              <td>Jan 08, 2026</td>
-              <td>Jan 09, 2026</td>
-              <td>2</td>
-              <td>Flu symptoms</td>
-              <td><span class="badge badge-approved">Approved</span></td>
-              <td>Jan 08, 2026</td>
-            </tr>
-            <tr>
-              <td>Casual Leave</td>
-              <td>Dec 28, 2025</td>
-              <td>Dec 30, 2025</td>
-              <td>3</td>
-              <td>Year-end break</td>
-              <td><span class="badge badge-cancelled">Cancelled</span></td>
-              <td>Dec 20, 2025</td>
-            </tr>
-            <tr>
-              <td>Annual Leave</td>
-              <td>Dec 23, 2025</td>
-              <td>Dec 27, 2025</td>
-              <td>5</td>
-              <td>Holiday travel</td>
-              <td><span class="badge badge-rejected">Rejected</span></td>
-              <td>Dec 15, 2025</td>
-            </tr>
-          </tbody>
+          <tbody id="leaveHistoryBody"></tbody>
         </table>
       </div>
     </div>
   </main>
 
   <script>
-function resetForm() {
-  document.getElementById('leaveForm').reset();
-}
+    const leaveTypeEl = document.getElementById("leaveType");
+    const durationTypeEl = document.getElementById("durationType");
+    const singleDateEl = document.getElementById("singleDate");
+    const fromDateEl = document.getElementById("fromDate");
+    const toDateEl = document.getElementById("toDate");
+    const reasonEl = document.getElementById("leaveReason");
 
-async function loadComponent(url, containerId) {
-  try {
-    const response = await fetch(url);
-    const html = await response.text();
-    document.getElementById(containerId).innerHTML = html;
-  } catch (error) {
-    console.error(`Error loading ${url}:`, error);
-  }
-}
+    function todayISO() {
+      return new Date().toISOString().split("T")[0];
+    }
 
+    function humanDate(dateStr) {
+      if (!dateStr) return "-";
+      return new Date(dateStr + "T00:00:00").toLocaleDateString();
+    }
 
+    function normalizeLeaveType(type) {
+      const map = {
+        casual: "Casual Leave",
+        sick: "Sick Leave",
+        annual: "Annual Leave",
+        unpaid: "Unpaid Leave",
+      };
+      return map[type] || type || "-";
+    }
 
-  async function loadMyLeaves() {
-  try {
-    const data = await API.getMyLeaves();
-    const tbody = document.getElementById("leaveHistoryBody");
-    tbody.innerHTML = "";
+    function showMessage(msg, type = "info") {
+      if (window.showUIPopup) {
+        window.showUIPopup(msg, type);
+      } else {
+        alert(msg);
+      }
+    }
 
-    data.forEach(leave => {
-      const row = `
-        <tr>
-          <td>${leave.leave_type}</td>
-          <td>${leave.start_date}</td>
-          <td>${leave.end_date}</td>
-          <td>${leave.total_days}</td>
-          <td>${leave.reason}</td>
-          <td>
-            <span class="badge badge-${leave.status}">
-              ${leave.status}
-            </span>
-          </td>
-          <td>${new Date(leave.created_at).toLocaleDateString()}</td>
-        </tr>
-      `;
-      tbody.innerHTML += row;
+    function updateDateFields() {
+      const mode = durationTypeEl.value;
+      const singleDateGroup = document.getElementById("singleDateGroup");
+      const fromDateGroup = document.getElementById("fromDateGroup");
+      const toDateGroup = document.getElementById("toDateGroup");
+
+      const isRange = mode === "duration";
+      singleDateGroup.style.display = isRange ? "none" : "flex";
+      fromDateGroup.style.display = isRange ? "flex" : "none";
+      toDateGroup.style.display = isRange ? "flex" : "none";
+
+      singleDateEl.required = !isRange;
+      fromDateEl.required = isRange;
+      toDateEl.required = isRange;
+
+      if (!isRange) {
+        fromDateEl.value = "";
+        toDateEl.value = "";
+      } else {
+        singleDateEl.value = "";
+      }
+    }
+
+    function setDateMinimums() {
+      const minDate = todayISO();
+      singleDateEl.min = minDate;
+      fromDateEl.min = minDate;
+      toDateEl.min = minDate;
+    }
+
+    function resetForm() {
+      const form = document.getElementById("leaveForm");
+      form.reset();
+      setDateMinimums();
+      updateDateFields();
+    }
+
+    function validateLeaveDates(durationType, startDate, endDate) {
+      const today = todayISO();
+
+      if (startDate < today || endDate < today) {
+        return "Past dates are not allowed. Please choose today or upcoming dates.";
+      }
+      if (startDate > endDate) {
+        return "Start date cannot be after end date.";
+      }
+      if (durationType !== "duration" && startDate !== endDate) {
+        return "Full day / first half / second half must use a single date.";
+      }
+      return "";
+    }
+
+    function updateBalance(leaves) {
+      let pending = 0;
+      let used = 0;
+      for (const leave of leaves) {
+        const days = Number(leave.total_days || 0);
+        if (leave.status === "pending") pending += days;
+        if (leave.status === "approved") used += days;
+      }
+
+      const yearlyAllowance = 24;
+      const available = Math.max(yearlyAllowance - used, 0);
+
+      document.getElementById("availableBalance").textContent = available.toFixed(1).replace(".0", "");
+      document.getElementById("pendingBalance").textContent = pending.toFixed(1).replace(".0", "");
+      document.getElementById("usedBalance").textContent = used.toFixed(1).replace(".0", "");
+    }
+
+    async function loadComponent(url, containerId) {
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+      } catch (error) {
+        console.error(`Error loading ${url}:`, error);
+      }
+    }
+
+    async function loadMyLeaves() {
+      try {
+        const data = await API.getMyLeaves();
+        const tbody = document.getElementById("leaveHistoryBody");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align:center; color:#64748B;">No leave history found.</td>
+            </tr>
+          `;
+          updateBalance([]);
+          return;
+        }
+
+        updateBalance(data);
+
+        data.forEach((leave) => {
+          const row = `
+            <tr>
+              <td>${normalizeLeaveType(leave.leave_type)}</td>
+              <td>${humanDate(leave.start_date)}</td>
+              <td>${humanDate(leave.end_date)}</td>
+              <td>${Number(leave.total_days || 0).toFixed(1).replace(".0", "")}</td>
+              <td>${leave.reason || "-"}</td>
+              <td>
+                <span class="badge badge-${leave.status || "pending"}">
+                  ${(leave.status || "pending").toUpperCase()}
+                </span>
+              </td>
+              <td>${leave.created_at ? new Date(leave.created_at).toLocaleDateString() : "-"}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } catch (err) {
+        console.error("Error loading leaves:", err);
+        showMessage(err.message || "Failed to load leave history.", "error");
+      }
+    }
+
+    document.getElementById("leaveForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const durationType = durationTypeEl.value;
+      const startDate = durationType === "duration" ? fromDateEl.value : singleDateEl.value;
+      const endDate = durationType === "duration" ? toDateEl.value : singleDateEl.value;
+      const reason = reasonEl.value.trim();
+
+      const leaveData = {
+        leave_type: leaveTypeEl.value,
+        duration_type: durationType,
+        start_date: startDate,
+        end_date: endDate,
+        reason
+      };
+
+      if (!leaveData.leave_type || !leaveData.duration_type || !leaveData.start_date || !leaveData.end_date || !leaveData.reason) {
+        showMessage("Please fill all required fields.", "warning");
+        return;
+      }
+
+      const dateError = validateLeaveDates(durationType, startDate, endDate);
+      if (dateError) {
+        showMessage(dateError, "warning");
+        return;
+      }
+
+      try {
+        await API.request("/leaves", "POST", leaveData);
+        showMessage("Leave applied successfully.", "success");
+        await loadMyLeaves();
+        resetForm();
+      } catch (err) {
+        showMessage(err.message || "Error applying leave.", "error");
+      }
     });
-  } catch (err) {
-    console.error("Error loading leaves:", err);
-  }
-}
 
-document.getElementById("leaveForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+    durationTypeEl.addEventListener("change", updateDateFields);
+    fromDateEl.addEventListener("change", () => {
+      toDateEl.min = fromDateEl.value || todayISO();
+      if (toDateEl.value && fromDateEl.value && toDateEl.value < fromDateEl.value) {
+        toDateEl.value = fromDateEl.value;
+      }
+    });
 
-  const form = e.target;
+    async function init() {
+      setDateMinimums();
+      updateDateFields();
+      await loadComponent("../shared/sidebar_employee.html", "sidebar-container");
+      loadGlobalTracker();
+      await loadMyLeaves();
+    }
 
-  const leaveData = {
-    leave_type: form.querySelectorAll("select")[0].value,
-    duration_type: form.querySelectorAll("select")[1].value,
-    start_date: form.querySelectorAll("input")[0].value,
-    end_date: form.querySelectorAll("input")[1].value,
-    reason: form.querySelector("textarea").value
-  };
-
-  try {
-    await API.request("/leaves", "POST", leaveData);
-    alert("Leave applied successfully");
-    loadMyLeaves();
-    form.reset();
-  } catch (err) {
-    alert(err.message || "Error applying leave");
-  }
-});
-
-async function init() {
-  await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
- loadGlobalTracker();
-  await loadMyLeaves();
-}
-
-init();
-</script>
+    init();
+  </script>
 
 <script src="../../static/js/tracker.js"></script>
 <script src="../../static/js/loadTracker.js"></script>
