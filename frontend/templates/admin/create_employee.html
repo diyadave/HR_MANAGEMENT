@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,6 +104,92 @@
             color: #a0a0a0;
         }
 
+        .department-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .department-row .form-input {
+            flex: 1;
+        }
+
+        .btn-add-dept {
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--primary-blue);
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add-dept:hover {
+            border-color: var(--primary-blue);
+            background: rgba(7, 51, 121, 0.05);
+        }
+
+        .dept-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.28);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .dept-modal {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            padding: 20px;
+        }
+
+        .dept-modal h3 {
+            color: var(--primary-blue);
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .dept-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .btn-small {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-small-primary {
+            background: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        .dept-error {
+            display: block;
+            color: #cc1f1f;
+            margin-top: 8px;
+            font-size: 13px;
+            min-height: 16px;
+        }
+
         .helper-text {
             display: block;
             font-size: 14px;
@@ -166,19 +253,19 @@
                 margin-left: 0;
                 padding: 20px;
             }
-            
+
             .page-title {
                 font-size: 24px;
             }
-            
+
             .form-card {
                 padding: 24px;
             }
-            
+
             .button-group {
                 flex-direction: column;
             }
-            
+
             .btn {
                 width: 100%;
             }
@@ -188,19 +275,20 @@
             .main-content {
                 padding: 16px;
             }
-            
+
             .form-card {
                 padding: 20px;
             }
-            
+
             .page-title {
                 font-size: 22px;
             }
         }
     </style>
 </head>
+
 <body>
-<div id="sidebar-container"></div>
+    <div id="sidebar-container"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -208,73 +296,53 @@
             <h1 class="page-title">Create Employee</h1>
             <p class="page-subtitle">Add a new employee to the organization</p>
         </div>
-        
+
         <div class="card-container">
             <div class="form-card">
                 <form id="createEmployeeForm">
                     <div class="form-group">
                         <label for="employee_id" class="form-label">Employee ID</label>
-                        <input
-                            type="text"
-                            id="employee_id"
-                            class="form-input"
-                            placeholder="e.g. EMP-2026-0001"
-                            required
-                        >
+                        <input type="text" id="employee_id" class="form-input" placeholder="e.g. S11" required>
                     </div>
 
                     <div class="form-group">
                         <label for="fullName" class="form-label">Full Name</label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            class="form-input" 
-                            placeholder="Enter employee full name"
-                            required
-                        >
+                        <input type="text" id="name" class="form-input" placeholder="Enter employee full name" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="workEmail" class="form-label">Work Email</label>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            class="form-input" 
-                            placeholder="employee@company.com"
-                            required
-                        >
+                        <input type="email" id="email" class="form-input" placeholder="employee@gmail.com" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="department" class="form-label">Department</label>
-                        <select id="department" class="form-input" required>
-                            <option value="" disabled selected>Select department</option>
-                            <option value="hr">Human Resources</option>
-                            <option value="engineering">Engineering</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="sales">Sales</option>
-                            <option value="finance">Finance</option>
-                            <option value="operations">Operations</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <div class="department-row">
+                            <select id="department" class="form-input" required>
+                                <option value="" disabled selected>Select department</option>
+                                <option value="hr">Human Resources</option>
+                                <option value="engineering">Engineering</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="sales">Sales</option>
+                                <option value="finance">Finance</option>
+                                <option value="operations">Operations</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <button type="button" id="addDepartmentBtn" class="btn-add-dept" title="Add Department">+</button>
+                        </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="designation" class="form-label">Designation</label>
-                        <input 
-                            type="text" 
-                            id="designation" 
-                            class="form-input" 
-                            placeholder="e.g. Software Engineer"
-                            required
-                        >
+                        <input type="text" id="designation" class="form-input" placeholder="e.g. Software Engineer"
+                            required>
                     </div>
-                    
+
                     <span class="helper-text">
                         <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
                         Temporary password will be generated automatically and sent via email.
                     </span>
-                    
+
                     <div class="button-group">
                         <button type="button" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary" id="createEmployeeBtn">Create Employee</button>
@@ -283,69 +351,214 @@
             </div>
         </div>
     </main>
-<script src="../../static/js/api.js"></script>
+
+    <div id="departmentModalOverlay" class="dept-modal-overlay" aria-hidden="true">
+        <div class="dept-modal">
+            <h3>Add Department</h3>
+            <input type="text" id="newDepartmentInput" class="form-input" placeholder="Enter department name">
+            <small id="departmentModalError" class="dept-error"></small>
+            <div class="dept-modal-actions">
+                <button type="button" id="cancelAddDepartmentBtn" class="btn-small">Cancel</button>
+                <button type="button" id="saveDepartmentBtn" class="btn-small btn-small-primary">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../static/js/api.js"></script>
 
 
 
     <script>
-     // frontend/static/js/admin.js
+        // frontend/static/js/admin.js
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("createEmployeeForm");
-    const submitBtn = document.getElementById("createEmployeeBtn");
-    if (!form) return;
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("createEmployeeForm");
+            const submitBtn = document.getElementById("createEmployeeBtn");
+            const employeeIdInput = document.getElementById("employee_id");
+            const departmentSelect = document.getElementById("department");
+            const addDepartmentBtn = document.getElementById("addDepartmentBtn");
+            const departmentModalOverlay = document.getElementById("departmentModalOverlay");
+            const newDepartmentInput = document.getElementById("newDepartmentInput");
+            const saveDepartmentBtn = document.getElementById("saveDepartmentBtn");
+            const cancelAddDepartmentBtn = document.getElementById("cancelAddDepartmentBtn");
+            const departmentModalError = document.getElementById("departmentModalError");
+            let existingEmployeeIds = new Set();
+            if (!form) return;
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (submitBtn) submitBtn.disabled = true;
+            const showEmployeeIdError = (message) => {
+                if (!employeeIdInput) return;
 
-        const data = {
-            employee_id: document.getElementById("employee_id").value.trim().toUpperCase(),
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            department: document.getElementById("department").value,
-            designation: document.getElementById("designation").value
-        };
+                let errorEl = document.getElementById("employeeIdError");
+                if (!errorEl) {
+                    errorEl = document.createElement("small");
+                    errorEl.id = "employeeIdError";
+                    errorEl.style.color = "#cc1f1f";
+                    errorEl.style.display = "block";
+                    errorEl.style.marginTop = "8px";
+                    employeeIdInput.insertAdjacentElement("afterend", errorEl);
+                }
+                errorEl.textContent = message || "";
+            };
 
-        try {
-            const res = await apiRequest("/admin/employees", "POST", data);
+            const loadExistingEmployeeIds = async () => {
+                try {
+                    const employees = await apiRequest("/admin/employees", "GET");
+                    existingEmployeeIds = new Set(
+                        (employees || [])
+                            .map(emp => (emp.employee_id || "").trim().toUpperCase())
+                            .filter(Boolean)
+                    );
+                } catch (_) {
+                    existingEmployeeIds = new Set();
+                }
+            };
 
-            alert(
-                `Employee Created!\n\nEmployee ID: ${res.employee_id}`
-            );
+            const isDuplicateEmployeeId = () => {
+                if (!employeeIdInput) return false;
+                const currentId = employeeIdInput.value.trim().toUpperCase();
+                return currentId && existingEmployeeIds.has(currentId);
+            };
 
-            form.reset();
-        } catch (err) {
-            alert(err.message);
-        } finally {
-            if (submitBtn) submitBtn.disabled = false;
-        }
-    });
+            loadExistingEmployeeIds();
 
-    const cancelBtn = form.querySelector(".btn-secondary");
-    if (cancelBtn) {
-        cancelBtn.addEventListener("click", () => {
-            window.location.href = "employees.html";
+            const openDepartmentModal = () => {
+                if (!departmentModalOverlay) return;
+                departmentModalOverlay.style.display = "flex";
+                departmentModalOverlay.setAttribute("aria-hidden", "false");
+                if (newDepartmentInput) newDepartmentInput.focus();
+            };
+
+            const closeDepartmentModal = () => {
+                if (!departmentModalOverlay) return;
+                departmentModalOverlay.style.display = "none";
+                departmentModalOverlay.setAttribute("aria-hidden", "true");
+                if (newDepartmentInput) newDepartmentInput.value = "";
+                if (departmentModalError) departmentModalError.textContent = "";
+            };
+
+            if (addDepartmentBtn) {
+                addDepartmentBtn.addEventListener("click", openDepartmentModal);
+            }
+
+            if (cancelAddDepartmentBtn) {
+                cancelAddDepartmentBtn.addEventListener("click", closeDepartmentModal);
+            }
+
+            if (departmentModalOverlay) {
+                departmentModalOverlay.addEventListener("click", (e) => {
+                    if (e.target === departmentModalOverlay) closeDepartmentModal();
+                });
+            }
+
+            if (saveDepartmentBtn) {
+                saveDepartmentBtn.addEventListener("click", () => {
+                    if (!departmentSelect || !newDepartmentInput) return;
+
+                    const customDepartment = newDepartmentInput.value.trim();
+                    if (!customDepartment) {
+                        if (departmentModalError) {
+                            departmentModalError.textContent = "Please enter department name";
+                        }
+                        return;
+                    }
+
+                    const normalizedCustom = customDepartment.toLowerCase();
+                    const options = Array.from(departmentSelect.options);
+                    let existingOption = options.find(opt => opt.value.toLowerCase() === normalizedCustom);
+
+                    if (!existingOption) {
+                        existingOption = new Option(customDepartment, customDepartment);
+                        const otherOption = options.find(opt => opt.value.toLowerCase() === "other");
+                        if (otherOption) {
+                            departmentSelect.insertBefore(existingOption, otherOption);
+                        } else {
+                            departmentSelect.add(existingOption);
+                        }
+                    }
+
+                    departmentSelect.value = existingOption.value;
+                    closeDepartmentModal();
+                });
+            }
+
+            if (employeeIdInput) {
+                employeeIdInput.addEventListener("input", () => {
+                    employeeIdInput.value = employeeIdInput.value.toUpperCase();
+                    if (isDuplicateEmployeeId()) {
+                        showEmployeeIdError("This employee ID is already exist please enter a unique ID");
+                    } else {
+                        showEmployeeIdError("");
+                    }
+                });
+            }
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                if (isDuplicateEmployeeId()) {
+                    showEmployeeIdError("This employee ID is already exist please enter a unique ID");
+                    alert("This employee ID is already exist please enter a unique ID");
+                    return;
+                }
+
+                if (submitBtn) submitBtn.disabled = true;
+
+                const data = {
+                    employee_id: document.getElementById("employee_id").value.trim().toUpperCase(),
+                    name: document.getElementById("name").value,
+                    email: document.getElementById("email").value,
+                    department: document.getElementById("department").value,
+                    designation: document.getElementById("designation").value
+                };
+
+                try {
+                    const res = await apiRequest("/admin/employees", "POST", data);
+
+                    alert(
+                        `Employee Created!\n\nEmployee ID: ${res.employee_id}`
+                    );
+
+                    form.reset();
+                    closeDepartmentModal();
+                    showEmployeeIdError("");
+                    await loadExistingEmployeeIds();
+                } catch (err) {
+                    if ((err.message || "").toLowerCase().includes("employee id already exists")) {
+                        showEmployeeIdError("This employee ID is already exist please enter a unique ID");
+                        alert("This employee ID is already exist please enter a unique ID");
+                    } else {
+                        alert(err.message);
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+
+            const cancelBtn = form.querySelector(".btn-secondary");
+            if (cancelBtn) {
+                cancelBtn.addEventListener("click", () => {
+                    window.location.href = "employees.html";
+                });
+            }
         });
-    }
-});
 
-</script>
+    </script>
 
-     <script>
-fetch("../shared/sidebar_admin.html")
-  .then(res => res.text())
-  .then(html => {
-    document.getElementById("sidebar-container").innerHTML = html;
+    <script>
+        fetch("../shared/sidebar_admin.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
 
-    const current = location.pathname.split("/").pop();
-    document.querySelectorAll(".sidebar a").forEach(link => {
-      if (link.getAttribute("href")?.includes(current)) {
-        link.classList.add("active");
-      }
-    });
-  });
-</script>
+                const current = location.pathname.split("/").pop();
+                document.querySelectorAll(".sidebar a").forEach(link => {
+                    if (link.getAttribute("href")?.includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            });
+    </script>
 </body>
+
 </html>

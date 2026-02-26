@@ -1,6 +1,6 @@
 import secrets
 import json
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, extract, inspect, or_, text
 from typing import List, Optional
@@ -33,10 +33,28 @@ import os
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
+def _send_employee_credentials_safely(
+    to_email: str,
+    employee_id: str,
+    temp_password: str,
+    employee_name: str
+) -> None:
+    try:
+        send_employee_credentials(
+            to_email=to_email,
+            employee_id=employee_id,
+            temp_password=temp_password,
+            employee_name=employee_name
+        )
+    except Exception as exc:
+        print(f"Email sending failed for employee {employee_id}: {exc}")
+
+
 # ================= EMPLOYEE CREATION =================
 @router.post("/employees", response_model=EmployeeCreateResponse)
 def create_employee(
     payload: EmployeeCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
@@ -67,16 +85,13 @@ def create_employee(
     db.commit()
     db.refresh(employee)
 
-    try:
-        send_employee_credentials(
-            to_email=employee.email,
-            employee_id=employee.employee_id,
-            temp_password=temp_password,
-            employee_name=employee.name
-        )
-    except Exception as exc:
-        # Employee is created already; avoid failing API response due SMTP issues.
-        print(f"Email sending failed for employee {employee.employee_id}: {exc}")
+    background_tasks.add_task(
+        _send_employee_credentials_safely,
+        to_email=employee.email,
+        employee_id=employee.employee_id,
+        temp_password=temp_password,
+        employee_name=employee.name
+    )
 
     return {
         "employee_id": employee.employee_id,
