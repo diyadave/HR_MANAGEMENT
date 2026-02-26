@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from app.database.session import engine
 from app.database.base import Base
 from app.models.user import User
@@ -23,6 +23,7 @@ from app.models.research import ResearchColumn, ResearchRow, ResearchCell, Resea
 from app.schemas.research import ResearchFileCreate, ResearchFileOut, CellUpdate
 from app.routes import research,holiday
 from app.routes import chat
+from app.core.attendance_ws_manager import attendance_ws_manager
 
 app = FastAPI()
 
@@ -60,6 +61,26 @@ app.include_router(research.router)
 app.include_router(holiday.router)
 app.include_router(chat.router)
 app.include_router(chat.ws_router)
+
+
+@app.websocket("/ws/attendance/stream")
+async def attendance_stream_ws(websocket: WebSocket):
+    await attendance_ws_manager.connect_stream(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        attendance_ws_manager.disconnect_stream(websocket)
+
+
+@app.websocket("/ws/attendance/{user_id}")
+async def attendance_ws(websocket: WebSocket, user_id: int):
+    await attendance_ws_manager.connect(user_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        attendance_ws_manager.disconnect(user_id)
 
 
 

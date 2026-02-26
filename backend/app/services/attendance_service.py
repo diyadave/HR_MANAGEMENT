@@ -3,12 +3,19 @@ from fastapi import HTTPException
 
 from app.models.attendance import Attendance
 from app.models.task_time_log import TaskTimeLog
+from app.core.attendance_ws_manager import attendance_ws_manager
 
 MAX_WORK_SECONDS = 9 * 3600  # 9 hours
+HALF_DAY_SECONDS = 4 * 3600  # 4 hours
 BREAK_START_HOUR = 13  # 1 PM
 BREAK_END_HOUR = 14    # 2 PM
 OFFICE_END_HOUR = 18   # 6 PM
+LATE_THRESHOLD = time(9, 30)
 IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _notify_attendance_state_change(user_id: int) -> None:
+    attendance_ws_manager.notify_attendance_change_threadsafe(user_id)
 
 
 def _ensure_aware_utc(dt: datetime) -> datetime:
@@ -68,6 +75,70 @@ def calculate_work_hours(clock_in: datetime, clock_out: datetime) -> float:
     return round(calculate_work_seconds(clock_in, clock_out) / 3600, 2)
 
 
+def get_ist_date(now: datetime | None = None) -> date:
+    current = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    return current.astimezone(IST).date()
+
+
+def get_attendance_worked_seconds(attendance: Attendance | None, now: datetime | None = None) -> int:
+    if not attendance:
+        return 0
+    current = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    total = int(attendance.total_seconds or 0)
+    today_ist = get_ist_date(current)
+    if attendance.clock_in_time and not attendance.clock_out_time and attendance.date == today_ist:
+        total += calculate_work_seconds(attendance.clock_in_time, current)
+    return max(total, 0)
+
+
+def determine_attendance_status(attendance: Attendance | None, seconds: int, now: datetime | None = None) -> str:
+    if not attendance or not attendance.clock_in_time:
+        return "absent"
+
+    today_ist = get_ist_date(now)
+    if attendance.clock_in_time and not attendance.clock_out_time and attendance.date == today_ist:
+        return "in_progress"
+
+    overtime = max(0, int(seconds or 0) - MAX_WORK_SECONDS)
+    if overtime > 0:
+        return "present"
+
+    is_late = attendance.clock_in_time.astimezone(IST).time() > LATE_THRESHOLD
+    if is_late:
+        if seconds >= MAX_WORK_SECONDS:
+            return "late"
+        if seconds >= HALF_DAY_SECONDS:
+            return "halfday"
+        return "absent"
+
+    if seconds >= MAX_WORK_SECONDS:
+        return "present"
+    if seconds >= HALF_DAY_SECONDS:
+        return "halfday"
+    return "absent"
+
+
+def get_attendance_status_meta(attendance: Attendance | None, now: datetime | None = None) -> dict:
+    current = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    today_ist = get_ist_date(current)
+    seconds = get_attendance_worked_seconds(attendance, current)
+    status = determine_attendance_status(attendance, seconds, current)
+    is_late_entry = bool(
+        attendance and attendance.clock_in_time and attendance.clock_in_time.astimezone(IST).time() > LATE_THRESHOLD
+    )
+    overtime_seconds = max(0, seconds - MAX_WORK_SECONDS)
+    return {
+        "status": status,
+        "seconds": seconds,
+        "is_running": bool(
+            attendance and attendance.clock_in_time and not attendance.clock_out_time and attendance.date == today_ist
+        ),
+        "is_late_entry": is_late_entry,
+        "overtime_seconds": overtime_seconds,
+        "is_overtime": overtime_seconds > 0,
+    }
+
+
 def _close_running_tasks(user_id: int, close_at: datetime, db) -> None:
     running_tasks = db.query(TaskTimeLog).filter(
         TaskTimeLog.user_id == user_id,
@@ -112,11 +183,15 @@ def close_open_attendances_for_user(user_id: int, close_at: datetime, db) -> int
     ).all()
 
     closed = 0
+    changed_users: set[int] = set()
     for row in open_rows:
         _close_attendance(row, close_at, db)
         closed += 1
+        changed_users.add(row.user_id)
     if closed:
         db.commit()
+        for changed_user_id in changed_users:
+            _notify_attendance_state_change(changed_user_id)
     else:
         close_running_tasks_for_user(user_id, close_at, db)
     return closed
@@ -128,19 +203,29 @@ def auto_close_if_needed(attendance: Attendance, db, now: datetime | None = None
         return False
 
     now = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    now_ist_date = now.astimezone(IST).date()
     clock_in_utc = _ensure_aware_utc(attendance.clock_in_time)
     local_day = clock_in_utc.astimezone(IST).date()
     break_start, _ = _break_window_utc_for_ist_date(local_day)
     office_end = _office_end_utc_for_ist_date(local_day)
 
+    # Past open records must be finalized at 6PM IST of that record date.
+    if local_day < now_ist_date:
+        _close_attendance(attendance, office_end, db)
+        db.commit()
+        _notify_attendance_state_change(attendance.user_id)
+        return True
+
     if clock_in_utc < break_start <= now:
         _close_attendance(attendance, break_start, db)
         db.commit()
+        _notify_attendance_state_change(attendance.user_id)
         return True
 
     if clock_in_utc < office_end <= now:
         _close_attendance(attendance, office_end, db)
         db.commit()
+        _notify_attendance_state_change(attendance.user_id)
         return True
 
     return False
@@ -164,15 +249,21 @@ def auto_close_open_attendances_for_user(user_id: int, db, now: datetime | None 
 
 def clock_in(current_user, db):
     now = _ensure_aware_utc(datetime.now(timezone.utc))
-    today = now.date()
+    now_ist = now.astimezone(IST)
+    today = now_ist.date()
 
     # Close stale sessions before new clock-in.
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
 
-    if is_break_time_ist(now):
+    if BREAK_START_HOUR <= now_ist.hour < BREAK_END_HOUR:
         raise HTTPException(
             status_code=400,
-            detail="Break time is active (1:00 PM to 2:00 PM IST). Please clock in after 2:00 PM IST."
+            detail="Break time (1PM-2PM IST). Please clock in after 2PM."
+        )
+    if now_ist.hour >= OFFICE_END_HOUR:
+        raise HTTPException(
+            status_code=400,
+            detail="Office closed after 6PM."
         )
 
     attendance = db.query(Attendance).filter(
@@ -190,6 +281,7 @@ def clock_in(current_user, db):
         db.add(attendance)
         db.commit()
         db.refresh(attendance)
+        _notify_attendance_state_change(current_user.id)
         return attendance
 
     if attendance.clock_in_time is not None:
@@ -202,6 +294,7 @@ def clock_in(current_user, db):
     attendance.clock_out_time = None
     db.commit()
     db.refresh(attendance)
+    _notify_attendance_state_change(current_user.id)
     return attendance
 
 
@@ -210,22 +303,19 @@ def clock_out(attendance: Attendance, db):
         raise HTTPException(status_code=400, detail="Not clocked in")
 
     now = datetime.now(timezone.utc)
-    office_end = datetime.combine(
-        attendance.date,
-        time(hour=OFFICE_END_HOUR, minute=0),
-        tzinfo=timezone.utc
-    )
+    office_end = _office_end_utc_for_ist_date(attendance.date)
     close_at = min(now, office_end)
 
     _close_attendance(attendance, close_at, db)
     db.commit()
     db.refresh(attendance)
+    _notify_attendance_state_change(attendance.user_id)
     return attendance
 
 
 def get_today_total(user_id, db):
     now = datetime.now(timezone.utc)
-    today = now.date()
+    today = now.astimezone(IST).date()
 
     auto_close_open_attendances_for_user(user_id, db, now=now)
 
