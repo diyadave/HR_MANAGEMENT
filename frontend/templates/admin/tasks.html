@@ -402,6 +402,12 @@
             color: #073379;
         }
 
+        .action-delete:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
         /* Modal Styles */
         .modal-overlay {
             display: none;
@@ -582,6 +588,22 @@
             background: #f8fafc;
             position: sticky;
             bottom: 0;
+        }
+
+        .confirm-modal-content {
+            width: 380px;
+            max-width: 95vw;
+        }
+
+        .confirm-modal-content .modal-body {
+            padding-top: 18px;
+            padding-bottom: 10px;
+        }
+
+        .confirm-text {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.5;
         }
 
         /* Empty State */
@@ -879,6 +901,22 @@
                 </div>
             </div>
         </div>
+
+        <div id="deleteTaskModal" class="modal-overlay">
+            <div class="modal-content confirm-modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Delete Task</div>
+                    <button class="modal-close" onclick="closeDeleteTaskModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="confirm-text" id="deleteTaskText">Do you want to confirm delete this task?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDeleteTaskModal()">Cancel</button>
+                    <button class="btn btn-primary" id="confirmDeleteTaskBtn" style="background:#dc2626;">Delete</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="../../static/js/api.js"></script>
@@ -888,6 +926,7 @@
         let allEmployees = [];
         let allTasks = [];
         let selectedEmployeeId = null;
+        let pendingDeleteTask = null;
 
         function getProfileImageUrl(path) {
             if (!path) return "";
@@ -1064,6 +1103,11 @@
                     <td class="actions-cell">
                         <button class="action-btn" onclick="viewTaskDetails(${task.id})" title="View Task">
                             <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn action-delete"
+                                title="Delete Task"
+                                onclick='openDeleteTaskModal(${task.id}, ${JSON.stringify(task.title || "this task")})'>
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
@@ -1376,6 +1420,40 @@
             }
         }
 
+        function openDeleteTaskModal(taskId, taskTitle) {
+            pendingDeleteTask = { id: Number(taskId), title: String(taskTitle || "this task") };
+            const text = document.getElementById('deleteTaskText');
+            if (text) {
+                text.textContent = `Do you want to confirm delete "${pendingDeleteTask.title}" task?`;
+            }
+            const modal = document.getElementById('deleteTaskModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeDeleteTaskModal() {
+            pendingDeleteTask = null;
+            const modal = document.getElementById('deleteTaskModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function confirmDeleteTask() {
+            if (!pendingDeleteTask?.id) return;
+            const deleteBtn = document.getElementById('confirmDeleteTaskBtn');
+            if (deleteBtn) deleteBtn.disabled = true;
+
+            try {
+                await API.deleteAdminTask(pendingDeleteTask.id);
+                closeDeleteTaskModal();
+                allTasks = await API.getAdminTasks();
+                filterTasks();
+                showToast('Task deleted successfully!', 'success');
+            } catch (err) {
+                showToast(err.message || 'Failed to delete task', 'error');
+            } finally {
+                if (deleteBtn) deleteBtn.disabled = false;
+            }
+        }
+
         // Escape HTML
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
@@ -1405,11 +1483,17 @@
 
         // Close modal on outside click
         document.addEventListener('click', function(event) {
-            const modal = document.getElementById('createTaskModal');
-            if (event.target === modal) {
+            const createModal = document.getElementById('createTaskModal');
+            const deleteModal = document.getElementById('deleteTaskModal');
+            if (event.target === createModal) {
                 closeModal();
             }
+            if (event.target === deleteModal) {
+                closeDeleteTaskModal();
+            }
         });
+
+        document.getElementById('confirmDeleteTaskBtn')?.addEventListener('click', confirmDeleteTask);
     </script>
 </body>
 </html>

@@ -209,6 +209,37 @@ def get_all_tasks(
         })
 
     return result
+
+
+@router.delete("/tasks/{task_id}")
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task_title = task.title
+    assigned_to = task.assigned_to
+
+    db.delete(task)
+    db.commit()
+
+    if assigned_to:
+        push_notification(
+            db,
+            user_id=assigned_to,
+            title="Task deleted",
+            message=f'Task "{task_title}" was deleted by admin',
+            event_type="task_deleted",
+            reference_type="task",
+            reference_id=task_id,
+            created_by=admin.id
+        )
+
+    return {"message": "Task deleted successfully"}
 # ================= ATTENDANCE REPORT =================
 
 
