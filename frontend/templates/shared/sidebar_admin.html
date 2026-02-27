@@ -24,7 +24,7 @@
       align-items: center;
     }
 
-    .sidebar {
+        .sidebar {
             position: fixed;
             top: 0;
             left: 0;
@@ -33,6 +33,7 @@
             background: #0F172A;
             color: #94A3B8;
             overflow-y: auto;
+            overflow-x: visible;
             z-index: 1000;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             transition: transform 0.3s ease;
@@ -56,6 +57,13 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        .sidebar-brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
         .sidebar-logo {
             font-size: 18px;
             font-weight: 700;
@@ -76,6 +84,173 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
+        }
+
+        .sidebar-top-actions {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .sidebar-notif-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            background: #111827;
+            color: #e2e8f0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sidebar-notif-btn:hover {
+            background: #1f2937;
+        }
+
+        .sidebar-notif-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
+            border: 1px solid #0f172a;
+        }
+
+        .sidebar-notif-badge.zero {
+            background: #475569;
+        }
+
+        .sidebar-notif-panel {
+            position: fixed;
+            top: 18px;
+            left: 272px;
+            right: auto;
+            width: 280px;
+            min-width: 280px;
+            max-height: 300px;
+            overflow: hidden;
+            border-radius: 10px;
+            border: 1px solid #1e293b;
+            background: #0b1220;
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+            display: none;
+            flex-direction: column;
+            z-index: 2000;
+        }
+
+        .sidebar-notif-panel.active {
+            display: flex;
+        }
+
+        .sidebar-notif-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid #1e293b;
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sidebar-notif-clear {
+            border: none;
+            background: transparent;
+            color: #93c5fd;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .sidebar-notif-list {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 6px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .sidebar-notif-list::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .admin-notif-empty {
+            color: #94a3b8;
+            font-size: 12px;
+            padding: 18px 12px;
+            text-align: center;
+        }
+
+        .admin-notif-item {
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 7px;
+            margin-bottom: 6px;
+            background: #111827;
+        }
+
+        .admin-notif-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .admin-notif-item.unread {
+            border-color: #1d4ed8;
+            background: #0f1b35;
+        }
+
+        .admin-notif-title {
+            color: #f8fafc;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-notif-msg {
+            color: #cbd5e1;
+            font-size: 11px;
+            line-height: 1.3;
+            margin-bottom: 5px;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .admin-notif-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        .admin-notif-remove {
+            border: none;
+            background: transparent;
+            color: #fda4af;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 0;
+            white-space: nowrap;
         }
 
         .sidebar-greeting {
@@ -249,16 +424,43 @@
             .sidebar-toggle {
                 display: block;
             }
+
+            .sidebar-notif-panel {
+                left: 72px;
+                right: auto;
+                width: min(260px, calc(100vw - 84px));
+                min-width: 220px;
+                max-height: min(300px, calc(100vh - 24px));
+            }
         }
     </style>
 </head>
 <body>
     <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
     
-    <div class="sidebar" id="adminSidebar">
+        <div class="sidebar" id="adminSidebar">
         <!-- Header -->
         <div class="sidebar-header">
-            <div class="sidebar-logo">DooOn</div>
+            <div class="sidebar-brand-row">
+                <div class="sidebar-logo">DooOn</div>
+                <div class="sidebar-top-actions">
+                    <button id="adminNotificationBell" class="sidebar-notif-btn" type="button" aria-label="Notifications">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span id="adminNotificationBadge" class="sidebar-notif-badge zero">0</span>
+                    </button>
+                    <div id="adminNotificationPanel" class="sidebar-notif-panel">
+                        <div class="sidebar-notif-head">
+                            <span>Notifications</span>
+                            <button id="adminNotifClearAllBtn" class="sidebar-notif-clear" type="button">Clear all</button>
+                        </div>
+                        <div class="sidebar-notif-list" id="adminNotificationItems"></div>
+                        <div id="adminNotificationEmpty" class="admin-notif-empty">No notifications</div>
+                    </div>
+                </div>
+            </div>
             <div class="sidebar-role">Admin Panel</div>
             <div class="sidebar-user-row">
                 
