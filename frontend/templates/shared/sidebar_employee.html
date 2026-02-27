@@ -10,7 +10,16 @@
   height: 100vh;
   background: #0F172A;
   overflow-y: auto;
+  overflow-x: visible;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   z-index: 1000;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .sidebar-header {
@@ -18,11 +27,183 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
 .sidebar-user {
   margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+}
+
+.sidebar-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.sidebar-notif-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+  background: #111827;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sidebar-notif-btn:hover {
+  background: #1f2937;
+}
+
+.sidebar-notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border: 1px solid #0f172a;
+}
+
+.sidebar-notif-badge.zero {
+  background: #475569;
+}
+
+.sidebar-notif-panel {
+  position: fixed;
+  top: 18px;
+  left: 242px;
+  right: auto;
+  width: 280px;
+  min-width: 280px;
+  max-height: 300px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid #1e293b;
+  background: #0b1220;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  display: none;
+  flex-direction: column;
+  z-index: 2000;
+}
+
+.sidebar-notif-panel.active {
+  display: flex;
+}
+
+.sidebar-notif-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sidebar-notif-clear {
+  border: none;
+  background: transparent;
+  color: #93c5fd;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sidebar-notif-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidebar-notif-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.employee-notif-empty {
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.employee-notif-item {
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 7px;
+  margin-bottom: 6px;
+  background: #111827;
+}
+
+.employee-notif-item:last-child {
+  margin-bottom: 0;
+}
+
+.employee-notif-item.unread {
+  border-color: #1d4ed8;
+  background: #0f1b35;
+}
+
+.employee-notif-title {
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.employee-notif-msg {
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.employee-notif-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.employee-notif-remove {
+  border: none;
+  background: transparent;
+  color: #fda4af;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
 }
 
 .sidebar-greeting {
@@ -110,6 +291,13 @@
     width: 60px;
   }
 
+  .sidebar-notif-panel {
+    left: 72px;
+    width: min(260px, calc(100vw - 84px));
+    min-width: 220px;
+    max-height: min(300px, calc(100vh - 24px));
+  }
+
   .sidebar-title,
   .nav-label,
   .nav-text {
@@ -130,7 +318,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <aside class="sidebar">
   <div class="sidebar-header">
-    <h1 class="sidebar-title">DooOn</h1>
+    <div class="sidebar-brand-row">
+      <h1 class="sidebar-title">DooOn</h1>
+      <div class="sidebar-top-actions">
+        <button id="employeeNotificationBell" class="sidebar-notif-btn" type="button" aria-label="Notifications">
+          <i class="bi bi-bell"></i>
+          <span id="employeeNotificationBadge" class="sidebar-notif-badge zero">0</span>
+        </button>
+        <div id="employeeNotificationPanel" class="sidebar-notif-panel">
+          <div class="sidebar-notif-head">
+            <span>Notifications</span>
+            <button id="employeeNotifClearAllBtn" class="sidebar-notif-clear" type="button">Clear all</button>
+          </div>
+          <div class="sidebar-notif-list" id="employeeNotificationItems"></div>
+          <div id="employeeNotificationEmpty" class="employee-notif-empty">No notifications</div>
+        </div>
+      </div>
+    </div>
     <div class="sidebar-user">
 
     </div>

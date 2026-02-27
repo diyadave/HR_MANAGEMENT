@@ -480,6 +480,30 @@
         return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
+    function playIncomingChatSound() {
+        try {
+            if (typeof window.playNotificationSound === "function") {
+                window.playNotificationSound();
+                return;
+            }
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            var ctx = new AudioCtx();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = 760;
+            gain.gain.value = 0.001;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            var now = ctx.currentTime;
+            gain.gain.exponentialRampToValueAtTime(0.06, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+            osc.start(now);
+            osc.stop(now + 0.18);
+        } catch (_) {}
+    }
+
     function totalUnread() {
         return state.conversations.reduce(function (acc, c) { return acc + (Number(c.unread_count) || 0); }, 0);
     }
@@ -695,6 +719,7 @@
                 conv.last_message = data.message;
                 conv.last_message_timestamp = data.timestamp;
                 if (Number(data.sender_id) !== currentUserId) {
+                    playIncomingChatSound();
                     var shouldCountUnread = !isChatOpen() || state.activeConversationId !== data.conversation_id;
                     if (shouldCountUnread) {
                         conv.unread_count = Number(conv.unread_count || 0) + 1;

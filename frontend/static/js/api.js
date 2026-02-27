@@ -572,21 +572,19 @@ function playNotificationSound() {
     }
 }
 
+window.playNotificationSound = playNotificationSound;
+
 function renderEmployeeNotificationBell() {
     const badgeEl = document.getElementById("employeeNotificationBadge");
     const listEl = document.getElementById("employeeNotificationItems");
     const emptyEl = document.getElementById("employeeNotificationEmpty");
 
     if (badgeEl) {
-        if (employeeNotificationState.unreadCount > 0) {
-            badgeEl.style.display = "inline-flex";
-            badgeEl.textContent = employeeNotificationState.unreadCount > 99
-                ? "99+"
-                : String(employeeNotificationState.unreadCount);
-        } else {
-            badgeEl.style.display = "none";
-            badgeEl.textContent = "";
-        }
+        badgeEl.style.display = "inline-flex";
+        badgeEl.textContent = employeeNotificationState.unreadCount > 99
+            ? "99+"
+            : String(Math.max(0, Number(employeeNotificationState.unreadCount || 0)));
+        badgeEl.classList.toggle("zero", Number(employeeNotificationState.unreadCount || 0) === 0);
     }
 
     if (!listEl) return;
@@ -597,7 +595,7 @@ function renderEmployeeNotificationBell() {
     }
 
     if (emptyEl) emptyEl.style.display = "none";
-    listEl.innerHTML = employeeNotificationState.list.slice(0, 50).map((n) => {
+    listEl.innerHTML = employeeNotificationState.list.slice(0, 4).map((n) => {
         const title = String(n.title || "Notification")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -799,15 +797,11 @@ function renderAdminNotificationBell() {
     const emptyEl = document.getElementById("adminNotificationEmpty");
 
     if (badgeEl) {
-        if (adminNotificationState.unreadCount > 0) {
-            badgeEl.style.display = "inline-flex";
-            badgeEl.textContent = adminNotificationState.unreadCount > 99
-                ? "99+"
-                : String(adminNotificationState.unreadCount);
-        } else {
-            badgeEl.style.display = "none";
-            badgeEl.textContent = "";
-        }
+        badgeEl.style.display = "inline-flex";
+        badgeEl.textContent = adminNotificationState.unreadCount > 99
+            ? "99+"
+            : String(Math.max(0, Number(adminNotificationState.unreadCount || 0)));
+        badgeEl.classList.toggle("zero", Number(adminNotificationState.unreadCount || 0) === 0);
     }
 
     if (!listEl) return;
@@ -818,7 +812,7 @@ function renderAdminNotificationBell() {
     }
 
     if (emptyEl) emptyEl.style.display = "none";
-    listEl.innerHTML = adminNotificationState.list.slice(0, 50).map((n) => {
+    listEl.innerHTML = adminNotificationState.list.slice(0, 4).map((n) => {
         const title = String(n.title || "Notification")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
