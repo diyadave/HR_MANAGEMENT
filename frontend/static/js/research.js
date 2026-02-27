@@ -7,7 +7,10 @@
 let currentFileId   = null;
 let allFiles        = [];
 let currentFilter   = 'all';
-let currentUserRole = null;   // resolved on first loadFile() response
+let currentUserRole = (localStorage.getItem("user_role") || "").toLowerCase() || null;
+let createDocEmployees = [];
+let selectedCreateDocUserIds = new Set();
+let fileSearchTerm = "";
 
 // ── ROLE HELPER ───────────────────────────────────────────────────────────────
 function isAdmin() {
@@ -21,20 +24,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const modal = document.getElementById("newFileModal");
 
-    document.getElementById("openNewFileBtn")?.addEventListener("click", () => {
+    const openCreateModal = async () => {
+        resetCreateFileModal();
         modal?.classList.add("show");
-    });
+        await initCreateDocUserPicker();
+    };
 
-    document.getElementById("openNewFileBtn2")?.addEventListener("click", () => {
-        modal?.classList.add("show");
-    });
+    document.getElementById("openNewFileBtn")?.addEventListener("click", openCreateModal);
+    document.getElementById("openNewFileBtn2")?.addEventListener("click", openCreateModal);
 
     document.getElementById("closeModalBtn")?.addEventListener("click", () => {
         modal?.classList.remove("show");
+        resetCreateFileModal();
     });
 
     modal?.addEventListener("click", function (e) {
-        if (e.target === modal) modal.classList.remove("show");
+        if (e.target === modal) {
+            modal.classList.remove("show");
+            resetCreateFileModal();
+        }
     });
 
     // Radio toggle: show correct options block in modal
@@ -49,6 +57,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("generateTableBtn")?.addEventListener("click", generatePreviewTable);
     document.getElementById("saveFileBtn")?.addEventListener("click", saveFile);
 
+    const searchInput = document.querySelector(".search-bar input");
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            fileSearchTerm = String(searchInput.value || "").trim().toLowerCase();
+            renderFileList(allFiles);
+        });
+    }
+
     // Filter tabs
     document.querySelectorAll(".filter-tab").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -60,6 +76,115 @@ document.addEventListener("DOMContentLoaded", function () {
     // Version History button (in info bar)
     document.getElementById("versionHistoryBtn")?.addEventListener("click", toggleVersionDrawer);
 });
+
+function resetCreateFileModal() {
+    const typeExcel = document.querySelector("input[name='fileType'][value='excel']");
+    const typeDoc = document.querySelector("input[name='fileType'][value='doc']");
+    if (typeExcel) typeExcel.checked = true;
+    if (typeDoc) typeDoc.checked = false;
+
+    const excelOptions = document.getElementById("excelOptions");
+    const docOptions = document.getElementById("docOptions");
+    if (excelOptions) excelOptions.style.display = "block";
+    if (docOptions) docOptions.style.display = "none";
+
+    const excelName = document.querySelector("#excelOptions input[type='text']");
+    const excelNums = document.querySelectorAll("#excelOptions input[type='number']");
+    if (excelName) excelName.value = "";
+    excelNums.forEach((el) => { el.value = ""; });
+
+    const docTitle = document.querySelector("#docOptions input[type='text']");
+    const docContent = document.querySelector("#docOptions textarea");
+    if (docTitle) docTitle.value = "";
+    if (docContent) docContent.value = "";
+
+    const visSelect = document.querySelector("#docOptions select");
+    if (visSelect) visSelect.selectedIndex = 0;
+}
+
+async function initCreateDocUserPicker() {
+    const usersList = document.getElementById("createDocUsersList");
+    const selectAll = document.getElementById("createDocSelectAll");
+    if (!usersList || !selectAll) return;
+
+    try {
+        createDocEmployees = await API.getAdminEmployees();
+    } catch (_) {
+        createDocEmployees = [];
+    }
+
+    selectedCreateDocUserIds = new Set(createDocEmployees.map((u) => Number(u.id)));
+    renderCreateDocUsers();
+
+    selectAll.checked = createDocEmployees.length > 0;
+    selectAll.onchange = () => {
+        if (selectAll.checked) {
+            selectedCreateDocUserIds = new Set(createDocEmployees.map((u) => Number(u.id)));
+        } else {
+            selectedCreateDocUserIds.clear();
+        }
+        renderCreateDocUsers();
+    };
+}
+
+function renderCreateDocUsers() {
+    const usersList = document.getElementById("createDocUsersList");
+    const selectAll = document.getElementById("createDocSelectAll");
+    if (!usersList || !selectAll) return;
+
+    usersList.innerHTML = "";
+    if (!createDocEmployees.length) {
+        usersList.innerHTML = `<div style="padding:10px 4px;color:var(--text-muted);font-size:0.84rem;">No employees available.</div>`;
+        selectAll.checked = false;
+        selectAll.disabled = true;
+        return;
+    }
+
+    selectAll.disabled = false;
+    createDocEmployees.forEach((u) => {
+        const id = Number(u.id);
+        const checked = selectedCreateDocUserIds.has(id);
+        const initials = String(u.name || "?")
+            .split(" ")
+            .filter(Boolean)
+            .map((p) => p[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase() || "?";
+
+        const row = document.createElement("label");
+        row.className = "assign-user-card";
+        row.style.display = "block";
+        row.style.cursor = "pointer";
+        row.innerHTML = `
+            <div class="assign-user-top">
+                <input type="checkbox" data-user-id="${id}" ${checked ? "checked" : ""} style="accent-color:var(--navy);" />
+            </div>
+            <div class="assign-user-row">
+                <div class="assign-user-avatar">${initials}</div>
+                <div>
+                    <div class="assign-user-name">${u.name || "-"}</div>
+                    <div class="assign-user-dept">${u.department || u.designation || "employee"}</div>
+                </div>
+            </div>
+        `;
+        usersList.appendChild(row);
+    });
+
+    usersList.querySelectorAll("input[type='checkbox'][data-user-id]").forEach((cb) => {
+        cb.onchange = () => {
+            const uid = Number(cb.dataset.userId);
+            if (cb.checked) selectedCreateDocUserIds.add(uid);
+            else selectedCreateDocUserIds.delete(uid);
+
+            selectAll.checked = createDocEmployees.length > 0 &&
+                selectedCreateDocUserIds.size === createDocEmployees.length;
+        };
+    });
+
+    selectAll.checked = createDocEmployees.length > 0 &&
+        selectedCreateDocUserIds.size === createDocEmployees.length;
+}
 
 // ── FILTER ────────────────────────────────────────────────────────────────────
 function setFilter(filter) {
@@ -120,10 +245,16 @@ function renderFileList(files) {
 
     // Filter
     const filtered = files.filter(f => {
-        if (currentFilter === 'all')  return true;
-        if (currentFilter === 'xlsx') return f.type === "excel";
-        if (currentFilter === 'docx') return f.type === "document";
-        return true;
+        const matchesType =
+            currentFilter === "all" ? true :
+            currentFilter === "xlsx" ? f.type === "excel" :
+            currentFilter === "docx" ? f.type === "document" :
+            true;
+
+        const text = `${f.name || ""} ${f.title || ""}`.toLowerCase();
+        const matchesSearch = !fileSearchTerm || text.includes(fileSearchTerm);
+
+        return matchesType && matchesSearch;
     });
 
     // Update tab counts
@@ -184,8 +315,8 @@ async function loadFile(fileId) {
         const data = await API.request(`/research/files/${fileId}`);
 
         // Resolve role on first response — stays set for the session
-        if (data.role && !currentUserRole) {
-            currentUserRole = data.role;
+        if (data.role) {
+            currentUserRole = String(data.role).toLowerCase();
         }
 
         updateInfoBar(data);
@@ -342,7 +473,15 @@ function renderExcel(data) {
     if (isAdmin()) {
         const actionHeader = document.createElement("th");
         actionHeader.textContent = "Action";
-        actionHeader.style.textAlign = "center";
+        actionHeader.style.cssText = [
+            "text-align:center",
+            "position:sticky",
+            "right:0",
+            "min-width:84px",
+            "z-index:4",
+            "border-left:1.5px solid var(--border)",
+            "background:linear-gradient(to bottom, #f4f7fc, #edf1f9)"
+        ].join(";");
         headerRow.appendChild(actionHeader);
     }
 
@@ -392,7 +531,15 @@ function renderExcel(data) {
 
         if (isAdmin()) {
             const actionTd = document.createElement("td");
-            actionTd.style.textAlign = "center";
+            actionTd.style.cssText = [
+                "text-align:center",
+                "position:sticky",
+                "right:0",
+                "min-width:84px",
+                "z-index:3",
+                "border-left:1px solid var(--border-light)",
+                "background:var(--surface)"
+            ].join(";");
 
             const deleteBtn = document.createElement("button");
             deleteBtn.type = "button";
@@ -550,6 +697,7 @@ async function renderDocumentView(data) {
         ${visLabel}
         <div style="flex:1;"></div>
         ${showEdit ? '<button class="btn-secondary" id="editDocBtn"><i class="fas fa-pen"></i> Edit</button>' : ''}
+        ${isAdmin() ? '<button class="btn-danger-soft" id="deleteDocBtn"><i class="fas fa-trash"></i> Delete</button>' : ''}
     `;
     docWrapper.appendChild(toolbar);
 
@@ -567,6 +715,32 @@ async function renderDocumentView(data) {
     // Edit button → open editor
     if (showEdit) {
         toolbar.querySelector("#editDocBtn").onclick = () => openDocumentEditor(data);
+    }
+
+    // Delete button (admin only)
+    if (isAdmin()) {
+        const deleteBtn = toolbar.querySelector("#deleteDocBtn");
+        if (deleteBtn) {
+            deleteBtn.onclick = async () => {
+                const ok = confirm(`Delete "${data.title || "this document"}"?`);
+                if (!ok) return;
+                try {
+                    await API.request(`/research/documents/${data.doc_id}`, "DELETE");
+                    await loadFiles();
+                    if (allFiles.length > 0) {
+                        loadFile(allFiles[0].id);
+                    } else {
+                        const contentArea = document.getElementById("contentArea");
+                        if (contentArea) {
+                            contentArea.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No files found</p></div>`;
+                        }
+                    }
+                } catch (err) {
+                    alert(err?.message || "Failed to delete document");
+                    console.error("Delete document error:", err);
+                }
+            };
+        }
     }
 }
 
@@ -752,6 +926,7 @@ async function saveFile() {
             });
 
             document.getElementById("newFileModal").classList.remove("show");
+            resetCreateFileModal();
             await loadFiles();
             loadFile(file.id);
         }
@@ -759,15 +934,45 @@ async function saveFile() {
         if (type === "doc") {
             const title   = document.querySelector("#docOptions input[type='text']").value;
             const content = document.querySelector("#docOptions textarea").value;
-            const visEl   = document.querySelector("#docOptions select");
-            const visMap  = { 0: "everyone", 1: "admin", 2: "selected" };
-            const visibility = visMap[visEl?.selectedIndex] || "admin";
+            const hasNewPicker = !!document.getElementById("createDocUsersList");
+            const selectedIds = [...selectedCreateDocUserIds];
+            const allSelected = createDocEmployees.length > 0 && selectedIds.length === createDocEmployees.length;
 
-            const file = await API.request("/research/files", "POST", {
-                name: title, type: "document", title, content, visibility
-            });
+            let visibility = "admin";
+            let user_ids = [];
+
+            if (hasNewPicker) {
+                if (allSelected) {
+                    visibility = "everyone";
+                    user_ids = [];
+                } else if (selectedIds.length > 0) {
+                    visibility = "selected";
+                    user_ids = selectedIds;
+                } else {
+                    visibility = "admin";
+                    user_ids = [];
+                }
+            } else {
+                const visEl   = document.querySelector("#docOptions select");
+                const visMap  = { 0: "everyone", 1: "admin", 2: "selected" };
+                visibility = visMap[visEl?.selectedIndex] || "admin";
+            }
+
+            const payload = {
+                name: title,
+                type: "document",
+                title,
+                content,
+                visibility
+            };
+            if (hasNewPicker) {
+                payload.user_ids = user_ids;
+            }
+
+            const file = await API.request("/research/files", "POST", payload);
 
             document.getElementById("newFileModal").classList.remove("show");
+            resetCreateFileModal();
             await loadFiles();
             loadFile(file.id);
         }

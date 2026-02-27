@@ -47,3 +47,13 @@ class ChatConversationOut(BaseModel):
     last_message_timestamp: Optional[datetime] = None
     members: list[ChatUserOut] = Field(default_factory=list)
 
+
+class ChatUnreadConversationCount(BaseModel):
+    conversation_id: int
+    unread_count: int = 0
+
+
+class ChatUnreadSummaryOut(BaseModel):
+    total_unread: int = 0
+    conversations: list[ChatUnreadConversationCount] = Field(default_factory=list)
+

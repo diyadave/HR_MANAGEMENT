@@ -17,6 +17,8 @@ from app.schemas.chat import (
     ChatConversationOut,
     ChatMessageCreate,
     ChatMessageOut,
+    ChatUnreadConversationCount,
+    ChatUnreadSummaryOut,
     ChatUserOut,
 )
 
@@ -114,6 +116,22 @@ def _serialize_message(message: ChatMessage) -> dict:
     }
 
 
+def _conversation_unread_count(db: Session, conversation_id: int, user_id: int) -> int:
+    membership = db.query(ChatConversationMember).filter(
+        ChatConversationMember.conversation_id == conversation_id,
+        ChatConversationMember.user_id == user_id,
+    ).first()
+    if not membership:
+        return 0
+
+    unread_count = db.query(func.count(ChatMessage.id)).filter(
+        ChatMessage.conversation_id == conversation_id,
+        ChatMessage.sender_id != user_id,
+        ChatMessage.created_at > (membership.last_read_at or datetime(1970, 1, 1, tzinfo=timezone.utc)),
+    ).scalar() or 0
+    return int(unread_count)
+
+
 def _conversation_payload(
     db: Session,
     conversation: ChatConversation,
@@ -149,16 +167,7 @@ def _conversation_payload(
         ChatMessage.conversation_id == conversation.id
     ).order_by(desc(ChatMessage.created_at)).first()
 
-    membership = db.query(ChatConversationMember).filter(
-        ChatConversationMember.conversation_id == conversation.id,
-        ChatConversationMember.user_id == current_user.id,
-    ).first()
-
-    unread_count = db.query(func.count(ChatMessage.id)).filter(
-        ChatMessage.conversation_id == conversation.id,
-        ChatMessage.sender_id != current_user.id,
-        ChatMessage.created_at > (membership.last_read_at or datetime(1970, 1, 1, tzinfo=timezone.utc)),
-    ).scalar() or 0
+    unread_count = _conversation_unread_count(db, conversation.id, current_user.id)
 
     return ChatConversationOut(
         id=conversation.id,
@@ -270,6 +279,35 @@ def list_conversations(
 
     online_ids = _active_online_user_ids(db)
     return [_conversation_payload(db, conv, current_user, online_ids) for conv in conversations]
+
+
+@router.get("/unread-count", response_model=ChatUnreadSummaryOut)
+def get_unread_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    conversation_ids = [
+        row[0]
+        for row in db.query(ChatConversationMember.conversation_id).filter(
+            ChatConversationMember.user_id == current_user.id
+        ).all()
+    ]
+    if not conversation_ids:
+        return ChatUnreadSummaryOut(total_unread=0, conversations=[])
+
+    per_conversation: list[ChatUnreadConversationCount] = []
+    total = 0
+    for conversation_id in conversation_ids:
+        unread = _conversation_unread_count(db, conversation_id, current_user.id)
+        total += unread
+        per_conversation.append(
+            ChatUnreadConversationCount(
+                conversation_id=conversation_id,
+                unread_count=unread,
+            )
+        )
+
+    return ChatUnreadSummaryOut(total_unread=total, conversations=per_conversation)
 
 
 @router.get("/conversations/{conversation_id}/messages", response_model=list[ChatMessageOut])

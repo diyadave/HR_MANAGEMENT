@@ -225,6 +225,42 @@
             color: #64748b;
         }
 
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border-left: 3px solid #2563eb;
+        }
+
+        .notification-item.unread {
+            background: #eef4ff;
+            border-left-color: #073379;
+        }
+
+        .notification-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+
         /* Leave Status */
         .leave-status {
             display: flex;
@@ -498,6 +534,17 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card compact">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Notifications</h2>
+                </div>
+                <div class="notification-list" id="notificationList">
+                    <div class="notification-item">
+                        <div class="notification-title">Loading notifications...</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Quick Actions -->
@@ -564,6 +611,18 @@
                 .replace(/'/g, "&#039;");
         }
 
+        function formatDateTime(dateStr) {
+            if (!dateStr) return "-";
+            const d = new Date(dateStr);
+            return d.toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
         function getStatusClass(status) {
             switch(status?.toLowerCase()) {
                 case 'pending': return 'status-pending';
@@ -571,6 +630,34 @@
                 case 'completed': return 'status-completed';
                 case 'overdue': return 'status-overdue';
                 default: return 'status-pending';
+            }
+        }
+
+        function renderNotifications(notifications) {
+            const notificationsEl = document.getElementById("notificationList");
+            if (!notificationsEl) return;
+
+            if (!notifications || notifications.length === 0) {
+                notificationsEl.innerHTML = '<div class="notification-item"><div class="notification-title">No notifications yet</div></div>';
+                return;
+            }
+
+            notificationsEl.innerHTML = notifications.slice(0, 8).map(n => `
+                <div class="notification-item ${n.is_read ? "" : "unread"}">
+                    <div class="notification-title">${escapeHtml(n.title || "Notification")}</div>
+                    <div class="notification-message">${escapeHtml(n.message || "")}</div>
+                    <div class="notification-time">${formatDateTime(n.created_at)}</div>
+                </div>
+            `).join("");
+        }
+
+        async function loadNotifications() {
+            if (!window.API || typeof API.getMyNotifications !== "function") return;
+            try {
+                const notifications = await API.getMyNotifications(8, false);
+                renderNotifications(notifications || []);
+            } catch (err) {
+                console.error("Failed to load notifications:", err);
             }
         }
 
@@ -698,6 +785,8 @@
                     }
                 }
 
+                await loadNotifications();
+
             } catch (err) {
                 console.error("Dashboard load failed:", err);
             }
@@ -706,6 +795,10 @@
         // Initialize dashboard
         document.addEventListener("DOMContentLoaded", function() {
             loadEmployeeDashboard();
+            window.addEventListener("employee-notification-new", () => loadNotifications());
+            window.addEventListener("employee-notification-removed", () => loadNotifications());
+            window.addEventListener("employee-notification-cleared", () => loadNotifications());
+            window.addEventListener("employee-notification-read-all", () => loadNotifications());
             
             // Refresh every 30 seconds
             setInterval(loadEmployeeDashboard, 30000);

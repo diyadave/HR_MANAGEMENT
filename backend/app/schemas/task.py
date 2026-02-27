@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 from typing import Optional, List
 from enum import Enum
@@ -26,6 +26,30 @@ class TaskCreate(BaseModel):
     priority: Optional[str] = "medium"
     estimated_hours: Optional[float] = None
 
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str):
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Task title is required")
+        return cleaned
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: Optional[str]):
+        if value is None:
+            return value
+        cleaned = value.strip()
+        return cleaned or None
+
+    @model_validator(mode="after")
+    def validate_assignment(self):
+        if self.assigned_to is None or int(self.assigned_to) <= 0:
+            raise ValueError("Please select at least one employee.")
+        if self.project_id is None or int(self.project_id) <= 0:
+            raise ValueError("Project is required")
+        return self
+
     @field_validator("due_date")
     @classmethod
     def validate_due_date(cls, value: Optional[date]):
@@ -45,6 +69,16 @@ class TaskUpdate(BaseModel):
     assigned_to: Optional[int] = None
     priority: Optional[str] = None
     estimated_hours: Optional[float] = None
+
+    @field_validator("title")
+    @classmethod
+    def validate_update_title(cls, value: Optional[str]):
+        if value is None:
+            return value
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Task title is required")
+        return cleaned
 
     @field_validator("due_date")
     @classmethod

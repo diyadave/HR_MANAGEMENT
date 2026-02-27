@@ -7,6 +7,7 @@ from app.models.holiday import Holiday, HolidayType
 from app.models.attendance import Attendance
 from app.models.user import User
 from app.schemas.holiday import HolidayCreate, HolidayUpdate
+from fastapi import HTTPException
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -110,6 +111,9 @@ def get_holiday_by_id(db: Session, holiday_id: int) -> Optional[Holiday]:
 
 
 def create_holiday(db: Session, data: HolidayCreate) -> Holiday:
+    if data.date < date.today():
+        raise HTTPException(status_code=400, detail="Past dates are not allowed for holidays")
+
     holiday = Holiday(
         name=data.name,
         date=data.date,
@@ -131,6 +135,9 @@ def update_holiday(db: Session, holiday_id: int, data: HolidayUpdate) -> Optiona
     holiday = get_holiday_by_id(db, holiday_id)
     if not holiday:
         return None
+
+    if data.date is not None and data.date < date.today() and data.date != holiday.date:
+        raise HTTPException(status_code=400, detail="Past dates are not allowed for holidays")
 
     old_date = holiday.date
     old_dept = holiday.department

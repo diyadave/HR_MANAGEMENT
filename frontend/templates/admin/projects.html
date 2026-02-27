@@ -453,6 +453,28 @@
             border-color: var(--success-green);
         }
 
+        .action-delete:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .confirm-modal-content {
+            width: 380px;
+            max-width: 95vw;
+        }
+
+        .confirm-modal-content .modal-body {
+            padding-top: 18px;
+            padding-bottom: 10px;
+        }
+
+        .confirm-text {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+
         /* Footer */
         .table-footer {
             padding: 20px 24px;
@@ -599,6 +621,23 @@
             outline: none;
             border-color: var(--primary-blue);
             box-shadow: 0 0 0 3px rgba(7, 51, 121, 0.1);
+        }
+
+        .form-control.input-error {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+        }
+
+        .field-error {
+            display: none;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+
+        .field-error.show {
+            display: block;
         }
 
         textarea.form-control {
@@ -781,7 +820,7 @@
             <div class="action-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="search-input" placeholder="Search projects by name, owner, or description...">
+                    <input type="text" class="search-input" id="projectSearchInput" placeholder="Search projects by name, owner, or description...">
                 </div>
                 
                 <div class="action-buttons">
@@ -789,7 +828,7 @@
                         <i class="fas fa-filter"></i>
                         Filter
                     </button>
-                    <button class="btn btn-secondary">
+                    <button class="btn btn-secondary" id="exportProjectsBtn">
                         <i class="fas fa-download"></i>
                         Export
                     </button>
@@ -811,7 +850,7 @@
                             <option value="onhold">On Hold</option>
                             <option value="completed">Completed</option>
                         </select>
-                        <div class="pagination-info">8 projects</div>
+                        <div class="pagination-info" id="projectsCountInfo">0 projects</div>
                     </div>
                 </div>
                 
@@ -837,20 +876,8 @@
                 
                 <!-- Table Footer -->
                 <div class="table-footer">
-                    <div class="pagination-info">Showing 8 of 24 projects</div>
-                    <div class="pagination-controls">
-                        <button class="page-btn" disabled>
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <span style="padding: 0 4px; color: var(--gray-400); align-self: center;">...</span>
-                        <button class="page-btn">12</button>
-                        <button class="page-btn">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="pagination-info" id="projectsRangeInfo">Showing 0 of 0 projects</div>
+                    <div class="pagination-controls" id="projectsPaginationControls"></div>
                 </div>
             </div>
         </div>
@@ -869,22 +896,26 @@
                 <div class="form-group">
                     <label class="form-label">Project Name</label>
                     <input type="text" class="form-control" id="projectName" placeholder="Enter project name">
+                    <div class="field-error" id="projectNameError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Description</label>
                     <textarea class="form-control" id="projectDescription" placeholder="Describe the project scope and objectives..."></textarea>
+                    <div class="field-error" id="projectDescriptionError"></div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Start Date</label>
-                        <input type="date" class="form-control" id="projectStartDate">
+                        <input type="date" class="form-control" id="projectStartDate" max="9999-12-31">
+                        <div class="field-error" id="projectStartDateError"></div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">End Date</label>
-                        <input type="date" class="form-control" id="projectEndDate">
+                        <input type="date" class="form-control" id="projectEndDate" max="9999-12-31">
+                        <div class="field-error" id="projectEndDateError"></div>
                     </div>
                 </div>
                 
@@ -893,6 +924,7 @@
                     <select class="form-control" id="projectOwner" onchange="onOwnerChange(this.value)">
                     <option value="">Select Owner</option>
                 </select>
+                <div class="field-error" id="projectOwnerError"></div>
 
        
                 
@@ -910,6 +942,7 @@
                             
                         </div>
                     </div>
+                    <div class="field-error" id="projectTeamMembersError"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -919,10 +952,33 @@
         </div>
     </div>
 
+    <div id="deleteProjectModal" class="modal-overlay">
+        <div class="modal-content confirm-modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Delete Project</div>
+                <button class="modal-close" onclick="closeDeleteProjectModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-text" id="deleteProjectText">Do you want to confirm delete this project?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteProjectModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirmDeleteProjectBtn" style="background:#dc2626;">Delete</button>
+            </div>
+        </div>
+    </div>
+
    <script>
 const API_BASE = "http://127.0.0.1:8000";
 let selectedTeamMembers = new Set();
 let currentOwnerId = null;
+let allProjects = [];
+let filteredProjects = [];
+let currentProjectPage = 1;
+const projectsPerPage = 6;
+let pendingDeleteProject = null;
 function getProfileImageUrl(path) {
     if (!path) return "";
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -947,46 +1003,220 @@ async function apiRequest(url, method = "GET", body = null) {
 
     const res = await fetch(API_BASE + url, options);
     if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || "API error");
+        let err = {};
+        try {
+            err = await res.json();
+        } catch (_) {
+            const text = await res.text().catch(() => "");
+            throw new Error(text || "Request failed");
+        }
+        if (Array.isArray(err.errors) && err.errors.length) throw new Error(err.errors[0]);
+        if (Array.isArray(err.detail)) {
+            const message = err.detail.map((item) => item?.msg || item?.message).filter(Boolean).join(", ");
+            throw new Error(message || "Request failed");
+        }
+        if (typeof err.detail === "string" && err.detail) throw new Error(err.detail);
+        if (err.detail && typeof err.detail === "object") {
+            if (err.detail.msg) throw new Error(String(err.detail.msg));
+            if (err.detail.message) throw new Error(String(err.detail.message));
+        }
+        throw new Error("Request failed");
     }
     return res.json();
 }
 function openCreateProjectModal() {
     document.getElementById("createProjectModal").style.display = "flex";
+    applyProjectDateConstraints();
     loadProjectOwners();
     loadTeamMembers();
 }
 
+function getTodayISODate() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function parseProjectDate(dateStr) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || "").trim());
+    if (!match) return null;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    if (
+        parsed.getUTCFullYear() !== year ||
+        parsed.getUTCMonth() !== month - 1 ||
+        parsed.getUTCDate() !== day
+    ) {
+        return null;
+    }
+    return { year, month, day, iso: `${match[1]}-${match[2]}-${match[3]}` };
+}
+
+function validateProjectDateField(fieldId, options = {}) {
+    const input = document.getElementById(fieldId);
+    if (!input) return true;
+
+    const rawValue = String(input.value || "").trim();
+    const longYearMatch = /^(\d{5,})-/.exec(rawValue);
+    if (longYearMatch) {
+        setProjectFieldError(fieldId, "Year must be exactly 4 digits.");
+        return false;
+    }
+
+    const parsed = parseProjectDate(rawValue);
+    const currentYear = new Date().getFullYear();
+    if (!parsed) {
+        setProjectFieldError(fieldId, "Please enter a valid date in YYYY-MM-DD format.");
+        return false;
+    }
+    if (String(parsed.year).length !== 4) {
+        setProjectFieldError(fieldId, "Year must be exactly 4 digits.");
+        return false;
+    }
+    if (parsed.year < currentYear) {
+        setProjectFieldError(fieldId, "Previous years are not allowed.");
+        return false;
+    }
+    if (options.enforceToday) {
+        const todayISO = getTodayISODate();
+        if (parsed.iso < todayISO) {
+            setProjectFieldError(fieldId, "Past dates are not allowed. Please select current or upcoming dates.");
+            return false;
+        }
+    }
+
+    clearProjectFieldError(fieldId);
+    return true;
+}
+
+function applyProjectDateConstraints() {
+    const startInput = document.getElementById("projectStartDate");
+    const endInput = document.getElementById("projectEndDate");
+    if (!startInput || !endInput) return;
+
+    const todayISO = getTodayISODate();
+    const maxISO = "9999-12-31";
+    startInput.min = todayISO;
+    startInput.max = maxISO;
+    endInput.min = startInput.value || todayISO;
+    endInput.max = maxISO;
+}
+
+function clearProjectFormErrors() {
+    const errorEls = document.querySelectorAll("#createProjectModal .field-error");
+    errorEls.forEach((el) => {
+        el.textContent = "";
+        el.classList.remove("show");
+    });
+    const inputs = document.querySelectorAll("#createProjectModal .form-control");
+    inputs.forEach((el) => el.classList.remove("input-error"));
+}
+
+function setProjectFieldError(fieldId, message) {
+    const inputEl = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}Error`);
+    if (inputEl) inputEl.classList.add("input-error");
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add("show");
+    }
+}
+
+function clearProjectFieldError(fieldId) {
+    const inputEl = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}Error`);
+    if (inputEl) inputEl.classList.remove("input-error");
+    if (errorEl) {
+        errorEl.textContent = "";
+        errorEl.classList.remove("show");
+    }
+}
+
 async function saveProject() {
+    clearProjectFormErrors();
+
     const name = projectName.value.trim();
     const description = projectDescription.value.trim();
     const start_date = projectStartDate.value;
     const end_date = projectEndDate.value;
     const owner_id = parseInt(projectOwner.value);
+    let hasError = false;
 
-    if (!name || !start_date || !end_date || !owner_id) {
-        alert("Fill all required fields");
+    if (!name) {
+        setProjectFieldError("projectName", "Please fill the required details.");
+        hasError = true;
+    }
+    if (!description) {
+        setProjectFieldError("projectDescription", "Please fill the required details.");
+        hasError = true;
+    }
+    if (!owner_id) {
+        setProjectFieldError("projectOwner", "Please fill the required details.");
+        hasError = true;
+    }
+    if (!start_date) {
+        setProjectFieldError("projectStartDate", "Please select the date for full form.");
+        hasError = true;
+    }
+    if (!end_date) {
+        setProjectFieldError("projectEndDate", "Please select the date for full form.");
+        hasError = true;
+    }
+    if (!selectedTeamMembers.size) {
+        const teamErr = document.getElementById("projectTeamMembersError");
+        if (teamErr) {
+            teamErr.textContent = "Team member was not selected. Please select the team member.";
+            teamErr.classList.add("show");
+        }
+        hasError = true;
+    }
+    if (hasError) return;
+
+    const startDateValid = validateProjectDateField("projectStartDate", { enforceToday: true });
+    const endDateValid = validateProjectDateField("projectEndDate", { enforceToday: true });
+    if (!startDateValid || !endDateValid) return;
+
+    if (end_date < start_date) {
+        setProjectFieldError("projectEndDate", "End date must be same as or after start date.");
         return;
     }
 
-    await apiRequest("/admin/projects/", "POST", {
-        name,
-        description,
-        start_date,
-        end_date,
-        owner_id,
-        team_members: Array.from(selectedTeamMembers)
-    });
+    try {
+        await apiRequest("/admin/projects/", "POST", {
+            name,
+            description,
+            start_date,
+            end_date,
+            owner_id,
+            team_members: Array.from(selectedTeamMembers)
+        });
 
-    closeModal();
-    resetModalForm();
-    loadProjects();
+        closeModal();
+        resetModalForm();
+        loadProjects();
+    } catch (err) {
+        const teamError = String(err.message || "").toLowerCase().includes("team member");
+        if (teamError) {
+            const teamErr = document.getElementById("projectTeamMembersError");
+            if (teamErr) {
+                teamErr.textContent = err.message;
+                teamErr.classList.add("show");
+            }
+            return;
+        }
+        setProjectFieldError("projectName", err.message || "Unable to create project. Please check required details.");
+    }
 }
 
 
 function onOwnerChange(ownerId) {
     currentOwnerId = ownerId || null;
+    clearProjectFieldError("projectOwner");
 
     // Remove owner from selected team members if present
     if (selectedTeamMembers.has(ownerId)) {
@@ -999,6 +1229,7 @@ function onOwnerChange(ownerId) {
 
 function closeModal() {
     document.getElementById("createProjectModal").style.display = "none";
+    clearProjectFormErrors();
 }
 async function loadTeamMembers() {
     const list = document.getElementById("teamMembersList");
@@ -1042,65 +1273,279 @@ async function loadTeamMembers() {
 }
 
 
-async function loadProjects() {
+function renderProjects(projects) {
     const tbody = document.querySelector("tbody");
     tbody.innerHTML = "";
 
-    try {
-        const projects = await apiRequest("/admin/projects");
+    if (!projects.length) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="7" style="padding: 24px; text-align: center; color: #64748b;">No projects found.</td>`;
+        tbody.appendChild(row);
+        return;
+    }
 
-        projects.forEach(p => {
-            const row = document.createElement("tr");
-            const taskCount = Number(p.task_count || (p.tasks ? p.tasks.length : 0) || 0);
-            const progressPercent = Number(
-                p.project_progress ??
-                (taskCount ? Math.round(((p.tasks || []).filter(t => t.status === "completed").length / taskCount) * 100) : 0)
-            ) || 0;
-            const totalHours = Number(p.total_hours || 0);
+    projects.forEach(p => {
+        const row = document.createElement("tr");
+        const taskCount = Number(p.task_count || (p.tasks ? p.tasks.length : 0) || 0);
+        const progressPercent = Number(
+            p.project_progress ??
+            (taskCount ? Math.round(((p.tasks || []).filter(t => t.status === "completed").length / taskCount) * 100) : 0)
+        ) || 0;
+        const totalHours = Number(p.total_hours || 0);
 
-            row.innerHTML = `
-                <td class="project-name-cell">
-                    <div class="project-name">${p.name}</div>
-                    <div class="project-description">${p.description || ""}</div>
-                </td>
-                <td>
-                <div class="owner-cell">
-                    <div class="user-avatar">
-                        ${p.owner?.profile_image
-                            ? `<img src="${getProfileImageUrl(p.owner.profile_image)}" alt="${p.owner?.name || 'Owner'}" onerror="this.parentElement.textContent='${(p.owner?.name || '?').slice(0,2).toUpperCase()}'">`
-                            : `${(p.owner?.name || '?').slice(0,2).toUpperCase()}`
-                        }
-                    </div>
-                    <div class="user-name">${p.owner?.name || "-"}</div>
+        row.innerHTML = `
+            <td class="project-name-cell">
+                <div class="project-name">${p.name}</div>
+                <div class="project-description">${p.description || ""}</div>
+            </td>
+            <td>
+            <div class="owner-cell">
+                <div class="user-avatar">
+                    ${p.owner?.profile_image
+                        ? `<img src="${getProfileImageUrl(p.owner.profile_image)}" alt="${p.owner?.name || 'Owner'}" onerror="this.parentElement.textContent='${(p.owner?.name || '?').slice(0,2).toUpperCase()}'">`
+                        : `${(p.owner?.name || '?').slice(0,2).toUpperCase()}`
+                    }
                 </div>
-                </td>
+                <div class="user-name">${p.owner?.name || "-"}</div>
+            </div>
+            </td>
 
-                <td>
-                    <span class="status-badge status-${p.status}">
-                        ${p.status}
-                    </span>
-                </td>
-                <td>${progressPercent}%</td>
-                <td class="stats-cell">${taskCount}</td>
-                <td class="stats-cell">${totalHours.toFixed(1)}</td>
-                <td class="actions-cell">
-                    <button class="action-btn action-view"
-                    onclick="viewProject(${p.id})">
-                <i class="fas fa-eye"></i>
-            </button>
+            <td>
+                <span class="status-badge status-${p.status}">
+                    ${p.status}
+                </span>
+            </td>
+            <td>${progressPercent}%</td>
+            <td class="stats-cell">${taskCount}</td>
+            <td class="stats-cell">${totalHours.toFixed(1)}</td>
+            <td class="actions-cell">
+                <button class="action-btn action-view"
+                onclick="viewProject(${p.id})">
+            <i class="fas fa-eye"></i>
+        </button>
+                <button class="action-btn action-delete"
+                title="Delete Project"
+                onclick='openDeleteProjectModal(${p.id}, ${JSON.stringify(p.name || "this project")})'>
+            <i class="fas fa-trash"></i>
+        </button>
 
-                </td>
-            `;
+            </td>
+        `;
 
-            tbody.appendChild(row);
-        });
+        tbody.appendChild(row);
+    });
+}
 
+function getProjectPageItems(totalPages, currentPage) {
+    if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+        return [1, 2, 3, 4, "...", totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+        return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+}
+
+function renderProjectPagination(totalItems) {
+    const controls = document.getElementById("projectsPaginationControls");
+    if (!controls) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / projectsPerPage));
+    controls.innerHTML = "";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "page-btn";
+    prevBtn.dataset.page = String(currentProjectPage - 1);
+    prevBtn.disabled = currentProjectPage <= 1;
+    prevBtn.innerHTML = `<i class="fas fa-chevron-left"></i>`;
+    controls.appendChild(prevBtn);
+
+    getProjectPageItems(totalPages, currentProjectPage).forEach((item) => {
+        if (item === "...") {
+            const dots = document.createElement("span");
+            dots.textContent = "...";
+            dots.style.padding = "0 4px";
+            dots.style.color = "var(--gray-400)";
+            dots.style.alignSelf = "center";
+            controls.appendChild(dots);
+            return;
+        }
+        const pageBtn = document.createElement("button");
+        pageBtn.className = `page-btn${item === currentProjectPage ? " active" : ""}`;
+        pageBtn.dataset.page = String(item);
+        pageBtn.textContent = String(item);
+        controls.appendChild(pageBtn);
+    });
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "page-btn";
+    nextBtn.dataset.page = String(currentProjectPage + 1);
+    nextBtn.disabled = currentProjectPage >= totalPages;
+    nextBtn.innerHTML = `<i class="fas fa-chevron-right"></i>`;
+    controls.appendChild(nextBtn);
+}
+
+function renderProjectListPage() {
+    const totalItems = filteredProjects.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / projectsPerPage));
+
+    if (currentProjectPage > totalPages) currentProjectPage = totalPages;
+    if (currentProjectPage < 1) currentProjectPage = 1;
+
+    const startIndex = totalItems ? (currentProjectPage - 1) * projectsPerPage : 0;
+    const endIndex = Math.min(startIndex + projectsPerPage, totalItems);
+    const paged = filteredProjects.slice(startIndex, endIndex);
+
+    renderProjects(paged);
+
+    const countInfo = document.getElementById("projectsCountInfo");
+    if (countInfo) {
+        countInfo.textContent = `${totalItems} project${totalItems !== 1 ? "s" : ""}`;
+    }
+
+    const rangeInfo = document.getElementById("projectsRangeInfo");
+    if (rangeInfo) {
+        if (!totalItems) {
+            rangeInfo.textContent = "Showing 0 of 0 projects";
+        } else {
+            rangeInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} projects`;
+        }
+    }
+
+    renderProjectPagination(totalItems);
+}
+
+function applyProjectFilters(keepPage = false) {
+    const searchTerm = (document.getElementById("projectSearchInput")?.value || "").trim().toLowerCase();
+    const status = (document.getElementById("statusFilter")?.value || "").trim().toLowerCase();
+
+    filteredProjects = allProjects.filter((p) => {
+        const projectStatus = String(p.status || "").toLowerCase();
+        const ownerName = String(p.owner?.name || "").toLowerCase();
+        const name = String(p.name || "").toLowerCase();
+        const description = String(p.description || "").toLowerCase();
+
+        const statusMatch = !status || projectStatus === status;
+        const searchMatch = !searchTerm ||
+            name.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            ownerName.includes(searchTerm);
+
+        return statusMatch && searchMatch;
+    });
+
+    if (!keepPage) {
+        currentProjectPage = 1;
+    }
+    renderProjectListPage();
+}
+
+function escapeCsvValue(value) {
+    const s = String(value ?? "");
+    if (/[",\n]/.test(s)) {
+        return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+}
+
+function exportProjectsCSV() {
+    const source = filteredProjects;
+
+    const headers = [
+        "Project Name",
+        "Description",
+        "Owner",
+        "Status",
+        "Progress (%)",
+        "Tasks",
+        "Hours",
+        "Start Date",
+        "End Date"
+    ];
+
+    const rows = source.map((p) => {
+        const taskCount = Number(p.task_count || (p.tasks ? p.tasks.length : 0) || 0);
+        const progressPercent = Number(
+            p.project_progress ??
+            (taskCount ? Math.round(((p.tasks || []).filter(t => t.status === "completed").length / taskCount) * 100) : 0)
+        ) || 0;
+        const totalHours = Number(p.total_hours || 0).toFixed(1);
+
+        return [
+            p.name || "",
+            p.description || "",
+            p.owner?.name || "",
+            p.status || "",
+            progressPercent,
+            taskCount,
+            totalHours,
+            p.start_date || "",
+            p.end_date || ""
+        ].map(escapeCsvValue).join(",");
+    });
+
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `projects_${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function loadProjects() {
+    try {
+        allProjects = await apiRequest("/admin/projects");
+        applyProjectFilters();
     } catch (err) {
         console.error("Failed to load projects", err);
     }
 }
 function viewProject(projectId) {
     window.location.href = `project_details.html?id=${projectId}`;
+}
+
+function openDeleteProjectModal(projectId, projectName) {
+    pendingDeleteProject = { id: Number(projectId), name: String(projectName || "this project") };
+    const text = document.getElementById("deleteProjectText");
+    if (text) {
+        text.textContent = `Do you want to confirm delete "${pendingDeleteProject.name}" project?`;
+    }
+    const modal = document.getElementById("deleteProjectModal");
+    if (modal) modal.style.display = "flex";
+}
+
+function closeDeleteProjectModal() {
+    pendingDeleteProject = null;
+    const modal = document.getElementById("deleteProjectModal");
+    if (modal) modal.style.display = "none";
+}
+
+async function confirmDeleteProject() {
+    if (!pendingDeleteProject?.id) return;
+    const deleteBtn = document.getElementById("confirmDeleteProjectBtn");
+    if (deleteBtn) deleteBtn.disabled = true;
+    try {
+        await apiRequest(`/admin/projects/${pendingDeleteProject.id}`, "DELETE");
+        closeDeleteProjectModal();
+        await loadProjects();
+        if (window.showUIPopup) {
+            window.showUIPopup("Project deleted successfully", "success");
+        }
+    } catch (err) {
+        if (window.showUIPopup) {
+            window.showUIPopup(err.message || "Failed to delete project", "error");
+        }
+    } finally {
+        if (deleteBtn) deleteBtn.disabled = false;
+    }
 }
 
 
@@ -1115,6 +1560,14 @@ function toggleTeamMember(element) {
         selectedTeamMembers.add(employeeId);
         checkbox.classList.add("checked");
     }
+
+    if (selectedTeamMembers.size > 0) {
+        const teamErr = document.getElementById("projectTeamMembersError");
+        if (teamErr) {
+            teamErr.textContent = "";
+            teamErr.classList.remove("show");
+        }
+    }
 }
 
 function resetModalForm() {
@@ -1127,11 +1580,86 @@ function resetModalForm() {
     selectedTeamMembers.clear();
     document.querySelectorAll(".member-checkbox")
         .forEach(cb => cb.classList.remove("checked"));
+    clearProjectFormErrors();
 }
 
 
 
 document.addEventListener("DOMContentLoaded", loadProjects);
+document.addEventListener("DOMContentLoaded", () => {
+    applyProjectDateConstraints();
+    const startInput = document.getElementById("projectStartDate");
+    const endInput = document.getElementById("projectEndDate");
+    if (startInput) {
+        startInput.addEventListener("change", () => {
+            clearProjectFieldError("projectStartDate");
+            validateProjectDateField("projectStartDate", { enforceToday: true });
+            applyProjectDateConstraints();
+            if (endInput && endInput.value && endInput.value < startInput.value) {
+                endInput.value = startInput.value;
+            }
+        });
+    }
+    if (endInput) {
+        endInput.addEventListener("change", () => {
+            clearProjectFieldError("projectEndDate");
+            validateProjectDateField("projectEndDate", { enforceToday: true });
+        });
+    }
+
+    const nameInput = document.getElementById("projectName");
+    const descInput = document.getElementById("projectDescription");
+    const ownerInput = document.getElementById("projectOwner");
+    if (nameInput) {
+        nameInput.addEventListener("input", () => clearProjectFieldError("projectName"));
+    }
+    if (descInput) {
+        descInput.addEventListener("input", () => clearProjectFieldError("projectDescription"));
+    }
+    if (ownerInput) {
+        ownerInput.addEventListener("change", () => clearProjectFieldError("projectOwner"));
+    }
+
+    const projectSearchInput = document.getElementById("projectSearchInput");
+    if (projectSearchInput) {
+        projectSearchInput.addEventListener("input", () => applyProjectFilters());
+    }
+
+    const statusFilter = document.getElementById("statusFilter");
+    if (statusFilter) {
+        statusFilter.addEventListener("change", () => applyProjectFilters());
+    }
+
+    const paginationControls = document.getElementById("projectsPaginationControls");
+    if (paginationControls) {
+        paginationControls.addEventListener("click", (event) => {
+            const btn = event.target.closest(".page-btn");
+            if (!btn || btn.disabled) return;
+            const page = parseInt(btn.dataset.page, 10);
+            if (!Number.isFinite(page)) return;
+            currentProjectPage = page;
+            applyProjectFilters(true);
+        });
+    }
+
+    const exportBtn = document.getElementById("exportProjectsBtn");
+    if (exportBtn) {
+        exportBtn.addEventListener("click", exportProjectsCSV);
+    }
+
+    const deleteModal = document.getElementById("deleteProjectModal");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteProjectBtn");
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener("click", confirmDeleteProject);
+    }
+    if (deleteModal) {
+        deleteModal.addEventListener("click", (event) => {
+            if (event.target === deleteModal) {
+                closeDeleteProjectModal();
+            }
+        });
+    }
+});
 async function loadProjectOwners() {
     try {
         const employees = await apiRequest("/admin/employees");

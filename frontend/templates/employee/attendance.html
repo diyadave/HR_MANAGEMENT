@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -237,6 +238,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="sidebar-container"></div>
   <div id="tracker-container"></div>
@@ -256,7 +258,7 @@
         </select>
         <button class="refresh-btn" id="refreshBtn">Refresh</button>
       </div>
-    </div>
+    </div>  
 
     <div class="stats-grid">
       <div class="stat-item">
@@ -327,7 +329,7 @@
     </div>
   </main>
 
-<script src="../../static/js/api.js"></script>
+  <script src="../../static/js/api.js"></script>
   <script>
     // Ensure API is available
     if (!window.API) {
@@ -345,7 +347,7 @@
       const hrs = Math.floor(seconds / 3600);
       const mins = Math.floor((seconds % 3600) / 60);
       const secs = seconds % 60;
-      return `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     // Format hours for display
@@ -360,7 +362,7 @@
     async function loadSummary() {
       try {
         const data = await API.getAttendanceSummary();
-        
+
         document.getElementById("totalWork").textContent = formatTime(data.attendance_seconds || 0);
         document.getElementById("taskTime").textContent = formatTime(data.task_seconds || 0);
         document.getElementById("idleTime").textContent = formatTime(data.idle_seconds || 0);
@@ -557,12 +559,12 @@
     // Initialize page
     async function init() {
       await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
-      
+
       // Load tracker
       if (typeof loadGlobalTracker === 'function') {
         loadGlobalTracker();
       }
-      
+
       // Load initial data
       await Promise.all([
         loadSummary(),
@@ -593,8 +595,9 @@
 
     window.onload = init;
   </script>
-<script src="../../static/js/tracker.js"></script>
-<script src="../../static/js/loadTracker.js"></script>
+  <script src="../../static/js/tracker.js"></script>
+  <script src="../../static/js/loadTracker.js"></script>
 </body>
+
 </html>
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -185,12 +186,42 @@
         }
 
         /* Column widths */
-        .leave-table th:nth-child(1), .leave-table td:nth-child(1) { width: 20%; } /* Employee */
-        .leave-table th:nth-child(2), .leave-table td:nth-child(2) { width: 12%; } /* Leave Date */
-        .leave-table th:nth-child(3), .leave-table td:nth-child(3) { width: 10%; } /* Duration */
-        .leave-table th:nth-child(4), .leave-table td:nth-child(4) { width: 28%; } /* Reason */
-        .leave-table th:nth-child(5), .leave-table td:nth-child(5) { width: 12%; } /* Status */
-        .leave-table th:nth-child(6), .leave-table td:nth-child(6) { width: 18%; } /* Actions */
+        .leave-table th:nth-child(1),
+        .leave-table td:nth-child(1) {
+            width: 20%;
+        }
+
+        /* Employee */
+        .leave-table th:nth-child(2),
+        .leave-table td:nth-child(2) {
+            width: 12%;
+        }
+
+        /* Leave Date */
+        .leave-table th:nth-child(3),
+        .leave-table td:nth-child(3) {
+            width: 10%;
+        }
+
+        /* Duration */
+        .leave-table th:nth-child(4),
+        .leave-table td:nth-child(4) {
+            width: 28%;
+        }
+
+        /* Reason */
+        .leave-table th:nth-child(5),
+        .leave-table td:nth-child(5) {
+            width: 12%;
+        }
+
+        /* Status */
+        .leave-table th:nth-child(6),
+        .leave-table td:nth-child(6) {
+            width: 18%;
+        }
+
+        /* Actions */
 
         /* Employee Cell */
         .employee-cell {
@@ -212,6 +243,7 @@
             font-weight: 600;
             flex-shrink: 0;
         }
+
         .employee-avatar img {
             width: 100%;
             height: 100%;
@@ -421,6 +453,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -438,33 +471,34 @@
             .container {
                 padding: 16px;
             }
-            
+
             .leave-table {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
-            
+
             .leave-table th,
             .leave-table td {
                 min-width: 120px;
             }
-            
+
             .filters {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .filter-group {
                 min-width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <script src="../../static/js/api.js"></script>
     <div id="sidebar-container"></div>
-    
+
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -527,7 +561,7 @@
                 </thead>
                 <tbody id="leaveTableBody">
                     <!-- Row 1 -->
-                   
+
                 </tbody>
             </table>
         </div>
@@ -576,22 +610,30 @@
             document.getElementById('reasonModal').style.display = 'none';
         }
 
-async function approveLeave(id) {
-  await API.approveLeave(id);
-  loadAllLeaves();
-}
+        async function approveLeave(id) {
+            try {
+                await API.approveLeave(id);
+                loadAllLeaves();
+            } catch (err) {
+                showToast(err.message || "Request failed");
+            }
+        }
 
-async function rejectLeave(id) {
-  await API.rejectLeave(id);
-  loadAllLeaves();
-}
+        async function rejectLeave(id) {
+            try {
+                await API.rejectLeave(id);
+                loadAllLeaves();
+            } catch (err) {
+                showToast(err.message || "Request failed");
+            }
+        }
 
         // Filter functions
         function applyFilters() {
             const statusFilter = document.getElementById('statusFilter').value;
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
-            
+
             // In a real application, you would filter the data here
             showToast('Filters applied');
         }
@@ -609,13 +651,13 @@ async function rejectLeave(id) {
             if (existingToast) {
                 existingToast.remove();
             }
-            
+
             // Create new toast
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = message;
             document.body.appendChild(toast);
-            
+
             // Remove toast after 3 seconds
             setTimeout(() => {
                 toast.style.animation = 'slideIn 0.3s ease reverse';
@@ -624,44 +666,43 @@ async function rejectLeave(id) {
         }
 
         // Close modal when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const modal = document.getElementById('reasonModal');
             if (event.target === modal) {
                 closeReasonModal();
             }
         });
-       
-async function loadAllLeaves() {
-  const escapeHtml = (v) => String(v ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-  const getProfileImageUrl = (path) => {
-    if (!path) return null;
-    const p = String(path);
-    if (p.startsWith("http://") || p.startsWith("https://")) return p;
-    return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
-  };
 
-  const data = await API.getLeaves("pending");
-  const tbody = document.getElementById("leaveTableBody");
-  tbody.innerHTML = "";
+        async function loadAllLeaves() {
+            const escapeHtml = (v) => String(v ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+            const getProfileImageUrl = (path) => {
+                if (!path) return null;
+                const p = String(path);
+                if (p.startsWith("http://") || p.startsWith("https://")) return p;
+                return `http://127.0.0.1:8000/${p.replace(/^\/+/, "")}`;
+            };
 
-  data.forEach(leave => {
-    const empName = leave.employee?.name || "-";
-    const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
-    const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
-    const row = `
+            const data = await API.getLeaves("pending");
+            const tbody = document.getElementById("leaveTableBody");
+            tbody.innerHTML = "";
+
+            data.forEach(leave => {
+                const empName = leave.employee?.name || "-";
+                const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+                const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
+                const row = `
       <tr>
         <td>
           <div class="employee-cell">
-            <div class="employee-avatar">${
-              photoUrl
-                ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
-                : `${escapeHtml(initials)}`
-            }</div>
+            <div class="employee-avatar">${photoUrl
+                        ? `<img src="${photoUrl}" alt="${escapeHtml(empName)}" onerror="this.parentElement.textContent='${escapeHtml(initials)}'">`
+                        : `${escapeHtml(initials)}`
+                    }</div>
             <div class="employee-info">
               <div class="employee-name">${escapeHtml(empName)}</div>
               <div class="employee-role">${escapeHtml(leave.employee?.designation || leave.employee?.department || "")}</div>
@@ -677,39 +718,39 @@ async function loadAllLeaves() {
           </span>
         </td>
         <td>
-          ${
-            leave.status === "pending"
-              ? `
+          ${leave.status === "pending"
+                        ? `
                 <div class="action-buttons">
                   <button class="btn-action btn-approve" onclick="approveLeave(${leave.id})">Approve</button>
                   <button class="btn-action btn-reject" onclick="rejectLeave(${leave.id})">Reject</button>
                 </div>
               `
-              : "-"
-          }
+                        : "-"
+                    }
         </td>
       </tr>
     `;
 
-    tbody.innerHTML += row;
-  });
-}
+                tbody.innerHTML += row;
+            });
+        }
 
-document.addEventListener("DOMContentLoaded", function () {
-  loadAllLeaves();
-});
+        document.addEventListener("DOMContentLoaded", function () {
+            loadAllLeaves();
+        });
 
 
         // Set default date values
-        window.onload = function() {
+        window.onload = function () {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fromDate').value = today;
-            
+
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
             document.getElementById('toDate').value = nextWeek.toISOString().split('T')[0];
         };
-        
+
     </script>
 </body>
+
 </html>

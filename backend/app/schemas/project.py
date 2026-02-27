@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 from typing import Optional, List
 from app.schemas.user import UserOut
@@ -15,6 +15,20 @@ class ProjectCreate(BaseModel):
     end_date: date
     owner_id: int
     team_members: Optional[List[int]] = []
+
+    @field_validator("name", "description")
+    @classmethod
+    def validate_text_fields(cls, value: str):
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("This field is required")
+        return cleaned
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.end_date < self.start_date:
+            raise ValueError("Project end date cannot be before start date")
+        return self
                  
 
 # ---------- UPDATE ----------

@@ -31,11 +31,16 @@ from app.services.attendance_service import (
     get_attendance_worked_seconds,
 )
 from app.core.attendance_ws_manager import attendance_ws_manager
+from app.core.validation import (
+    ensure_employees_available,
+    require_employee_exists,
+)
 
 from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate, AdminProfileUpdateSchema
 from app.schemas.task import TaskCreate, TaskOut
 
 from app.utils.email import send_employee_credentials
+from app.services.notification_service import push_notification
 
 import shutil
 import os
@@ -128,6 +133,15 @@ def create_task(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
+    ensure_employees_available(db)
+    if not task.assigned_to or int(task.assigned_to) <= 0:
+        raise HTTPException(status_code=400, detail="Please select at least one employee.")
+
+    require_employee_exists(db, int(task.assigned_to), detail="Selected employee not found")
+    project = db.query(Project).filter(Project.id == task.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
     new_task = Task(
         title=task.title,
         description=task.description,
@@ -143,6 +157,19 @@ def create_task(
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+
+    if new_task.assigned_to:
+        project_name = new_task.project.name if new_task.project else "Project"
+        push_notification(
+            db,
+            user_id=new_task.assigned_to,
+            title="New task assigned",
+            message=f"You have been assigned task: {new_task.title} ({project_name})",
+            event_type="task_assigned",
+            reference_type="task",
+            reference_id=new_task.id,
+            created_by=admin.id
+        )
 
     return new_task
 
@@ -508,9 +535,7 @@ def get_attendance_details(
     target_date = parse_iso_date(date)
     auto_close_open_attendances_for_user(user_id, db, now=now)
 
-    employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
-    if not employee:
-        raise HTTPException(status_code=404, detail="Employee not found")
+    employee = require_employee_exists(db, user_id)
 
     is_holiday = db.query(Holiday).filter(
         or_(
