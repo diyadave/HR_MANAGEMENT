@@ -239,6 +239,23 @@
             cursor: not-allowed;
         }
 
+        .form-input.input-error {
+            border-color: #cc1f1f;
+            box-shadow: 0 0 0 3px rgba(204, 31, 31, 0.12);
+        }
+
+        .field-error {
+            display: none;
+            color: #cc1f1f;
+            margin-top: 6px;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
@@ -695,31 +712,32 @@
                 <h2 class="modal-title">Create New Admin</h2>
                 <button class="modal-close" onclick="closeCreateAdminModal()">&times;</button>
             </div>
-            <form id="createAdminForm">
+            <form id="createAdminForm" novalidate>
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="form-label">Full Name</label>
                         <input type="text" id="adminName" class="form-input" required>
+                        <div class="field-error" id="adminNameError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email</label>
                         <input type="email" id="adminEmail" class="form-input" required>
+                        <div class="field-error" id="adminEmailError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Password</label>
                         <input type="password" id="adminPassword" class="form-input" required>
+                        <div class="field-error" id="adminPasswordError"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Confirm Password</label>
                         <input type="password" id="adminConfirmPassword" class="form-input" required>
+                        <div class="field-error" id="adminConfirmPasswordError"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeCreateAdminModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="createAdminBtn">
-                        <span class="btn-text">Create Admin</span>
-                        <span class="btn-loader hidden"></span>
-                    </button>
+                    <button type="submit" class="btn btn-primary" id="createAdminBtn">Create Admin</button>
                 </div>
             </form>
         </div>
@@ -1008,41 +1026,84 @@
         function openCreateAdminModal() {
             document.getElementById('createAdminModal').classList.add('active');
             document.getElementById('createAdminForm').reset();
+            clearCreateAdminFormErrors();
         }
 
         function closeCreateAdminModal() {
             document.getElementById('createAdminModal').classList.remove('active');
+            clearCreateAdminFormErrors();
+        }
+
+        function clearCreateAdminFieldError(fieldId) {
+            const input = document.getElementById(fieldId);
+            const error = document.getElementById(`${fieldId}Error`);
+            if (input) input.classList.remove('input-error');
+            if (error) {
+                error.textContent = '';
+                error.classList.remove('show');
+            }
+        }
+
+        function setCreateAdminFieldError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const error = document.getElementById(`${fieldId}Error`);
+            if (input) input.classList.add('input-error');
+            if (error) {
+                error.textContent = message;
+                error.classList.add('show');
+            }
+        }
+
+        function clearCreateAdminFormErrors() {
+            ['adminName', 'adminEmail', 'adminPassword', 'adminConfirmPassword'].forEach(clearCreateAdminFieldError);
         }
 
         // Handle create admin form
         document.getElementById('createAdminForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+            clearCreateAdminFormErrors();
+
+            const name = document.getElementById('adminName').value.trim();
+            const email = document.getElementById('adminEmail').value.trim();
             const password = document.getElementById('adminPassword').value;
             const confirmPassword = document.getElementById('adminConfirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                showAlert('Passwords do not match', 'error');
-                return;
+
+            let hasError = false;
+            if (!name) {
+                setCreateAdminFieldError('adminName', 'Please fill the required details.');
+                hasError = true;
             }
-            
-            if (password.length < 6) {
-                showAlert('Password must be at least 6 characters', 'error');
-                return;
+            if (!email) {
+                setCreateAdminFieldError('adminEmail', 'Please fill the required details.');
+                hasError = true;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setCreateAdminFieldError('adminEmail', 'Please enter a valid email address.');
+                hasError = true;
             }
+            if (!password) {
+                setCreateAdminFieldError('adminPassword', 'Please fill the required details.');
+                hasError = true;
+            } else if (password.length < 6) {
+                setCreateAdminFieldError('adminPassword', 'Password must be at least 6 characters.');
+                hasError = true;
+            }
+            if (!confirmPassword) {
+                setCreateAdminFieldError('adminConfirmPassword', 'Please fill the required details.');
+                hasError = true;
+            } else if (password !== confirmPassword) {
+                setCreateAdminFieldError('adminConfirmPassword', 'Passwords do not match.');
+                hasError = true;
+            }
+            if (hasError) return;
             
             const createBtn = document.getElementById('createAdminBtn');
-            const btnText = createBtn.querySelector('.btn-text');
-            const btnLoader = createBtn.querySelector('.btn-loader');
             
             try {
-                btnText.classList.add('hidden');
-                btnLoader.classList.remove('hidden');
                 createBtn.disabled = true;
                 
                 await API.createAdmin({
-                    name: document.getElementById('adminName').value,
-                    email: document.getElementById('adminEmail').value,
+                    name,
+                    email,
                     password: password
                 });
                 
@@ -1051,12 +1112,34 @@
                 await loadAdminList(); // Reload admin list
                 
             } catch (err) {
-                showAlert(err.message || 'Failed to create admin', 'error');
+                const message = String(err.message || 'Failed to create admin');
+                const lower = message.toLowerCase();
+                if (lower.includes('email')) {
+                    setCreateAdminFieldError('adminEmail', message);
+                } else if (lower.includes('password')) {
+                    setCreateAdminFieldError('adminPassword', message);
+                } else if (lower.includes('name')) {
+                    setCreateAdminFieldError('adminName', message);
+                } else {
+                    setCreateAdminFieldError('adminEmail', message);
+                }
             } finally {
-                btnText.classList.remove('hidden');
-                btnLoader.classList.add('hidden');
                 createBtn.disabled = false;
             }
+        });
+
+        ['adminName', 'adminEmail'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => clearCreateAdminFieldError(id));
+        });
+        ['adminPassword', 'adminConfirmPassword'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                clearCreateAdminFieldError('adminPassword');
+                clearCreateAdminFieldError('adminConfirmPassword');
+            });
         });
 
         // Close modal when clicking outside

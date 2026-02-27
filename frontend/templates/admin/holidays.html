@@ -238,6 +238,15 @@
             font-size: 13px; color: #0F172A; background: white; height: 34px; transition: border 0.2s;
         }
         .form-ctrl:focus { outline: none; border-color: #073379; box-shadow: 0 0 0 3px rgba(7,51,121,0.08); }
+        .form-ctrl.input-error { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
+        .field-error {
+            display: none;
+            margin-top: 4px;
+            color: #dc2626;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+        .field-error.show { display: block; }
 
         /* Type radio cards */
         .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -339,8 +348,6 @@
             <div class="page-title">Holiday Management</div>
         </div>
         <div class="header-actions">
-            <button class="icon-button" title="Notifications">🔔</button>
-            <button class="icon-button" title="Help">❓</button>
             <div class="profile-placeholder">AD</div>
         </div>
     </div>
@@ -378,6 +385,24 @@
                 <option value="2024">2024</option>
                 <option value="2025">2025</option>
                 <option value="2026">2026</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Month</label>
+            <select class="filter-select" id="monthFilter" onchange="applyFilters()">
+                <option value="">All Months</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
             </select>
         </div>
         <div class="filter-group">
@@ -482,12 +507,14 @@
                 <div class="form-group form-full">
                     <label class="form-label">Holiday Name <span class="req">*</span></label>
                     <input class="form-ctrl" id="fName" placeholder="e.g. Republic Day">
+                    <div class="field-error" id="fNameError"></div>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Date <span class="req">*</span></label>
                     <input type="date" class="form-ctrl" id="fDate">
+                    <div class="field-error" id="fDateError"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Department</label>
@@ -565,9 +592,35 @@
                 <p><strong>Click to browse</strong> or drag & drop</p>
                 <p style="margin-top:4px;font-size:12px;">Supported: .CSV, .XLSX</p>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Target Year (optional)</label>
+                    <select class="form-ctrl" id="bulkTargetYear">
+                        <option value="">Use file dates</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Month (optional)</label>
+                    <select class="form-ctrl" id="bulkTargetMonth">
+                        <option value="">Use file dates</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+            </div>
             <div style="background:#F8FAFC;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;font-size:12px;color:#64748B;">
                 📄 Required columns: <strong>name</strong>, <strong>date (YYYY-MM-DD)</strong>, <strong>type</strong> &nbsp;|&nbsp;
-                Optional: <strong>department</strong>, <strong>repeat_yearly</strong>
+                Optional: <strong>department</strong>, <strong>repeat_yearly</strong>, <strong>day</strong>
             </div>
         </div>
         <div class="modal-footer">
@@ -609,6 +662,7 @@ const HolidayAPI = {
     update: (id, data)=> apiRequest(`/holidays/${id}`, 'PUT', data),
     delete: (id)      => apiRequest(`/holidays/${id}`, 'DELETE'),
     bulkDelete: (ids) => apiRequest('/holidays/', 'DELETE', { ids }),
+    bulkUpload: (formData) => apiRequest('/holidays/bulk-upload', 'POST', formData, { isFormData: true }),
     exportUrl: (year) => `${BASE_URL}/holidays/export/csv${year ? '?year=' + year : ''}`,
 };
 fetch("../shared/sidebar_admin.html")
@@ -644,12 +698,13 @@ const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 // ══════════════════════════════════════════════════════════════
 async function loadHolidays() {
     const year  = document.getElementById('yearFilter').value;
+    const month = document.getElementById('monthFilter').value;
     const type  = document.getElementById('typeFilter').value;
     const dept  = document.getElementById('deptFilter').value;
 
     showTableLoading();
     try {
-        allHolidays = await HolidayAPI.list({ year, type, department: dept });
+        allHolidays = await HolidayAPI.list({ year, month, type, department: dept });
         applyClientFilter();
         updateStats();
         renderCalendar();
@@ -763,9 +818,11 @@ function openAddModal() {
     document.getElementById('modalHeadTitle').textContent = 'Add Holiday';
     document.getElementById('fName').value   = '';
     document.getElementById('fDate').value   = '';
+    document.getElementById('fDate').setAttribute('min', todayDate.toISOString().split('T')[0]);
     document.getElementById('fDept').value   = 'All';
     document.getElementById('fRepeat').checked = false;
     document.getElementById('tFull').checked = true;
+    clearHolidayFormErrors();
     openModal('addModal');
 }
 
@@ -779,10 +836,37 @@ function openEditModal(id) {
     document.getElementById('fDept').value    = h.department;
     document.getElementById('fRepeat').checked = h.repeat_yearly;
     document.querySelectorAll('input[name="fType"]').forEach(r => r.checked = r.value === h.type);
+    clearHolidayFormErrors();
     openModal('addModal');
 }
 
+function clearHolidayFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const err = document.getElementById(`${fieldId}Error`);
+    if (field) field.classList.remove('input-error');
+    if (err) {
+        err.textContent = '';
+        err.classList.remove('show');
+    }
+}
+
+function setHolidayFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const err = document.getElementById(`${fieldId}Error`);
+    if (field) field.classList.add('input-error');
+    if (err) {
+        err.textContent = message;
+        err.classList.add('show');
+    }
+}
+
+function clearHolidayFormErrors() {
+    clearHolidayFieldError('fName');
+    clearHolidayFieldError('fDate');
+}
+
 async function saveHoliday() {
+    clearHolidayFormErrors();
     const name   = document.getElementById('fName').value.trim();
     const date   = document.getElementById('fDate').value;
     const type   = document.querySelector('input[name="fType"]:checked')?.value || 'Full Day';
@@ -790,7 +874,22 @@ async function saveHoliday() {
     const repeat = document.getElementById('fRepeat').checked;
     const [newYear, newMonth] = (date || '').split('-').map(v => parseInt(v, 10));
 
-    if (!name || !date) { toast('Please fill in Name and Date', 'error'); return; }
+    let hasError = false;
+    if (!name) {
+        setHolidayFieldError('fName', 'Please fill the required details.');
+        hasError = true;
+    }
+    if (!date) {
+        setHolidayFieldError('fDate', 'Please select the date for full form.');
+        hasError = true;
+    }
+    if (hasError) return;
+
+    const todayStr = todayDate.toISOString().split('T')[0];
+    if (date < todayStr) {
+        setHolidayFieldError('fDate', 'Past dates are not allowed. Please select current or upcoming dates.');
+        return;
+    }
 
     const payload = { name, date, type, department: dept, repeat_yearly: repeat };
     const saveBtn = document.getElementById('saveBtn');
@@ -820,7 +919,14 @@ async function saveHoliday() {
         await loadHolidays();
         renderCalendar();
     } catch (err) {
-        toast('Error: ' + err.message, 'error');
+        const message = String(err.message || 'Request failed');
+        if (message.toLowerCase().includes('date')) {
+            setHolidayFieldError('fDate', message);
+        } else if (message.toLowerCase().includes('name')) {
+            setHolidayFieldError('fName', message);
+        } else {
+            setHolidayFieldError('fName', message);
+        }
     } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Holiday';
@@ -904,34 +1010,29 @@ function handleFileSelect(input) {
 
 async function processBulkUpload() {
     if (!bulkFile) { toast('Please select a file first', 'error'); return; }
-
-    const text  = await bulkFile.text();
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length < 2) { toast('File appears empty', 'error'); return; }
-
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-    let success = 0, failed = 0;
-
-    for (let i = 1; i < lines.length; i++) {
-        const vals = lines[i].split(',');
-        const row  = Object.fromEntries(headers.map((h, idx) => [h, (vals[idx] || '').trim()]));
-        const payload = {
-            name:          row['name']           || row['holiday name'] || '',
-            date:          row['date']            || '',
-            type:          row['type']            || 'Full Day',
-            department:    row['department']      || 'All',
-            repeat_yearly: row['repeat_yearly'] === 'true' || row['repeat_yearly'] === '1',
-        };
-        if (!payload.name || !payload.date) { failed++; continue; }
-        try { await HolidayAPI.create(payload); success++; }
-        catch { failed++; }
+    const targetYear = document.getElementById('bulkTargetYear').value;
+    const targetMonth = document.getElementById('bulkTargetMonth').value;
+    if ((targetYear && !targetMonth) || (!targetYear && targetMonth)) {
+        toast('Select both target year and target month, or keep both empty', 'error');
+        return;
     }
 
-    closeModal('bulkModal');
-    toast(`Imported ${success} holiday(s)${failed ? `, ${failed} failed` : ''}`);
-    loadHolidays();
-    bulkFile = null;
-    document.getElementById('bulkFile').value = '';
+    const formData = new FormData();
+    formData.append('file', bulkFile);
+    if (targetYear) formData.append('target_year', targetYear);
+    if (targetMonth) formData.append('target_month', targetMonth);
+
+    try {
+        const result = await HolidayAPI.bulkUpload(formData);
+        closeModal('bulkModal');
+        toast(`Imported: ${result.created || 0} created, ${result.updated || 0} updated${result.failed ? `, ${result.failed} failed` : ''}`);
+        await loadHolidays();
+    } catch (err) {
+        toast(`Bulk upload failed: ${err.message}`, 'error');
+    } finally {
+        bulkFile = null;
+        document.getElementById('bulkFile').value = '';
+    }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -996,7 +1097,10 @@ function nextMonth() {
 //  MODAL HELPERS
 // ══════════════════════════════════════════════════════════════
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'addModal') clearHolidayFormErrors();
+}
 
 document.querySelectorAll('.modal-overlay').forEach(ov => {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
@@ -1033,6 +1137,25 @@ document.addEventListener('DOMContentLoaded', () => {
         yearFilter.insertAdjacentHTML('beforeend', `<option value="${thisYear}">${thisYear}</option>`);
     }
     yearFilter.value = String(thisYear);
+    const monthFilter = document.getElementById('monthFilter');
+    if (monthFilter) monthFilter.value = String(todayDate.getMonth() + 1);
+
+    const fDate = document.getElementById('fDate');
+    if (fDate) fDate.setAttribute('min', todayDate.toISOString().split('T')[0]);
+    const fName = document.getElementById('fName');
+    if (fName) fName.addEventListener('input', () => clearHolidayFieldError('fName'));
+    if (fDate) fDate.addEventListener('change', () => clearHolidayFieldError('fDate'));
+
+    const bulkYearSelect = document.getElementById('bulkTargetYear');
+    if (bulkYearSelect) {
+        const years = [thisYear, thisYear + 1, thisYear + 2];
+        bulkYearSelect.innerHTML =
+            `<option value="">Use file dates</option>` +
+            years.map(y => `<option value="${y}">${y}</option>`).join('');
+        bulkYearSelect.value = String(thisYear);
+        const bulkMonth = document.getElementById('bulkTargetMonth');
+        if (bulkMonth) bulkMonth.value = String(todayDate.getMonth() + 1);
+    }
 
     // sync cal to year filter default
     calYear  = thisYear;

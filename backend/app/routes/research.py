@@ -15,6 +15,7 @@ from app.models.research import (
     ResearchDocumentPermission
 )
 from app.schemas.research import ResearchFileCreate, ResearchFileOut, CellUpdate
+from app.services.notification_service import notify_all_employees, push_notifications
 
 
 router = APIRouter(prefix="/research", tags=["Research"])
@@ -96,6 +97,28 @@ def create_file(
             for uid in (payload.user_ids or []):
                 db.add(ResearchDocumentPermission(document_id=doc.id, user_id=uid))
             db.commit()
+
+        if payload.visibility == "everyone":
+            notify_all_employees(
+                db,
+                title="New document shared",
+                message=f"A document has been shared: {doc.title}",
+                event_type="document_shared",
+                reference_type="research_document",
+                reference_id=doc.id,
+                created_by=admin.id
+            )
+        elif payload.visibility == "selected":
+            push_notifications(
+                db,
+                user_ids=(payload.user_ids or []),
+                title="New document shared",
+                message=f"A document has been shared with you: {doc.title}",
+                event_type="document_shared",
+                reference_type="research_document",
+                reference_id=doc.id,
+                created_by=admin.id
+            )
 
     return file
 
@@ -596,4 +619,56 @@ def update_document(
             ).delete()
             db.commit()
 
+        if doc.visibility == "everyone":
+            notify_all_employees(
+                db,
+                title="Document shared",
+                message=f"A document is available for you: {doc.title}",
+                event_type="document_shared",
+                reference_type="research_document",
+                reference_id=doc.id,
+                created_by=user.id
+            )
+        elif doc.visibility == "selected":
+            selected_ids = [
+                uid for (uid,) in db.query(ResearchDocumentPermission.user_id).filter(
+                    ResearchDocumentPermission.document_id == doc.id
+                ).all()
+            ]
+            push_notifications(
+                db,
+                user_ids=selected_ids,
+                title="Document shared",
+                message=f"A document is available for you: {doc.title}",
+                event_type="document_shared",
+                reference_type="research_document",
+                reference_id=doc.id,
+                created_by=user.id
+            )
+
     return {"message": "Document updated"}
+
+
+# =========================
+# DELETE DOCUMENT (admin only)
+# =========================
+@router.delete("/documents/{document_id}")
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    doc = db.query(ResearchDocument).filter(ResearchDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    file_id = doc.file_id
+
+    db.query(ResearchDocumentPermission).filter(
+        ResearchDocumentPermission.document_id == document_id
+    ).delete()
+    db.query(ResearchDocument).filter(ResearchDocument.id == document_id).delete()
+    db.query(ResearchFile).filter(ResearchFile.id == file_id).delete()
+    db.commit()
+
+    return {"message": "Document deleted", "file_id": file_id}

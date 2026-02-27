@@ -669,6 +669,26 @@
     background: #f8fafc;
 }
 
+.modal-card input.input-error,
+.modal-card textarea.input-error,
+.modal-card select.input-error {
+    border-color: #cc1f1f;
+    box-shadow: 0 0 0 3px rgba(204, 31, 31, 0.12);
+    background: #fff;
+}
+
+.field-error {
+    display: none;
+    color: #cc1f1f;
+    font-size: 13px;
+    line-height: 1.3;
+    margin: -6px 0 10px;
+}
+
+.field-error.show {
+    display: block;
+}
+
 .modal-card input:focus,
 .modal-card textarea:focus,
 .modal-card select:focus {
@@ -788,8 +808,10 @@
                 <h3 id="noticeModalTitle">Add New Notice</h3>
                 
                 <input id="noticeTitle" type="text" placeholder="Notice title">
+                <div class="field-error" id="noticeTitleError"></div>
                 
                 <textarea id="noticeDescription" rows="4" placeholder="Notice description"></textarea>
+                <div class="field-error" id="noticeDescriptionError"></div>
                 
                 <select id="noticeCategory">
                     <option value="general">General</option>
@@ -915,6 +937,8 @@
         const closeBtn = document.getElementById("closeNoticeModal");
         const saveBtn = document.getElementById("saveNoticeBtn");
         const searchInput = document.getElementById("noticeSearchInput");
+        const noticeTitle = document.getElementById("noticeTitle");
+        const noticeDescription = document.getElementById("noticeDescription");
         const searchIcon = document.getElementById("searchIcon");
         const notificationBtn = document.getElementById("notificationBtn");
         const viewModal = document.getElementById("viewNoticeModal");
@@ -924,6 +948,8 @@
         addBtn?.addEventListener("click", openCreateNoticeModal);
         closeBtn?.addEventListener("click", closeNoticeModal);
         saveBtn?.addEventListener("click", createNotice);
+        noticeTitle?.addEventListener("input", () => clearNoticeFieldError("noticeTitle"));
+        noticeDescription?.addEventListener("input", () => clearNoticeFieldError("noticeDescription"));
 
         modal?.addEventListener("click", (e) => {
             if (e.target === modal) closeNoticeModal();
@@ -988,6 +1014,32 @@
         document.getElementById("noticeTitle").value = "";
         document.getElementById("noticeDescription").value = "";
         document.getElementById("noticeCategory").value = "general";
+        clearNoticeFormErrors();
+    }
+
+    function clearNoticeFieldError(fieldId) {
+        const input = document.getElementById(fieldId);
+        const err = document.getElementById(`${fieldId}Error`);
+        if (input) input.classList.remove("input-error");
+        if (err) {
+            err.textContent = "";
+            err.classList.remove("show");
+        }
+    }
+
+    function setNoticeFieldError(fieldId, message) {
+        const input = document.getElementById(fieldId);
+        const err = document.getElementById(`${fieldId}Error`);
+        if (input) input.classList.add("input-error");
+        if (err) {
+            err.textContent = message;
+            err.classList.add("show");
+        }
+    }
+
+    function clearNoticeFormErrors() {
+        clearNoticeFieldError("noticeTitle");
+        clearNoticeFieldError("noticeDescription");
     }
 
     function openCreateNoticeModal() {
@@ -1223,15 +1275,22 @@
     }
     
     async function createNotice() {
+        clearNoticeFormErrors();
         const title = document.getElementById("noticeTitle").value.trim();
         const description = document.getElementById("noticeDescription").value.trim();
         const category = document.getElementById("noticeCategory").value;
         const isEdit = Boolean(editingNoticeId);
-        
-        if (!title || !description) {
-            alert("Title and description are required");
-            return;
+
+        let hasError = false;
+        if (!title) {
+            setNoticeFieldError("noticeTitle", "Please fill the required details.");
+            hasError = true;
         }
+        if (!description) {
+            setNoticeFieldError("noticeDescription", "Please fill the required details.");
+            hasError = true;
+        }
+        if (hasError) return;
         
         const saveBtn = document.getElementById("saveNoticeBtn");
         const originalText = saveBtn.innerHTML;
@@ -1256,9 +1315,17 @@
             
         } catch (error) {
             console.error("Error creating notice:", error);
-            alert(`Failed to save notice: ${error.message || 'Unknown error'}`);
+            const message = String(error?.message || "Failed to save notice.");
+            const lower = message.toLowerCase();
+            if (lower.includes("title")) {
+                setNoticeFieldError("noticeTitle", message);
+            } else if (lower.includes("description")) {
+                setNoticeFieldError("noticeDescription", message);
+            } else {
+                setNoticeFieldError("noticeDescription", message);
+            }
         } finally {
-            saveBtn.innerHTML = originalText.includes("Update") ? "Update Notice" : "Save Notice";
+            saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
         }
     }

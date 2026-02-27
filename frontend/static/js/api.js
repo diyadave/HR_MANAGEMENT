@@ -222,12 +222,19 @@ async function apiRequest(endpoint, method = "GET", body = null, options = {}) {
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
+        if (Array.isArray(err.errors) && err.errors.length) {
+            throw new Error(err.errors[0]);
+        }
         if (Array.isArray(err.detail)) {
             const message = err.detail
                 .map((item) => item?.msg || item?.message)
                 .filter(Boolean)
                 .join(", ");
             throw new Error(message || "Request failed");
+        }
+        if (err.detail && typeof err.detail === "object") {
+            if (err.detail.msg) throw new Error(String(err.detail.msg));
+            if (err.detail.message) throw new Error(String(err.detail.message));
         }
         throw new Error(err.detail || "Request failed");
     }
@@ -367,6 +374,15 @@ window.API = {
     // Notices
     getNotices: () => apiRequest("/notices/"),
 
+    // Notifications
+    getMyNotifications: (limit = 25, unreadOnly = false) =>
+        apiRequest(`/notifications/my?limit=${limit}&unread_only=${unreadOnly}`),
+    getUnreadNotificationCount: () => apiRequest("/notifications/unread-count"),
+    markNotificationRead: (notificationId) => apiRequest(`/notifications/${notificationId}/read`, "PATCH"),
+    markAllNotificationsRead: () => apiRequest("/notifications/read-all", "PATCH"),
+    deleteNotification: (notificationId) => apiRequest(`/notifications/${notificationId}`, "DELETE"),
+    clearMyNotifications: () => apiRequest("/notifications/clear-all", "DELETE"),
+
     // Leaves
     getMyLeaves: () => apiRequest("/leaves/my"),
     getLeaves: (status = null) => apiRequest(status ? `/leaves?status=${encodeURIComponent(status)}` : "/leaves"),
@@ -407,6 +423,7 @@ window.API = {
     sendChatMessage: (conversationId, message) =>
         apiRequest("/chat/messages", "POST", { conversation_id: conversationId, message }),
     markChatRead: (conversationId) => apiRequest(`/chat/conversations/${conversationId}/read`, "PUT"),
+    getChatUnreadCount: () => apiRequest("/chat/unread-count"),
 
     updateAdminProfile: (formData) =>
         apiRequest("/admin/profile", "PUT", formData, { isFormData: true }),
@@ -487,3 +504,504 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("popstate", highlightSidebarActive);
+
+const employeeNotificationState = {
+    socket: null,
+    reconnectTimer: null,
+    uiBound: false,
+    list: [],
+    unreadCount: 0
+};
+
+function isEmployeeUser() {
+    const role = (localStorage.getItem("user_role") || "").toLowerCase();
+    if (role) return role === "employee";
+    const raw = localStorage.getItem("user");
+    if (!raw) return false;
+    try {
+        const user = JSON.parse(raw);
+        return String(user?.role || "").toLowerCase() === "employee";
+    } catch {
+        return false;
+    }
+}
+
+function isAdminUser() {
+    const role = (localStorage.getItem("user_role") || "").toLowerCase();
+    if (role) return role === "admin";
+    const raw = localStorage.getItem("user");
+    if (!raw) return false;
+    try {
+        const user = JSON.parse(raw);
+        return String(user?.role || "").toLowerCase() === "admin";
+    } catch {
+        return false;
+    }
+}
+
+function notificationTimeLabel(iso) {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return d.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function playNotificationSound() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.001;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const now = ctx.currentTime;
+        gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } catch {
+        // Ignore sound failures (autoplay restrictions/device policies).
+    }
+}
+
+function renderEmployeeNotificationBell() {
+    const badgeEl = document.getElementById("employeeNotificationBadge");
+    const listEl = document.getElementById("employeeNotificationItems");
+    const emptyEl = document.getElementById("employeeNotificationEmpty");
+
+    if (badgeEl) {
+        if (employeeNotificationState.unreadCount > 0) {
+            badgeEl.style.display = "inline-flex";
+            badgeEl.textContent = employeeNotificationState.unreadCount > 99
+                ? "99+"
+                : String(employeeNotificationState.unreadCount);
+        } else {
+            badgeEl.style.display = "none";
+            badgeEl.textContent = "";
+        }
+    }
+
+    if (!listEl) return;
+    if (!employeeNotificationState.list.length) {
+        listEl.innerHTML = "";
+        if (emptyEl) emptyEl.style.display = "block";
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    listEl.innerHTML = employeeNotificationState.list.slice(0, 50).map((n) => {
+        const title = String(n.title || "Notification")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        const msg = String(n.message || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        return `
+            <div class="employee-notif-item ${n.is_read ? "" : "unread"}" data-notification-id="${n.id}">
+                <div class="employee-notif-title">${title}</div>
+                <div class="employee-notif-msg">${msg}</div>
+                <div class="employee-notif-foot">
+                    <span>${notificationTimeLabel(n.created_at)}</span>
+                    <button type="button" class="employee-notif-remove" data-remove-notification-id="${n.id}">Remove</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function loadEmployeeNotifications() {
+    if (!isEmployeeUser()) return;
+    try {
+        const [items, countRes] = await Promise.all([
+            apiRequest("/notifications/my?limit=100&unread_only=false"),
+            apiRequest("/notifications/unread-count")
+        ]);
+        employeeNotificationState.list = items || [];
+        employeeNotificationState.unreadCount = Number(countRes?.unread_count || 0);
+        renderEmployeeNotificationBell();
+    } catch (err) {
+        console.error("Failed to load employee notifications:", err);
+    }
+}
+
+async function handleRemoveNotification(notificationId) {
+    try {
+        await apiRequest(`/notifications/${notificationId}`, "DELETE");
+        employeeNotificationState.list = employeeNotificationState.list.filter((n) => Number(n.id) !== Number(notificationId));
+        employeeNotificationState.unreadCount = Math.max(
+            0,
+            employeeNotificationState.list.filter((n) => !n.is_read).length
+        );
+        renderEmployeeNotificationBell();
+        window.dispatchEvent(new CustomEvent("employee-notification-removed", { detail: { id: notificationId } }));
+    } catch (err) {
+        showUIPopup(err.message || "Failed to remove notification", "error");
+    }
+}
+
+async function handleClearAllNotifications() {
+    try {
+        await apiRequest("/notifications/clear-all", "DELETE");
+        employeeNotificationState.list = [];
+        employeeNotificationState.unreadCount = 0;
+        renderEmployeeNotificationBell();
+        window.dispatchEvent(new CustomEvent("employee-notification-cleared"));
+    } catch (err) {
+        showUIPopup(err.message || "Failed to clear notifications", "error");
+    }
+}
+
+async function openEmployeeNotificationPanel() {
+    const panel = document.getElementById("employeeNotificationPanel");
+    if (!panel) return;
+    panel.classList.toggle("active");
+    if (!panel.classList.contains("active")) return;
+
+    try {
+        await apiRequest("/notifications/read-all", "PATCH");
+        employeeNotificationState.list = employeeNotificationState.list.map((n) => ({ ...n, is_read: true }));
+        employeeNotificationState.unreadCount = 0;
+        renderEmployeeNotificationBell();
+        window.dispatchEvent(new CustomEvent("employee-notification-read-all"));
+    } catch {
+        // Keep panel open even if mark-read fails.
+    }
+}
+
+function bindEmployeeNotificationUI() {
+    if (!isEmployeeUser()) return;
+    const btn = document.getElementById("employeeNotificationBell");
+    const panel = document.getElementById("employeeNotificationPanel");
+    const clearBtn = document.getElementById("employeeNotifClearAllBtn");
+    const listEl = document.getElementById("employeeNotificationItems");
+    if (!btn || !panel || !clearBtn || !listEl) return;
+    if (employeeNotificationState.uiBound) return;
+
+    btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openEmployeeNotificationPanel();
+    });
+
+    clearBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleClearAllNotifications();
+    });
+
+    listEl.addEventListener("click", (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+        const removeId = target.getAttribute("data-remove-notification-id");
+        if (!removeId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        handleRemoveNotification(removeId);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!panel.classList.contains("active")) return;
+        if (panel.contains(e.target) || btn.contains(e.target)) return;
+        panel.classList.remove("active");
+    });
+
+    employeeNotificationState.uiBound = true;
+    loadEmployeeNotifications();
+}
+
+function connectEmployeeNotificationSocket() {
+    if (!isEmployeeUser()) return;
+    const token = localStorage.getItem("access_token");
+    const userRaw = localStorage.getItem("user");
+    if (!token || !userRaw) return;
+
+    let user;
+    try {
+        user = JSON.parse(userRaw);
+    } catch {
+        return;
+    }
+    if (!user || !user.id) return;
+
+    if (employeeNotificationState.socket && employeeNotificationState.socket.readyState === WebSocket.OPEN) {
+        return;
+    }
+
+    const wsBase = (window.BASE_URL || "http://127.0.0.1:8000").replace(/^http/i, "ws");
+    const wsUrl = `${wsBase}/ws/notifications/${encodeURIComponent(user.id)}?token=${encodeURIComponent(token)}`;
+    const socket = new WebSocket(wsUrl);
+    employeeNotificationState.socket = socket;
+
+    socket.onmessage = (event) => {
+        try {
+            const payload = JSON.parse(event.data);
+            if (!payload || payload.type !== "notification_new" || !payload.notification) return;
+            const notification = payload.notification;
+            employeeNotificationState.list = [notification, ...employeeNotificationState.list]
+                .filter((n, idx, arr) => arr.findIndex((x) => Number(x.id) === Number(n.id)) === idx);
+            employeeNotificationState.unreadCount += 1;
+            renderEmployeeNotificationBell();
+            playNotificationSound();
+            if (window.showUIPopup) {
+                window.showUIPopup(`${notification.title || "Notification"}: ${notification.message || ""}`, "info");
+            }
+            window.dispatchEvent(new CustomEvent("employee-notification-new", { detail: notification }));
+        } catch (err) {
+            console.error("Notification websocket message parse failed:", err);
+        }
+    };
+
+    socket.onclose = () => {
+        if (employeeNotificationState.reconnectTimer) clearTimeout(employeeNotificationState.reconnectTimer);
+        employeeNotificationState.reconnectTimer = setTimeout(() => {
+            connectEmployeeNotificationSocket();
+        }, 3000);
+    };
+}
+
+function initEmployeeNotifications() {
+    if (!isEmployeeUser()) return;
+    bindEmployeeNotificationUI();
+    connectEmployeeNotificationSocket();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initEmployeeNotifications();
+    const sidebarContainer = document.getElementById("sidebar-container");
+    if (!sidebarContainer) return;
+    const notifObserver = new MutationObserver(() => {
+        bindEmployeeNotificationUI();
+    });
+    notifObserver.observe(sidebarContainer, { childList: true, subtree: true });
+});
+
+const adminNotificationState = {
+    socket: null,
+    reconnectTimer: null,
+    uiBound: false,
+    list: [],
+    unreadCount: 0
+};
+
+function renderAdminNotificationBell() {
+    const badgeEl = document.getElementById("adminNotificationBadge");
+    const listEl = document.getElementById("adminNotificationItems");
+    const emptyEl = document.getElementById("adminNotificationEmpty");
+
+    if (badgeEl) {
+        if (adminNotificationState.unreadCount > 0) {
+            badgeEl.style.display = "inline-flex";
+            badgeEl.textContent = adminNotificationState.unreadCount > 99
+                ? "99+"
+                : String(adminNotificationState.unreadCount);
+        } else {
+            badgeEl.style.display = "none";
+            badgeEl.textContent = "";
+        }
+    }
+
+    if (!listEl) return;
+    if (!adminNotificationState.list.length) {
+        listEl.innerHTML = "";
+        if (emptyEl) emptyEl.style.display = "block";
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    listEl.innerHTML = adminNotificationState.list.slice(0, 50).map((n) => {
+        const title = String(n.title || "Notification")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        const msg = String(n.message || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        return `
+            <div class="admin-notif-item ${n.is_read ? "" : "unread"}" data-notification-id="${n.id}">
+                <div class="admin-notif-title">${title}</div>
+                <div class="admin-notif-msg">${msg}</div>
+                <div class="admin-notif-foot">
+                    <span>${notificationTimeLabel(n.created_at)}</span>
+                    <button type="button" class="admin-notif-remove" data-remove-admin-notification-id="${n.id}">Remove</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function loadAdminNotifications() {
+    if (!isAdminUser()) return;
+    try {
+        const [items, countRes] = await Promise.all([
+            apiRequest("/notifications/my?limit=100&unread_only=false"),
+            apiRequest("/notifications/unread-count")
+        ]);
+        adminNotificationState.list = items || [];
+        adminNotificationState.unreadCount = Number(countRes?.unread_count || 0);
+        renderAdminNotificationBell();
+    } catch (err) {
+        console.error("Failed to load admin notifications:", err);
+    }
+}
+
+async function handleRemoveAdminNotification(notificationId) {
+    try {
+        await apiRequest(`/notifications/${notificationId}`, "DELETE");
+        adminNotificationState.list = adminNotificationState.list.filter((n) => Number(n.id) !== Number(notificationId));
+        adminNotificationState.unreadCount = Math.max(
+            0,
+            adminNotificationState.list.filter((n) => !n.is_read).length
+        );
+        renderAdminNotificationBell();
+        window.dispatchEvent(new CustomEvent("admin-notification-removed", { detail: { id: notificationId } }));
+    } catch (err) {
+        showUIPopup(err.message || "Failed to remove notification", "error");
+    }
+}
+
+async function handleClearAllAdminNotifications() {
+    try {
+        await apiRequest("/notifications/clear-all", "DELETE");
+        adminNotificationState.list = [];
+        adminNotificationState.unreadCount = 0;
+        renderAdminNotificationBell();
+        window.dispatchEvent(new CustomEvent("admin-notification-cleared"));
+    } catch (err) {
+        showUIPopup(err.message || "Failed to clear notifications", "error");
+    }
+}
+
+async function openAdminNotificationPanel() {
+    const panel = document.getElementById("adminNotificationPanel");
+    if (!panel) return;
+    panel.classList.toggle("active");
+    if (!panel.classList.contains("active")) return;
+
+    try {
+        await apiRequest("/notifications/read-all", "PATCH");
+        adminNotificationState.list = adminNotificationState.list.map((n) => ({ ...n, is_read: true }));
+        adminNotificationState.unreadCount = 0;
+        renderAdminNotificationBell();
+        window.dispatchEvent(new CustomEvent("admin-notification-read-all"));
+    } catch {
+        // no-op
+    }
+}
+
+function bindAdminNotificationUI() {
+    if (!isAdminUser()) return;
+    const btn = document.getElementById("adminNotificationBell");
+    const panel = document.getElementById("adminNotificationPanel");
+    const clearBtn = document.getElementById("adminNotifClearAllBtn");
+    const listEl = document.getElementById("adminNotificationItems");
+    if (!btn || !panel || !clearBtn || !listEl) return;
+    if (adminNotificationState.uiBound) return;
+
+    btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openAdminNotificationPanel();
+    });
+
+    clearBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleClearAllAdminNotifications();
+    });
+
+    listEl.addEventListener("click", (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+        const removeId = target.getAttribute("data-remove-admin-notification-id");
+        if (!removeId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        handleRemoveAdminNotification(removeId);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!panel.classList.contains("active")) return;
+        if (panel.contains(e.target) || btn.contains(e.target)) return;
+        panel.classList.remove("active");
+    });
+
+    adminNotificationState.uiBound = true;
+    loadAdminNotifications();
+}
+
+function connectAdminNotificationSocket() {
+    if (!isAdminUser()) return;
+    const token = localStorage.getItem("access_token");
+    const userRaw = localStorage.getItem("user");
+    if (!token || !userRaw) return;
+
+    let user;
+    try {
+        user = JSON.parse(userRaw);
+    } catch {
+        return;
+    }
+    if (!user || !user.id) return;
+
+    if (adminNotificationState.socket && adminNotificationState.socket.readyState === WebSocket.OPEN) {
+        return;
+    }
+
+    const wsBase = (window.BASE_URL || "http://127.0.0.1:8000").replace(/^http/i, "ws");
+    const wsUrl = `${wsBase}/ws/notifications/${encodeURIComponent(user.id)}?token=${encodeURIComponent(token)}`;
+    const socket = new WebSocket(wsUrl);
+    adminNotificationState.socket = socket;
+
+    socket.onmessage = (event) => {
+        try {
+            const payload = JSON.parse(event.data);
+            if (!payload || payload.type !== "notification_new" || !payload.notification) return;
+            const notification = payload.notification;
+            adminNotificationState.list = [notification, ...adminNotificationState.list]
+                .filter((n, idx, arr) => arr.findIndex((x) => Number(x.id) === Number(n.id)) === idx);
+            adminNotificationState.unreadCount += 1;
+            renderAdminNotificationBell();
+            playNotificationSound();
+            if (window.showUIPopup) {
+                window.showUIPopup(`${notification.title || "Notification"}: ${notification.message || ""}`, "info");
+            }
+            window.dispatchEvent(new CustomEvent("admin-notification-new", { detail: notification }));
+        } catch (err) {
+            console.error("Admin notification parse failed:", err);
+        }
+    };
+
+    socket.onclose = () => {
+        if (adminNotificationState.reconnectTimer) clearTimeout(adminNotificationState.reconnectTimer);
+        adminNotificationState.reconnectTimer = setTimeout(() => {
+            connectAdminNotificationSocket();
+        }, 3000);
+    };
+}
+
+function initAdminNotifications() {
+    if (!isAdminUser()) return;
+    bindAdminNotificationUI();
+    connectAdminNotificationSocket();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initAdminNotifications();
+    const sidebarContainer = document.getElementById("sidebar-container");
+    if (!sidebarContainer) return;
+    const adminNotifObserver = new MutationObserver(() => {
+        bindAdminNotificationUI();
+    });
+    adminNotifObserver.observe(sidebarContainer, { childList: true, subtree: true });
+});

@@ -7,6 +7,7 @@ from app.database.session import get_db
 from app.models.notice import Notice
 from app.schemas.notice import NoticeCreate, NoticeResponse
 from app.core.dependencies import get_current_admin, get_current_user
+from app.services.notification_service import notify_all_employees
 
 router = APIRouter(prefix="/notices", tags=["Notices"])
 
@@ -31,6 +32,16 @@ def create_notice(
     db.add(notice)
     db.commit()
     db.refresh(notice)
+
+    notify_all_employees(
+        db,
+        title="New notice published",
+        message=f"{notice.title}",
+        event_type="notice_created",
+        reference_type="notice",
+        reference_id=notice.id,
+        created_by=admin.id
+    )
     return notice
 
 

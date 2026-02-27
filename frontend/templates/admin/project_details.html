@@ -356,6 +356,29 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
+        .selected-task-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .selected-task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px 24px;
+            margin-top: 14px;
+        }
+
+        .selected-task-description {
+            margin-top: 8px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
         .table-header {
             padding: 20px 24px;
             border-bottom: 1px solid var(--gray-200);
@@ -751,6 +774,34 @@
                     <!-- dynamically loaded -->
                 </div>
             </div>
+
+            <div class="selected-task-card" id="selectedTaskCard" style="display:none;">
+                <div class="section-header" style="margin-bottom: 10px;">
+                    <div class="section-title">Selected Task Details</div>
+                </div>
+                <div class="meta-label">Task Name</div>
+                <div class="meta-value-large" id="selectedTaskName">-</div>
+                <div class="meta-label" style="margin-top: 10px;">Task Details</div>
+                <div class="selected-task-description" id="selectedTaskDescription">-</div>
+                <div class="selected-task-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">Status</div>
+                        <div class="meta-value-large" id="selectedTaskStatus">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Priority</div>
+                        <div class="meta-value-large" id="selectedTaskPriority">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Due Date</div>
+                        <div class="meta-value-large" id="selectedTaskDueDate">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Assigned To</div>
+                        <div class="meta-value-large" id="selectedTaskAssignedTo">-</div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Tasks Table -->
             <div class="tasks-table">
@@ -861,7 +912,9 @@
         /* ================================
            Project Details Loader
         ================================ */
-        const projectId = new URLSearchParams(window.location.search).get("id");
+        const queryParams = new URLSearchParams(window.location.search);
+        const projectId = queryParams.get("id");
+        const selectedTaskId = Number(queryParams.get("task"));
 
         document.addEventListener("DOMContentLoaded", loadProjectDetails);
 
@@ -917,6 +970,7 @@
 
                 renderTeam(members);
                 renderTasks(tasks);
+                renderSelectedTaskDetails(tasks);
 
             } catch (err) {
                 console.error("Failed to load project:", err);
@@ -960,7 +1014,7 @@
         /* ================================
            Render Tasks
         ================================ */
-       function renderTasks(tasks) {
+        function renderTasks(tasks) {
             const tbody = document.getElementById("tasksTableBody");
             tbody.innerHTML = "";
 
@@ -1017,6 +1071,30 @@
 
                 tbody.appendChild(tr);
             });
+        }
+
+        function renderSelectedTaskDetails(tasks) {
+            const card = document.getElementById("selectedTaskCard");
+            if (!card) return;
+
+            if (!Number.isFinite(selectedTaskId)) {
+                card.style.display = "none";
+                return;
+            }
+
+            const task = (tasks || []).find((t) => Number(t.id) === selectedTaskId);
+            if (!task) {
+                card.style.display = "none";
+                return;
+            }
+
+            document.getElementById("selectedTaskName").innerText = task.title || "-";
+            document.getElementById("selectedTaskDescription").innerText = task.description || "No task details available.";
+            document.getElementById("selectedTaskStatus").innerText = task.status || "-";
+            document.getElementById("selectedTaskPriority").innerText = task.priority || "-";
+            document.getElementById("selectedTaskDueDate").innerText = task.due_date || "-";
+            document.getElementById("selectedTaskAssignedTo").innerText = task.assignee_name || task.assigned_user?.name || "-";
+            card.style.display = "block";
         }
 
     </script>

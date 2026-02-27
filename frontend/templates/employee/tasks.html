@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -204,7 +205,7 @@
             font-size: 12px;
             color: #64748b;
         }
-        
+
         .task-description {
             font-size: 12px;
             color: #94a3b8;
@@ -485,6 +486,7 @@
             .main-content {
                 margin-right: 0;
             }
+
             #tracker-container {
                 display: none;
             }
@@ -495,16 +497,19 @@
                 margin-left: 0;
                 padding: 16px;
             }
+
             .action-buttons {
                 flex-direction: column;
             }
-            .tasks-table th, 
+
+            .tasks-table th,
             .tasks-table td {
                 padding: 10px 8px;
             }
         }
     </style>
 </head>
+
 <body>
     <div id="sidebar-container"></div>
     <div id="tracker-container"></div>
@@ -516,9 +521,9 @@
                 <p class="page-subtitle">Manage and track your work</p>
             </div>
             <div class="header-actions">
-                <button class="btn-secondary" id="refreshTasksBtn">
+                <!-- <button class="btn-secondary" id="refreshTasksBtn">
                     🔄 Refresh
-                </button>
+                </button> -->
                 <button class="btn-primary" id="viewHistoryBtn">
                     📋 View History
                 </button>
@@ -559,7 +564,8 @@
         </div>
 
         <!-- Task Limit Info -->
-        <div class="info-message" id="taskLimitInfo" style="display: none; text-align: center; color: #64748b; font-size: 12px; margin-top: 8px;">
+        <div class="info-message" id="taskLimitInfo"
+            style="display: none; text-align: center; color: #64748b; font-size: 12px; margin-top: 8px;">
             Showing top 15 active tasks. <a href="#" id="showAllLink">View all in history</a>
         </div>
     </div>
@@ -580,7 +586,7 @@
     <script src="../../static/js/api.js"></script>
     <script src="../../static/js/tracker.js"></script>
     <script src="../../static/js/loadTracker.js"></script>
-    
+
     <script>
         // ==================== STATE ====================
         let allTasks = [];
@@ -670,13 +676,13 @@
                 const tasks = await API.getMyTasks(15, false);
                 allTasks = tasks;
                 await syncRuntimeState();
-                
+
                 applyFilters();
                 populateFilters();
-                
+
                 // Show/hide limit info
                 document.getElementById('taskLimitInfo').style.display = tasks.length === 15 ? 'block' : 'none';
-                
+
             } catch (error) {
                 console.error('Failed to load tasks:', error);
                 showError('Failed to load tasks');
@@ -687,10 +693,10 @@
         function populateFilters() {
             const projects = [...new Set(allTasks.map(t => t.project?.name || t.project_name).filter(Boolean))];
             const projectSelect = document.getElementById('filterProject');
-            
+
             // Keep first option
             projectSelect.innerHTML = '<option value="">All Projects</option>';
-            
+
             projects.forEach(project => {
                 const option = document.createElement('option');
                 option.value = project;
@@ -703,21 +709,21 @@
         function applyFilters() {
             const project = document.getElementById('filterProject').value;
             const priority = document.getElementById('filterPriority').value;
-            
+
             filteredTasks = allTasks.filter(task => {
                 const taskProject = task.project?.name || task.project_name;
                 if (project && taskProject !== project) return false;
                 if (priority && task.priority !== priority) return false;
                 return true;
             });
-            
+
             renderTasks(filteredTasks);
         }
 
         // ==================== RENDER TASKS ====================
         function renderTasks(tasks) {
             const tbody = document.getElementById('tasksTableBody');
-            
+
             if (!tasks || tasks.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -736,7 +742,7 @@
             tbody.innerHTML = tasks.map(task => {
                 const isActive = task.id === activeTaskId;
                 const rowClass = isActive ? 'active-task' : '';
-                
+
                 // Determine button states
                 const isRunning = task.id === activeTaskId;
 
@@ -744,7 +750,7 @@
                 const canStart = canShowStart && isClockedIn;
                 const canPause = isRunning;
                 const canComplete = task.status !== 'completed';
-                
+
                 // Format hours
                 let hoursDisplay = task.total_time_spent || 0;
                 if (isActive && window.Tracker) {
@@ -753,14 +759,14 @@
                 } else {
                     hoursDisplay = hoursDisplay.toFixed(1);
                 }
-                
+
                 // Get project name safely
                 const projectName = task.project?.name || task.project_name || 'No Project';
-                
+
                 // Status class mapping
-                const statusClass = task.status === 'in_progress' ? 'in-progress' : 
-                                   task.status === 'completed' ? 'completed' : 'pending';
-                
+                const statusClass = task.status === 'in_progress' ? 'in-progress' :
+                    task.status === 'completed' ? 'completed' : 'pending';
+
                 return `
                     <tr data-task-id="${task.id}" class="${rowClass}">
                         <td>
@@ -830,15 +836,15 @@
                 const result = await API.startTask(taskId);
                 activeTaskId = taskId;
                 await loadTasks();
-                
+
                 // Update tracker state if available
-               if (window.Tracker?.refresh) {
-                await window.Tracker.refresh();
-            }
-                
+                if (window.Tracker?.refresh) {
+                    await window.Tracker.refresh();
+                }
+
                 await loadTasks();
                 startTaskTimerUpdate();
-                
+
             } catch (error) {
                 console.error('Start failed:', error);
                 alert(error.message || 'Failed to start task');
@@ -848,14 +854,14 @@
         async function handleStop(taskId) {
             try {
                 const result = await API.stopTask(taskId);
-                
+
                 // Update tracker
                 if (window.Tracker?.refresh) {
-                await window.Tracker.refresh();
-            }
-                
+                    await window.Tracker.refresh();
+                }
+
                 await loadTasks();
-                
+
             } catch (error) {
                 console.error('Stop failed:', error);
                 alert(error.message || 'Failed to stop task');
@@ -864,20 +870,20 @@
 
         async function handleComplete(taskId) {
             if (!confirm('Mark this task as completed?')) return;
-            
+
             try {
                 const result = await API.completeTask(taskId);
-                
+
                 // If this was active task, clear it
                 if (activeTaskId === taskId) {
                     activeTaskId = null;
                     if (window.Tracker?.refresh) {
-                    await window.Tracker.refresh();
+                        await window.Tracker.refresh();
+                    }
                 }
-                }
-                
+
                 await loadTasks();
-                
+
             } catch (error) {
                 console.error('Complete failed:', error);
                 alert(error.message || 'Failed to complete task');
@@ -889,7 +895,7 @@
             if (activeTaskTimer) {
                 clearInterval(activeTaskTimer);
             }
-            
+
             activeTaskTimer = setInterval(() => {
                 if (activeTaskId && window.Tracker) {
                     const state = window.Tracker.getState();
@@ -923,10 +929,10 @@
         async function openHistoryModal() {
             const modal = document.getElementById('historyModal');
             const modalBody = document.getElementById('historyModalBody');
-            
+
             modalBody.innerHTML = '<div class="loading">Loading history...</div>';
             modal.classList.add('active');
-            
+
             try {
                 const history = await API.getTaskHistory(50);
                 renderHistory(history);
@@ -942,7 +948,7 @@
 
         function renderHistory(history) {
             const modalBody = document.getElementById('historyModalBody');
-            
+
             if (!history || history.length === 0) {
                 modalBody.innerHTML = `
                     <div class="empty-state">
@@ -1013,8 +1019,8 @@
             if (!dateStr) return '-';
             try {
                 const date = new Date(dateStr);
-                return date.toLocaleString('en-US', { 
-                    month: 'short', 
+                return date.toLocaleString('en-US', {
+                    month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
@@ -1071,4 +1077,5 @@
         window.handleComplete = handleComplete;
     </script>
 </body>
+
 </html>

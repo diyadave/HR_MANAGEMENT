@@ -7,6 +7,7 @@ from app.models.leave import Leave
 from app.schemas.leave import LeaveCreate, LeaveOut
 from app.core.dependencies import get_current_user, get_current_admin
 from app.models.user import User
+from app.services.notification_service import push_notification, notify_all_admins
 
 router = APIRouter(prefix="/leaves", tags=["Leaves"])
 
@@ -41,6 +42,16 @@ def apply_leave(
     db.add(leave)
     db.commit()
     db.refresh(leave)
+
+    notify_all_admins(
+        db,
+        title="New leave request",
+        message=f"{current_user.name} requested {leave.leave_type} leave from {leave.start_date} to {leave.end_date}.",
+        event_type="leave_request_submitted",
+        reference_type="leave",
+        reference_id=leave.id,
+        created_by=current_user.id
+    )
 
     return leave
 
@@ -94,6 +105,16 @@ def approve_leave(
     leave.approved_at = datetime.now(timezone.utc)
 
     db.commit()
+    push_notification(
+        db,
+        user_id=leave.user_id,
+        title="Leave request approved",
+        message=f"Your {leave.leave_type} leave from {leave.start_date} to {leave.end_date} has been approved.",
+        event_type="leave_approved",
+        reference_type="leave",
+        reference_id=leave.id,
+        created_by=admin.id
+    )
 
     return {"message": "Leave approved"}
 
@@ -119,5 +140,15 @@ def reject_leave(
     leave.approved_at = datetime.now(timezone.utc)
 
     db.commit()
+    push_notification(
+        db,
+        user_id=leave.user_id,
+        title="Leave request rejected",
+        message=f"Your {leave.leave_type} leave from {leave.start_date} to {leave.end_date} has been rejected.",
+        event_type="leave_rejected",
+        reference_type="leave",
+        reference_id=leave.id,
+        created_by=admin.id
+    )
 
     return {"message": "Leave rejected"}

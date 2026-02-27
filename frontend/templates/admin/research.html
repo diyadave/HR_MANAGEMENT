@@ -227,6 +227,27 @@
             color: var(--navy);
         }
 
+        .btn-danger-soft {
+            background: #fff1f2;
+            border: 1.5px solid #fecdd3;
+            border-radius: 30px;
+            padding: 9px 18px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            color: #be123c;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
+        }
+        .btn-danger-soft:hover {
+            background: #ffe4e6;
+            border-color: #fda4af;
+            color: #9f1239;
+        }
+
         /* ── LAYOUT ── */
         .research-grid {
             display: flex;
@@ -607,6 +628,66 @@
             font-weight: 600; color: var(--navy); cursor: pointer;
         }
         .everyone-option i { color: var(--navy); }
+
+        .assign-users-box {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            background: var(--surface);
+            max-height: 190px;
+            overflow-y: auto;
+        }
+        .assign-users-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 4px 2px 8px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 6px;
+        }
+        .assign-user-card {
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            background: #fff;
+        }
+        .assign-user-top {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 4px;
+        }
+        .assign-user-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .assign-user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        .assign-user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+            font-size: 0.9rem;
+        }
+        .assign-user-dept {
+            font-size: 0.75rem;
+            color: #7a90b3;
+            line-height: 1.2;
+            margin-top: 1px;
+        }
 
         /* ── BADGES ── */
         .perm-badge {
@@ -1626,25 +1707,27 @@
 
             <!-- Excel options -->
             <div id="excelOptions">
-                <input type="text" class="input-field" placeholder="File name" value="Untitled">
+                <input type="text" class="input-field" placeholder="File name">
                 <div class="row-2col">
-                    <input type="number" class="input-field" placeholder="Rows" value="50">
-                    <input type="number" class="input-field" placeholder="Columns" value="5">
+                    <input type="number" class="input-field" placeholder="Rows">
+                    <input type="number" class="input-field" placeholder="Columns">
                 </div>
-                <button type="button" id="generateTableBtn" class="btn-primary" style="width:100%; justify-content:center; border-radius:10px;">
-                    <i class="fas fa-magic"></i> Generate Table
-                </button>
             </div>
 
             <!-- Document options -->
             <div id="docOptions" style="display: none;">
                 <input type="text" class="input-field" placeholder="Title">
                 <textarea class="textarea-field" placeholder="Description"></textarea>
-                <select class="input-field" id="docVisibilitySelect">
-                    <option value="everyone">Visible to Everyone</option>
-                    <option value="admin">Admin Only</option>
-                    <option value="selected">Selected Users</option>
-                </select>
+                <label style="font-size:0.82rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Assign To</label>
+                <div class="assign-users-box" id="createDocUsersBox">
+                    <div class="assign-users-head">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;color:var(--navy);font-size:0.95rem;">
+                            <input type="checkbox" id="createDocSelectAll" style="accent-color:var(--navy);" />
+                            Select All
+                        </label>
+                    </div>
+                    <div id="createDocUsersList"></div>
+                </div>
             </div>
 
             <div class="modal-actions">

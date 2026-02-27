@@ -494,6 +494,30 @@
         }
     }
 
+    function isChatOpen() {
+        return panel.classList.contains("open");
+    }
+
+    async function syncUnreadCounts() {
+        if (typeof api.getChatUnreadCount !== "function") return;
+        try {
+            var summary = await api.getChatUnreadCount();
+            var unreadByConversation = new Map(
+                (summary && Array.isArray(summary.conversations) ? summary.conversations : []).map(function (item) {
+                    return [Number(item.conversation_id), Number(item.unread_count || 0)];
+                })
+            );
+            state.conversations = state.conversations.map(function (c) {
+                c.unread_count = unreadByConversation.get(Number(c.id)) || 0;
+                return c;
+            });
+            renderConversations();
+            updateFabBadge();
+        } catch (_) {
+            // Keep local counts if sync fails.
+        }
+    }
+
     function activeConversation() {
         return state.conversations.find(function (c) { return c.id === state.activeConversationId; }) || null;
     }
@@ -581,6 +605,7 @@
         state.conversations = await api.getChatConversations();
         renderConversations();
         updateFabBadge();
+        syncUnreadCounts().catch(function () {});
     }
 
     async function loadUsers() {
@@ -617,6 +642,7 @@
             });
             renderConversations();
             updateFabBadge();
+            syncUnreadCounts().catch(function () {});
         } catch (_) {
             messagesEl.innerHTML = '<div class="hr-chat-empty">Unable to load messages right now.</div>';
         }
@@ -668,8 +694,11 @@
 
                 conv.last_message = data.message;
                 conv.last_message_timestamp = data.timestamp;
-                if (Number(data.sender_id) !== currentUserId && state.activeConversationId !== data.conversation_id) {
-                    conv.unread_count = Number(conv.unread_count || 0) + 1;
+                if (Number(data.sender_id) !== currentUserId) {
+                    var shouldCountUnread = !isChatOpen() || state.activeConversationId !== data.conversation_id;
+                    if (shouldCountUnread) {
+                        conv.unread_count = Number(conv.unread_count || 0) + 1;
+                    }
                 }
                 renderConversations();
                 updateFabBadge();
