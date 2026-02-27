@@ -343,6 +343,18 @@ def infer_status_from_clock_times(
     return inferred_status, inferred_half_day_type, inferred_is_late
 
 
+def validate_status_selection_against_time(
+    selected_status: str,
+    inferred_status: str
+) -> None:
+    # Only enforce for time-driven statuses.
+    if selected_status in {"present", "late", "halfday"} and selected_status != inferred_status:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Selected status '{selected_status}' does not match time-based status '{inferred_status}'."
+        )
+
+
 def get_effective_day_status(
     row: Optional[Attendance],
     current_date: date,
@@ -674,23 +686,60 @@ def mark_attendance(
         if not attendance.clock_out_time:
             attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 30, tzinfo=IST).astimezone(timezone.utc)
 
-    attendance.total_seconds = compute_total_seconds(attendance.clock_in_time, attendance.clock_out_time)
+    # Recalculate total seconds first
+    attendance.total_seconds = compute_total_seconds(
+        attendance.clock_in_time,
+        attendance.clock_out_time
+    )
+    total_seconds = int(attendance.total_seconds or 0)
+    selected_status = status
 
-    if status not in {"absent", "leave", "holiday"}:
-        inferred_status, inferred_half_day_type, inferred_is_late = infer_status_from_clock_times(
-            clock_in_time=attendance.clock_in_time,
-            clock_out_time=attendance.clock_out_time,
-            total_seconds=int(attendance.total_seconds or 0),
-        )
-        status = inferred_status
-        attendance.status = status
-        if status == "halfday":
-            attendance.half_day_type = inferred_half_day_type or attendance.half_day_type or "first_half"
-        else:
-            attendance.half_day_type = None
-        attendance.is_late = inferred_is_late
+    if attendance.clock_in_time and attendance.clock_out_time:
+        # HALF DAY VALIDATION
+        if total_seconds <= (4 * 3600):
+            if selected_status != "halfday":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Worked hours qualify as Half Day. Please select Half Day."
+                )
+
+        # FULL DAY VALIDATION
+        if total_seconds > (4 * 3600):
+            if selected_status == "halfday":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Worked hours exceed Half Day limit."
+                )
+
+        # LATE VALIDATION
+        if attendance.clock_in_time.astimezone(IST).time() > time(9, 30):
+            if selected_status == "present":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Clock-in after 09:30 must be marked Late."
+                )
     else:
-        attendance.status = status
+        # No clock times: only non-time statuses are allowed.
+        if selected_status not in {"absent", "leave", "holiday"}:
+            raise HTTPException(
+                status_code=400,
+                detail="Without clock times, only Absent, Leave, or Holiday can be selected."
+            )
+
+    attendance.status = selected_status
+    status = selected_status
+    if selected_status == "halfday":
+        if not attendance.half_day_type:
+            if attendance.clock_in_time and attendance.clock_in_time.astimezone(IST).hour >= 13:
+                attendance.half_day_type = "second_half"
+            else:
+                attendance.half_day_type = "first_half"
+        attendance.is_late = False
+    elif selected_status == "late":
+        attendance.half_day_type = None
+        attendance.is_late = True
+    else:
+        attendance.half_day_type = None if selected_status in {"present", "absent", "leave", "holiday"} else attendance.half_day_type
         attendance.is_late = False
 
     auto_overtime_seconds = calculate_overtime_seconds(attendance, attendance.total_seconds, datetime.now(timezone.utc))
