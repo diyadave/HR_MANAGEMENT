@@ -166,7 +166,7 @@
     }
 
     .status-progress .status-dot {
-      background: #3B82F6;
+      background: #64748B;
     }
 
     .status-late .status-dot {
@@ -391,12 +391,54 @@
     }
 
     let lastLiveRefreshAt = 0;
+    let attendanceSocket = null;
+
+    function getWsBaseUrl() {
+      const apiBase = (window.BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+      if (apiBase.startsWith("https://")) return `wss://${apiBase.slice("https://".length)}`;
+      if (apiBase.startsWith("http://")) return `ws://${apiBase.slice("http://".length)}`;
+      return `ws://${apiBase}`;
+    }
+
+    function getCurrentUserId() {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed?.id ? Number(parsed.id) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function connectAttendanceSocket() {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      if (attendanceSocket && (
+        attendanceSocket.readyState === WebSocket.OPEN ||
+        attendanceSocket.readyState === WebSocket.CONNECTING
+      )) {
+        attendanceSocket.close();
+      }
+
+      attendanceSocket = new WebSocket(`${getWsBaseUrl()}/ws/attendance/${userId}`);
+      attendanceSocket.onmessage = () => {
+        refreshLiveAttendanceFromTracker();
+      };
+      attendanceSocket.onclose = () => {
+        setTimeout(connectAttendanceSocket, 3000);
+      };
+      attendanceSocket.onerror = () => {
+        // Silent reconnect via onclose handler.
+      };
+    }
     function refreshLiveAttendanceFromTracker() {
       const nowMs = Date.now();
-      if (nowMs - lastLiveRefreshAt < 5000) return;
+      if (nowMs - lastLiveRefreshAt < 15000) return;
       lastLiveRefreshAt = nowMs;
       loadSummary();
-      loadHistory();
+      loadHistory({ silent: true });
     }
 
     function formatDateLabel(isoDate) {
@@ -412,40 +454,45 @@
     function formatClockTime(isoDatetime) {
       if (!isoDatetime) return "-";
       const d = new Date(isoDatetime);
-      return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+      return d.toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
     }
 
     function statusBadge(status) {
       const map = {
-        in_progress: { css: "status-present", icon: "🕒", label: "In Progress" },
-        present: { css: "status-present", icon: "✅", label: "Present" },
-        late: { css: "status-late", icon: "⚠", label: "Late" },
-        absent: { css: "status-absent", icon: "❌", label: "Absent" },
-        halfday: { css: "status-halfday", icon: "☆", label: "Half Day" },
-        holiday: { css: "status-present", icon: "🚩", label: "Holiday" },
-        leave: { css: "status-halfday", icon: "📅", label: "Leave" }
+        in_progress: { css: "status-progress", icon: "\u2315", label: "In Progress" },
+        present: { css: "status-present", icon: "\u2705", label: "Present" },
+        late: { css: "status-late", icon: "\u23F0", label: "Late" },
+        absent: { css: "status-absent", icon: "\u274C", label: "Absent" },
+        halfday: { css: "status-halfday", icon: "\u2B50", label: "Half Day" },
+        holiday: { css: "status-halfday", icon: "\u2B50", label: "Holiday" },
+        leave: { css: "status-halfday", icon: "\uD83D\uDFE3", label: "Leave" }
       };
       const config = map[status] || map.absent;
-      const css = config.css;
-      const label = config.label;
-      const icon = config.icon;
-      if (!css) return `<span class="status-indicator">${icon} ${label}</span>`;
-      return `<span class="status-indicator ${css}"><span class="status-dot"></span>${icon} ${label}</span>`;
+      return `<span class="status-indicator ${config.css}"><span class="status-dot"></span>${config.icon} ${config.label}</span>`;
     }
 
     function renderStatus(r) {
       const status = r.status || "absent";
       if (status === "in_progress") {
         const label = r.is_late_entry ? "In Progress (Late Entry)" : "In Progress";
-        return `<span class="status-indicator status-progress"><span class="status-dot"></span>🕒 ${label}</span>`;
+        return `<span class="status-indicator status-progress"><span class="status-dot"></span>\u2315 ${label}</span>`;
       }
 
       if (status === "present" && r.is_overtime) {
-        return `<span class="status-indicator status-present"><span class="status-dot"></span>⚡ Present (Overtime)</span>`;
+        return `<span class="status-indicator status-present"><span class="status-dot"></span>\u2705 \u2795 Present + Overtime</span>`;
+      }
+
+      if (status === "late" && r.is_overtime) {
+        return `<span class="status-indicator status-late"><span class="status-dot"></span>\u23F0 \u2795 Late + Overtime</span>`;
       }
 
       if (status === "halfday") {
-        const halfIcon = r.half_day_type === "second_half" ? "★" : "☆";
+        const halfIcon = r.half_day_type === "second_half" ? "\u2605" : "\u2606";
         const halfLabel = r.half_day_type === "second_half" ? "Half Day (Second Half)" : "Half Day (First Half)";
         return `<span class="status-indicator status-halfday"><span class="status-dot"></span>${halfIcon} ${halfLabel}</span>`;
       }
@@ -454,15 +501,18 @@
     }
 
     // Load attendance history
-    async function loadHistory() {
+    async function loadHistory(options = {}) {
+      const silent = Boolean(options.silent);
       const tbody = document.getElementById("attendanceHistory");
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">Loading attendance records...</td></tr>`;
-
+      if (!silent) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">Loading attendance records...</td></tr>`;
+      }
+      
       try {
         const { month, year } = parseMonthYear();
         console.log(`Loading history for month: ${month}, year: ${year}`);
-
-        const data = await API.getAttendanceHistory(month, year);
+        
+        const data = await API.request(`/attendance/history?month=${month}&year=${year}&_=${Date.now()}`);
         const records = data.records || [];
 
         // Update stats
@@ -520,12 +570,13 @@
         loadSummary(),
         loadHistory()
       ]);
-
+      connectAttendanceSocket();
+      
       // Refresh summary every 30 seconds
       setInterval(() => {
         if (!document.hidden) {
           loadSummary();
-          loadHistory();
+          loadHistory({ silent: true });
         }
       }, 15000);
     }
@@ -549,3 +600,4 @@
 </body>
 
 </html>
+

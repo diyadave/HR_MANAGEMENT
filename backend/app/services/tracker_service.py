@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models.attendance import Attendance
 from app.models.task_time_log import TaskTimeLog
-from app.services.attendance_service import get_today_total
+from app.services.attendance_service import get_ist_date, get_today_total
 
 MAX_WORK_SECONDS = 9 * 3600  # 9 hours
 
@@ -17,7 +17,7 @@ def get_daily_summary(user_id: int, db: Session):
         - overtime
     """
 
-    today = datetime.now(timezone.utc).date()
+    today = get_ist_date()
 
     # -------------------------
     # 1️⃣ Attendance Total

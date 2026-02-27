@@ -2,9 +2,9 @@ import secrets
 import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, extract, inspect, or_, text
+from sqlalchemy import and_, extract, or_
 from typing import List, Optional
-from datetime import date, datetime, time, timezone, timedelta
+from datetime import date, datetime, time, timezone
 from calendar import monthrange
 from pydantic import ValidationError
 
@@ -24,6 +24,9 @@ from app.services.attendance_service import (
     IST,
     LATE_THRESHOLD,
     auto_close_open_attendances_for_user,
+    calculate_overtime_seconds,
+    calculate_work_seconds,
+    ensure_attendance_schema,
     get_attendance_status_meta,
     get_attendance_worked_seconds,
 )
@@ -209,27 +212,6 @@ def get_all_tasks(
 # ================= ATTENDANCE REPORT =================
 
 
-def ensure_attendance_schema(db: Session) -> None:
-    inspector = inspect(db.bind)
-    existing_cols = {c["name"] for c in inspector.get_columns("attendance_logs")}
-    ddl = {
-        "half_day_type": "ALTER TABLE attendance_logs ADD COLUMN half_day_type VARCHAR(20)",
-        "is_late": "ALTER TABLE attendance_logs ADD COLUMN is_late BOOLEAN DEFAULT FALSE NOT NULL",
-        "working_from": "ALTER TABLE attendance_logs ADD COLUMN working_from VARCHAR(30)",
-        "location": "ALTER TABLE attendance_logs ADD COLUMN location VARCHAR(255)",
-        "manual_override": "ALTER TABLE attendance_logs ADD COLUMN manual_override BOOLEAN DEFAULT FALSE NOT NULL",
-        "edit_reason": "ALTER TABLE attendance_logs ADD COLUMN edit_reason TEXT",
-    }
-    for col, statement in ddl.items():
-        if col in existing_cols:
-            continue
-        try:
-            db.execute(text(statement))
-            db.commit()
-        except Exception:
-            db.rollback()
-
-
 def parse_iso_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -267,17 +249,7 @@ def compute_total_seconds(clock_in_time: Optional[datetime], clock_out_time: Opt
         return 0
     if clock_out_time <= clock_in_time:
         return 0
-    return int((clock_out_time - clock_in_time).total_seconds())
-
-
-def infer_clock_in_time(attendance: Optional[Attendance]) -> Optional[datetime]:
-    if not attendance:
-        return None
-    if attendance.clock_in_time:
-        return attendance.clock_in_time
-    if attendance.clock_out_time and (attendance.total_seconds or 0) > 0:
-        return attendance.clock_out_time - timedelta(seconds=int(attendance.total_seconds or 0))
-    return None
+    return calculate_work_seconds(clock_in_time, clock_out_time)
 
 
 def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]:
@@ -289,7 +261,7 @@ def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]
     return result
 
 
-def get_approved_leave_dates_for_month(db: Session, user_id: int, month: int, year: int) -> set[date]:
+def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int, year: int) -> dict[date, str]:
     first_day = date(year, month, 1)
     last_day = date(year, month, monthrange(year, month)[1])
     leaves = db.query(Leave).filter(
@@ -299,22 +271,114 @@ def get_approved_leave_dates_for_month(db: Session, user_id: int, month: int, ye
         Leave.end_date >= first_day,
     ).all()
 
-    leave_dates = set()
+    leave_dates: dict[date, str] = {}
     for leave in leaves:
         start = max(leave.start_date, first_day)
         end = min(leave.end_date, last_day)
-        for day in range(start.day, end.day + 1):
-            leave_dates.add(date(year, month, day))
+        current = start
+        while current <= end:
+            leave_dates[current] = "halfday" if leave.duration_type in {"first_half", "second_half"} else "leave"
+            current = current.fromordinal(current.toordinal() + 1)
     return leave_dates
+
+
+def get_leave_status_for_date(db: Session, user_id: int, target_date: date) -> Optional[str]:
+    leave = db.query(Leave).filter(
+        Leave.user_id == user_id,
+        Leave.status == "approved",
+        Leave.start_date <= target_date,
+        Leave.end_date >= target_date,
+    ).order_by(Leave.id.desc()).first()
+    if not leave:
+        return None
+    return "halfday" if leave.duration_type in {"first_half", "second_half"} else "leave"
+
+
+def normalize_status_value(raw_status: Optional[str]) -> Optional[str]:
+    value = (raw_status or "").strip().lower()
+    if not value:
+        return None
+    mapping = {
+        "halfday_first": "halfday",
+        "halfday_second": "halfday",
+        "on_leave": "leave",
+    }
+    return mapping.get(value, value)
+
+
+def parse_overtime_hours(value) -> float:
+    if value is None or value == "":
+        return 0.0
+    try:
+        parsed = float(value)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid overtime value") from exc
+    if parsed < 0:
+        raise HTTPException(status_code=400, detail="Overtime cannot be negative")
+    return round(parsed, 2)
+
+
+def infer_status_from_clock_times(
+    *,
+    clock_in_time: Optional[datetime],
+    clock_out_time: Optional[datetime],
+    total_seconds: int,
+) -> tuple[str, Optional[str], bool]:
+    inferred_status = "absent"
+    inferred_half_day_type: Optional[str] = None
+    inferred_is_late = False
+
+    if clock_in_time:
+        inferred_is_late = clock_in_time.astimezone(IST).time() > time(9, 30)
+
+    # Half day if both times exist and worked seconds are less than 4 hours.
+    if clock_in_time and clock_out_time and total_seconds < (4 * 3600):
+        inferred_status = "halfday"
+        hour = int(clock_in_time.astimezone(IST).strftime("%H"))
+        inferred_half_day_type = "first_half" if hour < 13 else "second_half"
+        inferred_is_late = False
+    elif clock_in_time:
+        inferred_status = "late" if inferred_is_late else "present"
+
+    return inferred_status, inferred_half_day_type, inferred_is_late
+
+
+def get_effective_day_status(
+    row: Optional[Attendance],
+    current_date: date,
+    holiday_dates: set[date],
+    leave_statuses: dict[date, str],
+    now: datetime
+) -> tuple[str, dict]:
+    meta = get_attendance_status_meta(row, now) if row else {
+        "status": "absent",
+        "seconds": 0,
+        "is_running": False,
+        "is_late_entry": False,
+        "is_overtime": False,
+        "overtime_seconds": 0,
+        "overtime_hours": 0,
+        "half_day_type": None,
+        "effective_clock_in_time": None,
+    }
+
+    manual_status = normalize_status_value(row.status if row else None)
+    if row and row.is_manual_edit and manual_status:
+        status = manual_status
+    elif current_date in holiday_dates:
+        status = "holiday"
+    else:
+        status = leave_statuses.get(current_date) or meta["status"]
+
+    return status, meta
 
 
 def status_from_attendance(attendance: Optional[Attendance]) -> str:
     if not attendance:
         return "absent"
-
-    if (attendance.working_from or "").lower() == "holiday":
-        return "holiday"
-
+    manual_status = normalize_status_value(attendance.status)
+    if attendance.is_manual_edit and manual_status:
+        return manual_status
     return get_attendance_status_meta(attendance)["status"]
 
 
@@ -328,11 +392,15 @@ def serialize_attendance(attendance: Optional[Attendance]) -> dict:
         "clock_in_time": attendance.clock_in_time.isoformat() if attendance.clock_in_time else None,
         "clock_out_time": attendance.clock_out_time.isoformat() if attendance.clock_out_time else None,
         "total_seconds": int(attendance.total_seconds or 0),
+        "status": attendance.status,
+        "overtime_hours": float(attendance.overtime_hours or 0),
         "half_day_type": attendance.half_day_type,
         "is_late": bool(attendance.is_late),
         "working_from": attendance.working_from,
         "location": attendance.location,
         "manual_override": bool(attendance.manual_override),
+        "is_manual_edit": bool(attendance.is_manual_edit),
+        "updated_by_admin_id": attendance.updated_by_admin_id,
         "edit_reason": attendance.edit_reason,
     }
 
@@ -384,52 +452,55 @@ def get_monthly_attendance(
             extract("year", Attendance.date) == year
         ).all()
         attendance_by_date = {r.date: r for r in records}
-        leave_dates = get_approved_leave_dates_for_month(db, user.id, month, year)
+        leave_statuses = get_approved_leave_statuses_for_month(db, user.id, month, year)
 
         days_map = {}
         day_details = {}
-        present_days = 0.0
-        half_days = 0
+        total_days = 0.0
+        late_days = 0
         leave_days = 0
         holidays = 0
+        overtime_hours_total = 0.0
 
         for day in range(1, days_in_month + 1):
             current_date = date(year, month, day)
             row = attendance_by_date.get(current_date)
+            status, meta = get_effective_day_status(row, current_date, holiday_dates, leave_statuses, now)
 
-            if current_date in holiday_dates:
-                status = "holiday"
+            if status == "holiday":
                 holidays += 1
-            elif current_date in leave_dates:
-                status = "leave"
+            elif status == "leave":
                 leave_days += 1
-            else:
-                meta = get_attendance_status_meta(row, now) if row else {"status": "absent", "is_running": False, "is_late_entry": False, "is_overtime": False, "overtime_seconds": 0}
-                status = meta["status"]
-                if status in {"present", "late", "in_progress"}:
-                    present_days += 1
-                elif status == "halfday":
-                    half_days += 1
+            elif status in {"present", "late", "in_progress"}:
+                total_days += 1
+                if status == "late":
+                    late_days += 1
+            elif status == "halfday":
+                total_days += 0.5
 
             days_map[day] = status
+            overtime_seconds = int(meta.get("overtime_seconds") or 0) if status not in {"holiday", "leave"} else 0
+            overtime_hours = round(overtime_seconds / 3600, 2)
+            overtime_hours_total += overtime_hours
             day_details[day] = {
                 "status": status,
                 "half_day_type": row.half_day_type if row else None,
                 "manual_override": bool(row.manual_override) if row else False,
+                "is_manual_edit": bool(row.is_manual_edit) if row else False,
                 "is_late": bool(row.is_late) if row else False,
-                "clock_in_time": row.clock_in_time.isoformat() if row and row.clock_in_time else None,
+                "clock_in_time": meta["effective_clock_in_time"].isoformat() if row and meta.get("effective_clock_in_time") else None,
                 "clock_out_time": row.clock_out_time.isoformat() if row and row.clock_out_time else None,
                 "total_seconds": get_attendance_worked_seconds(row, now) if row else 0,
                 "is_running": meta["is_running"] if row else False,
                 "is_late_entry": meta["is_late_entry"] if row else False,
-                "is_overtime": meta["is_overtime"] if row else False,
-                "overtime_seconds": meta["overtime_seconds"] if row else 0,
+                "is_overtime": bool(overtime_seconds > 0),
+                "overtime_seconds": overtime_seconds,
+                "overtime_hours": overtime_hours,
             }
 
         working_days = max(days_in_month - holidays - leave_days, 0)
-        score = present_days + (0.5 * half_days)
-        attendance_percentage = round((score / working_days) * 100, 2) if working_days else 0.0
-        absent_days = max(working_days - int(present_days) - half_days, 0)
+        attendance_percentage = round((total_days / working_days) * 100, 2) if working_days else 0.0
+        absent_days = max(working_days - total_days, 0)
 
         result.append({
             "employee_id": user.id,
@@ -439,12 +510,13 @@ def get_monthly_attendance(
             "profile_image": user.profile_image,
             "days": days_map,
             "day_details": day_details,
-            "total_present_days": present_days,
-            "present_days": present_days,
-            "half_days": half_days,
+            "total_present_days": round(total_days, 2),
+            "present_days": round(total_days, 2),
+            "late_days": late_days,
             "leave_days": leave_days,
             "holidays": holidays,
-            "absent_days": absent_days,
+            "absent_days": round(absent_days, 2),
+            "overtime_hours_total": round(overtime_hours_total, 2),
             "attendance_percentage": attendance_percentage,
         })
 
@@ -476,35 +548,22 @@ def get_attendance_details(
         )
     ).first() is not None
 
-    has_approved_leave = db.query(Leave).filter(
-        Leave.user_id == user_id,
-        Leave.status == "approved",
-        Leave.start_date <= target_date,
-        Leave.end_date >= target_date,
-    ).first() is not None
-
     attendance = db.query(Attendance).filter(
         Attendance.user_id == user_id,
         Attendance.date == target_date,
     ).first()
+    leave_status = get_leave_status_for_date(db, user_id, target_date) if not is_holiday else None
+    leave_statuses = {target_date: leave_status} if leave_status else {}
+    status, meta = get_effective_day_status(
+        attendance,
+        target_date,
+        {target_date} if is_holiday else set(),
+        leave_statuses,
+        now,
+    )
 
-    if is_holiday:
-        status = "holiday"
-    elif has_approved_leave:
-        status = "leave"
-    else:
-        meta = get_attendance_status_meta(attendance, now) if attendance else {
-            "status": "absent",
-            "seconds": 0,
-            "is_running": False,
-            "is_late_entry": False,
-            "is_overtime": False,
-            "overtime_seconds": 0,
-        }
-        status = meta["status"]
-
-    display_clock_in = infer_clock_in_time(attendance)
-    total_seconds = meta["seconds"]
+    display_clock_in = meta.get("effective_clock_in_time") if attendance else None
+    total_seconds = int(meta.get("seconds") or 0)
 
     return {
         "employee": {
@@ -523,6 +582,8 @@ def get_attendance_details(
         "working_from": attendance.working_from if attendance else None,
         "location": attendance.location if attendance else None,
         "manual_override": bool(attendance.manual_override) if attendance else False,
+        "is_manual_edit": bool(attendance.is_manual_edit) if attendance else False,
+        "overtime_hours": float(attendance.overtime_hours or 0) if attendance else 0,
         "edit_reason": attendance.edit_reason if attendance else None,
         "is_active_tracker": meta["is_running"],
         "is_late_entry": meta["is_late_entry"],
@@ -547,32 +608,14 @@ def mark_attendance(
         raise HTTPException(status_code=400, detail="date is required")
     target_date = parse_iso_date(str(payload.get("date")))
     reason = payload.get("reason")
-    status = (payload.get("status") or "").strip().lower() or None
+    raw_status = normalize_status_value(payload.get("status"))
+    status = raw_status or "absent"
+    if status not in {"present", "late", "absent", "leave", "halfday", "holiday"}:
+        raise HTTPException(status_code=400, detail="Invalid status")
 
     employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
-
-    is_holiday = db.query(Holiday).filter(
-        or_(
-            and_(Holiday.date == target_date, Holiday.repeat_yearly == False),
-            and_(
-                Holiday.repeat_yearly == True,
-                extract("month", Holiday.date) == target_date.month,
-                extract("day", Holiday.date) == target_date.day,
-            ),
-        )
-    ).first() is not None
-
-    has_approved_leave = db.query(Leave).filter(
-        Leave.user_id == user_id,
-        Leave.status == "approved",
-        Leave.start_date <= target_date,
-        Leave.end_date >= target_date,
-    ).first() is not None
-
-    if (is_holiday or has_approved_leave) and status != "holiday":
-        raise HTTPException(status_code=400, detail="Cannot edit attendance for holiday/approved leave")
 
     attendance = db.query(Attendance).filter(
         Attendance.user_id == user_id,
@@ -581,89 +624,108 @@ def mark_attendance(
 
     old_payload = serialize_attendance(attendance)
 
+    clock_in_time = parse_time_on_date(target_date, payload.get("clock_in_time"))
+    clock_out_time = parse_time_on_date(target_date, payload.get("clock_out_time"))
+    if clock_in_time and clock_out_time and clock_out_time <= clock_in_time:
+        raise HTTPException(status_code=400, detail="Clock-out must be later than clock-in")
+
+    half_day_type = payload.get("half_day_type") or None
+    if payload.get("status") in {"halfday_first", "halfday_second"}:
+        half_day_type = "first_half" if payload.get("status") == "halfday_first" else "second_half"
+
+    overtime_supplied = payload.get("overtime_hours") is not None and payload.get("overtime_hours") != ""
+    manual_overtime_hours = parse_overtime_hours(payload.get("overtime_hours"))
+
     if not attendance:
         attendance = Attendance(user_id=user_id, date=target_date)
         db.add(attendance)
         db.flush()
 
-    attendance.clock_in_time = parse_time_on_date(target_date, payload.get("clock_in_time"))
-    attendance.clock_out_time = parse_time_on_date(target_date, payload.get("clock_out_time"))
-    attendance.half_day_type = payload.get("half_day_type") or None
-    attendance.is_late = bool(payload.get("is_late")) if payload.get("is_late") is not None else False
+    attendance.status = status
+    attendance.clock_in_time = clock_in_time
+    attendance.clock_out_time = clock_out_time
+    attendance.half_day_type = half_day_type if status == "halfday" else None
     attendance.working_from = payload.get("working_from") or None
     attendance.location = payload.get("location") or None
     attendance.manual_override = True
+    attendance.is_manual_edit = True
+    attendance.updated_by_admin_id = admin.id
     attendance.edit_reason = reason
 
-    if status == "absent":
+    if status in {"absent", "leave", "holiday"}:
         attendance.clock_in_time = None
         attendance.clock_out_time = None
         attendance.total_seconds = 0
         attendance.half_day_type = None
         attendance.is_late = False
-    elif status in {"halfday", "halfday_first", "halfday_second"}:
-        attendance.half_day_type = "first_half" if status == "halfday_first" else (
-            "second_half" if status == "halfday_second" else (attendance.half_day_type or "first_half")
-        )
-        attendance.is_late = False
+    elif status == "halfday":
+        if not attendance.half_day_type:
+            attendance.half_day_type = "first_half"
         if not attendance.clock_in_time and not attendance.clock_out_time:
             if attendance.half_day_type == "second_half":
                 attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 14, 0, tzinfo=IST).astimezone(timezone.utc)
-                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
+                attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 30, tzinfo=IST).astimezone(timezone.utc)
             else:
                 attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=IST).astimezone(timezone.utc)
                 attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 13, 0, tzinfo=IST).astimezone(timezone.utc)
-    elif status == "late":
-        attendance.half_day_type = None
-        attendance.is_late = True
-        if not attendance.clock_in_time:
-            attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 45, tzinfo=IST).astimezone(timezone.utc)
-        if not attendance.clock_out_time:
-            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
-    elif status == "present":
-        attendance.half_day_type = None
-        attendance.is_late = False
+    else:
         if not attendance.clock_in_time:
             attendance.clock_in_time = datetime(target_date.year, target_date.month, target_date.day, 9, 0, tzinfo=IST).astimezone(timezone.utc)
         if not attendance.clock_out_time:
-            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 0, tzinfo=IST).astimezone(timezone.utc)
-    elif status == "holiday":
-        attendance.clock_in_time = None
-        attendance.clock_out_time = None
-        attendance.total_seconds = 0
-        attendance.half_day_type = None
-        attendance.is_late = False
-        attendance.working_from = "holiday"
+            attendance.clock_out_time = datetime(target_date.year, target_date.month, target_date.day, 18, 30, tzinfo=IST).astimezone(timezone.utc)
 
-    if attendance.clock_in_time and attendance.clock_out_time:
-        attendance.total_seconds = compute_total_seconds(attendance.clock_in_time, attendance.clock_out_time)
+    attendance.total_seconds = compute_total_seconds(attendance.clock_in_time, attendance.clock_out_time)
+
+    if status not in {"absent", "leave", "holiday"}:
+        inferred_status, inferred_half_day_type, inferred_is_late = infer_status_from_clock_times(
+            clock_in_time=attendance.clock_in_time,
+            clock_out_time=attendance.clock_out_time,
+            total_seconds=int(attendance.total_seconds or 0),
+        )
+        status = inferred_status
+        attendance.status = status
+        if status == "halfday":
+            attendance.half_day_type = inferred_half_day_type or attendance.half_day_type or "first_half"
+        else:
+            attendance.half_day_type = None
+        attendance.is_late = inferred_is_late
     else:
-        attendance.total_seconds = int(attendance.total_seconds or 0)
+        attendance.status = status
+        attendance.is_late = False
 
-    if attendance.clock_in_time and attendance.clock_in_time.astimezone(IST).time() > LATE_THRESHOLD:
-        attendance.is_late = True
+    auto_overtime_seconds = calculate_overtime_seconds(attendance, attendance.total_seconds, datetime.now(timezone.utc))
+    attendance.overtime_hours = manual_overtime_hours if overtime_supplied else round(auto_overtime_seconds / 3600, 2)
 
-    db.flush()
-    new_payload = serialize_attendance(attendance)
-    append_edit_log(
-        db,
-        attendance_id=attendance.id,
-        user_id=user_id,
-        admin_id=admin.id,
-        target_date=target_date,
-        action="update" if old_payload else "create",
-        reason=reason,
-        old_payload=old_payload,
-        new_payload=new_payload,
-    )
-    db.commit()
+    try:
+        db.flush()
+        new_payload = serialize_attendance(attendance)
+        append_edit_log(
+            db,
+            attendance_id=attendance.id,
+            user_id=user_id,
+            admin_id=admin.id,
+            target_date=target_date,
+            action="update" if old_payload else "create",
+            reason=reason,
+            old_payload=old_payload,
+            new_payload=new_payload,
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
     attendance_ws_manager.notify_attendance_change_threadsafe(user_id)
 
+    meta = get_attendance_status_meta(attendance, datetime.now(timezone.utc))
     return {
         "message": "Attendance saved",
         "attendance_id": attendance.id,
-        "status": status_from_attendance(attendance),
-        "total_seconds": get_attendance_worked_seconds(attendance),
+        "status": status,
+        "total_seconds": get_attendance_worked_seconds(attendance, datetime.now(timezone.utc)),
+        "overtime_hours": float(attendance.overtime_hours or 0),
+        "is_overtime": bool(meta["is_overtime"]),
+        "is_late_entry": bool(meta["is_late_entry"]),
     }
 
 
@@ -737,6 +799,7 @@ def bulk_mark_attendance(
                     "is_late": payload.get("is_late"),
                     "working_from": payload.get("working_from"),
                     "location": payload.get("location"),
+                    "overtime_hours": payload.get("overtime_hours"),
                     "reason": payload.get("reason"),
                     "status": status,
                 }, db, admin)
