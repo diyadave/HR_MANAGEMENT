@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ─────────────────────────────────────────
-           ENTERPRISE HR — Clean Minimal System UI
-           Inspired by BambooHR / Zoho People
+           ENTERPRISE HR — Professional System UI
+           Professional Icons - No Cartoonish Elements
         ───────────────────────────────────────── */
         :root {
             --blue:         #073379;
@@ -25,14 +25,13 @@
             --white:        #ffffff;
             --radius:       5px;
 
-            /* Status — desaturated, icon-only intent */
-            --c-present:  #1a8a52;
-            --c-absent:   #b0b8c1;
-            --c-late:     #c08a00;
-            --c-halfday:  #7566d6;
-            --c-holiday:  #c07a00;
-            --c-leave:    #6e59b5;
-            
+            /* Status — Professional colors */
+            --c-present:  #059669;  /* Emerald green */
+            --c-absent:   #DC2626;  /* Professional red */
+            --c-late:     #F59E0B;  /* Amber */
+            --c-halfday:  #6366F1;  /* Indigo */
+            --c-holiday:  #E83E8C;  /* Pink/magenta for holiday */
+            --c-leave:    #8B5CF6;  /* Purple for leave */
         }
 
         *, *::before, *::after {
@@ -221,10 +220,10 @@
             background: #fdf3f2;
         }
 
-        /* ── Legend — inline minimal text ── */
+        /* ── Legend — Professional icons ── */
         .legend {
             display: flex;
-            gap: 16px;
+            gap: 20px;
             align-items: center;
             flex-wrap: wrap;
         }
@@ -232,25 +231,47 @@
         .legend-item {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-size: 11.5px;
             color: var(--text-mid);
             white-space: nowrap;
         }
 
-        /* icon in legend — plain colored symbol, no bg */
+        /* Professional icon styles */
         .icon {
-            font-size: 11px;
+            font-size: 14px;
             display: inline-block;
             line-height: 1;
+            font-weight: 500;
         }
-        .icon-present { color: var(--c-present); }
-        .icon-absent  { color: var(--c-absent);  }
-        .icon-halfday { color: var(--c-halfday); }
-        .icon-late    { color: var(--c-late);    }
-        .icon-holiday { color: var(--c-holiday); }
-        .icon-leave   { color: var(--c-leave);   }
-        
+        .icon-present { 
+            color: var(--c-present); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+        .icon-absent { 
+            color: var(--c-absent); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
+        .icon-halfday { 
+            color: var(--c-halfday); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
+        .icon-late { 
+            color: var(--c-late); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+        .icon-holiday { 
+            color: var(--c-holiday); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
+        .icon-leave { 
+            color: var(--c-leave); 
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
 
         /* ── Table Container ── */
         .table-container {
@@ -413,7 +434,7 @@
             padding: 4px 2px;
         }
 
-        /* ── Status icon cells — NO heavy backgrounds ── */
+        /* ── Status icon cells — Professional icons ── */
         .status-icon {
             display: flex;
             align-items: center;
@@ -424,63 +445,94 @@
         }
 
         .day-cell {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border-radius: 3px;
+            border-radius: 4px;
             transition: background 0.12s;
             position: relative;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
         }
         .day-cell:hover {
             background: var(--border-faint);
         }
 
         .attendance-icon {
-            font-size: 12px;
+            font-size: 16px;
             line-height: 1;
-            font-weight: 600;
+            font-weight: 500;
             display: block;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            white-space: nowrap;
         }
 
-        /* Status colours — icon only, no fill backgrounds */
-        .status-present { color: var(--c-present); }
-        .status-in-progress { color: var(--blue); }
-        .status-late    { color: var(--c-late);    }
-        .status-absent  { color: var(--c-absent);  }
-        .status-halfday { color: var(--c-halfday); }
-        .status-holiday { color: var(--c-holiday); }
-        .status-leave   { color: var(--c-leave);   }
-     
+        /* Status colours — professional colors */
+        .status-present { 
+            color: var(--c-present); 
+            font-weight: 600;
+        }
+        .status-late { 
+            color: var(--c-late); 
+            font-weight: 600;
+        }
+        .status-absent { 
+            color: var(--c-absent); 
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .status-halfday { 
+            color: var(--c-halfday); 
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .status-holiday { 
+            color: var(--c-holiday); 
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .status-leave { 
+            color: var(--c-leave); 
+            font-weight: 600;
+            font-size: 18px;
+        }
 
-        /* Half-day: only a faint left/right underline hint, no gradient fill */
-        /* Half Day — Clean Split Star */
+        /* Half Day — Split star for first/second half */
         .day-cell.half-left .attendance-icon,
         .day-cell.half-right .attendance-icon {
             position: relative;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
-            background: linear-gradient(
-                to right,
-                var(--c-halfday) 50%,
-                #d9dbe3 50%
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
+        /* First Half - Right side filled (half-right) */
         .day-cell.half-right .attendance-icon {
             background: linear-gradient(
                 to right,
-                #d9dbe3 50%,
+                #d1d5db 50%,
                 var(--c-halfday) 50%
             );
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+
+        /* Second Half - Left side filled (half-left) */
+        .day-cell.half-left .attendance-icon {
+            background: linear-gradient(
+                to right,
+                var(--c-halfday) 50%,
+                #d1d5db 50%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         /* ── Total / Summary ── */
         .total-col {
             font-weight: 600;
@@ -827,7 +879,7 @@
             <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
         </div>
 
-        <!-- Action Buttons & Legend -->
+        <!-- Action Buttons & Legend with Professional Icons -->
         <div class="action-bar">
             <div class="action-buttons">
                 <button class="btn btn-primary" id="openBulkMarkBtn" onclick="openBulkMarkModal()">
@@ -840,12 +892,13 @@
                 <button class="btn btn-secondary">Export</button>
             </div>
             <div class="legend">
-                <div class="legend-item"><span class="icon icon-holiday">&#10022;</span> Holiday</div>
-                <div class="legend-item"><span class="icon icon-present">&#10003;</span> Present</div>
-                <div class="legend-item"><span class="icon icon-halfday">&#9734;</span> Half Day</div>
-                <div class="legend-item"><span class="icon icon-late">&#8987;</span> Late</div>
-                <div class="legend-item"><span class="icon icon-absent">&#10005;</span> Absent</div>
-                <div class="legend-item"><span class="icon icon-leave">&#8856;</span> On Leave</div>
+                <div class="legend-item"><span class="icon icon-holiday">★</span> Holiday</div>
+                <div class="legend-item"><span class="icon icon-present">✓</span> Present</div>
+                <div class="legend-item"><span class="icon icon-present" style="font-weight:700;">✓+</span> Overtime</div>
+                <div class="legend-item"><span class="icon icon-halfday">★</span> Half Day</div>
+                <div class="legend-item"><span class="icon icon-late">⏰</span> Late</div>
+                <div class="legend-item"><span class="icon icon-absent">✕</span> Absent</div>
+                <div class="legend-item"><span class="icon icon-leave">○</span> On Leave</div>
             </div>
         </div>
 
@@ -861,7 +914,7 @@
                     </thead>
                     <tbody id="tableBody">
                         <tr>
-                            <td cols    pan="32" class="loading">Loading attendance data...</td>
+                            <td colspan="32" class="loading">Loading attendance data...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -916,10 +969,11 @@
                         <label>Status</label>
                         <select id="attStatus">
                             <option value="present">Present</option>
-                            <option value="halfday_first">first Half</option>
-                            <option value="halfday_second">Second Half</option>
                             <option value="late">Late</option>
+                            <option value="halfday">Half Day</option>
+                            <option value="leave">Leave</option>
                             <option value="absent">Absent</option>
+                            <option value="holiday">Holiday</option>
                         </select>
                     </div>
                     <div class="attendance-form-group">
@@ -935,11 +989,23 @@
                         <input id="attClockOut" type="time">
                     </div>
                     <div class="attendance-form-group">
+                        <label>Overtime (Hours)</label>
+                        <input id="attOvertime" type="number" min="0" step="0.25" placeholder="0.00">
+                    </div>
+                    <div class="attendance-form-group">
                         <label>Location</label>
                         <input id="attLocation" type="text" placeholder="Location">
                     </div>
                     <div class="attendance-form-group">
-                        <label>Late</label>
+                        <label>Half Day Type</label>
+                        <select id="attHalfDayType">
+                            <option value="">N/A</option>
+                            <option value="first_half">First Half</option>
+                            <option value="second_half">Second Half</option>
+                        </select>
+                    </div>
+                    <div class="attendance-form-group">
+                        <label>Late Flag</label>
                         <div class="checkbox-line">
                             <input id="attIsLate" type="checkbox">
                             <span>Mark as late</span>
@@ -990,9 +1056,9 @@
                         <label>Status</label>
                         <select id="bulkStatus" class="form-ctrl">
                             <option value="present">Present</option>
-                            <option value="halfday_first">Halfday First</option>
-                            <option value="halfday_second">Halfday Second</option>
                             <option value="late">Late</option>
+                            <option value="halfday">Half Day</option>
+                            <option value="leave">Leave</option>
                             <option value="absent">Absent</option>
                             <option value="holiday">Holiday</option>
                         </select>
@@ -1010,8 +1076,8 @@
         </div>
     </div>
     
- <script src="../../static/js/api.js"></script>
-        <script>
+    <script src="../../static/js/api.js"></script>
+    <script>
         if (!localStorage.getItem("access_token")) {
             window.location.href = "/login.html";
         }
@@ -1056,7 +1122,12 @@
             if (!value) return "";
             const d = new Date(value);
             if (Number.isNaN(d.getTime())) return "";
-            return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+            return d.toLocaleTimeString("en-GB", {
+                timeZone: "Asia/Kolkata",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            });
         }
 
         function getDaysInMonth(year, month) {
@@ -1074,29 +1145,21 @@
             if (value === "on_leave") return "leave";
             return value || "absent";
         }
+
         function getStatusIcon(status, detail = {}) {
             const normalized = normalizeStatus(status);
-            if (normalized === "in_progress") return "\u2315";
-            if (normalized === "present" && detail.is_overtime) return "\u26A1";
-            if (normalized === "late") return "\u26A0";
-
-            if (normalized === "halfday") {
-                return detail.half_day_type === "second_half" ? "\u2605" : "\u2606";
-            }
-
-            return {
-                holiday: "\u2691",
-                leave: "📅",
-                present: "\u2713",
-                absent: "\u2717",
-            }[normalized] || "\u2717";
+            if (normalized === "present") return detail.is_overtime ? "✓+" : "✓";
+            if (normalized === "late") return detail.is_overtime ? "⏰+" : "⏰";
+            if (normalized === "halfday") return "✦";
+            if (normalized === "holiday") return "★";
+            if (normalized === "leave") return "○";
+            return "✕";
         }
 
         function getStatusClass(status, detail = {}) {
-        const normalized = normalizeStatus(status);
+            const normalized = normalizeStatus(status);
 
             return {
-                in_progress: "status-in-progress",
                 present: "status-present",
                 late: "status-late",
                 absent: "status-absent",
@@ -1116,9 +1179,8 @@
             return {
                 holiday: "Holiday",
                 leave: "On Leave",
-                in_progress: detail.is_late_entry ? "In Progress (Late Entry)" : "In Progress",
-                present: detail.is_overtime ? "Present (Overtime)" : "Present",
-                late: "Late",
+                present: detail.is_overtime ? "Present + Overtime" : "Present",
+                late: detail.is_overtime ? "Late + Overtime" : "Late",
                 absent: "Absent",
             }[normalized] || "Absent";
         }
@@ -1171,27 +1233,29 @@
                 for (let d = 1; d <= days; d++) {
                     const detail = emp.day_details?.[d] || {};
                     const status = normalizeStatus(detail.status || emp.days?.[d] || "absent");
-                   let halfClass = "";
+                    let halfClass = "";
 
                     if (status === "halfday") {
-
-                        // 1️⃣ First priority → backend half_day_type
+                        // First priority → backend half_day_type
                         if (detail.half_day_type === "first_half") {
-                            halfClass = "half-left";
+                            halfClass = "half-right";  // First half → right side filled
                         } 
                         else if (detail.half_day_type === "second_half") {
-                            halfClass = "half-right";
+                            halfClass = "half-left";   // Second half → left side filled
                         }
-
-                        // 2️⃣ Fallback → derive from clock-in time
+                        // Second priority → derive from clock-in time
                         else if (detail.clock_in_time) {
                             const clockIn = new Date(detail.clock_in_time);
-                            const hour = clockIn.getHours();
-
+                            const hourText = clockIn.toLocaleTimeString("en-GB", {
+                                timeZone: "Asia/Kolkata",
+                                hour: "2-digit",
+                                hour12: false
+                            });
+                            const hour = Number(hourText);
                             if (hour < 13) {
-                                halfClass = "half-left";
+                                halfClass = "half-right";  // First half (morning) → right side filled
                             } else {
-                                halfClass = "half-right";
+                                halfClass = "half-left";   // Second half (afternoon) → left side filled
                             }
                         }
                     }
@@ -1267,7 +1331,7 @@
             }
             try {
                 const [attendance, tasks, projects] = await Promise.all([
-                    API.getAdminAttendance(currentMonth, currentYear),
+                    API.request(`/admin/attendance?month=${currentMonth}&year=${currentYear}&_=${Date.now()}`),
                     API.getAdminTasks(),
                     API.getAdminProjects()
                 ]);
@@ -1385,19 +1449,23 @@
             document.getElementById("attDate").value = data.date || "";
             document.getElementById("attClockIn").value = toTimeInput(data.clock_in_time);
             document.getElementById("attClockOut").value = toTimeInput(data.clock_out_time);
+            document.getElementById("attOvertime").value = Number(data.overtime_hours || 0).toFixed(2);
             document.getElementById("attWorkingFrom").value = data.working_from || "";
             document.getElementById("attLocation").value = data.location || "";
             document.getElementById("attIsLate").checked = Boolean(data.is_late);
+            document.getElementById("attHalfDayType").value = data.half_day_type || "";
             document.getElementById("attReason").value = data.edit_reason || "";
 
             let statusValue = "absent";
             if (data.status === "present") statusValue = "present";
             if (data.status === "late") statusValue = "late";
-            if (data.status === "halfday") statusValue = data.half_day_type === "second_half" ? "halfday_second" : "halfday_first";
+            if (data.status === "halfday") statusValue = "halfday";
+            if (data.status === "leave") statusValue = "leave";
+            if (data.status === "holiday") statusValue = "holiday";
             document.getElementById("attStatus").value = statusValue;
 
-            const locked = data.status === "holiday" || data.status === "leave";
-            ["attStatus", "attClockIn", "attClockOut", "attWorkingFrom", "attLocation", "attIsLate", "attReason"].forEach((id) => {
+            const locked = false;
+            ["attStatus", "attClockIn", "attClockOut", "attOvertime", "attWorkingFrom", "attLocation", "attIsLate", "attHalfDayType", "attReason"].forEach((id) => {
                 document.getElementById(id).disabled = locked;
             });
 
@@ -1423,7 +1491,8 @@
                 date: document.getElementById("attDate").value,
                 clock_in_time: document.getElementById("attClockIn").value || null,
                 clock_out_time: document.getElementById("attClockOut").value || null,
-                half_day_type: statusVal === "halfday_first" ? "first_half" : (statusVal === "halfday_second" ? "second_half" : null),
+                half_day_type: statusVal === "halfday" ? (document.getElementById("attHalfDayType").value || null) : null,
+                overtime_hours: document.getElementById("attOvertime").value || null,
                 is_late: document.getElementById("attIsLate").checked,
                 working_from: document.getElementById("attWorkingFrom").value || null,
                 location: document.getElementById("attLocation").value || null,
@@ -1433,7 +1502,7 @@
             try {
                 await API.markAdminAttendance(payload);
                 closeAttendanceModal();
-                await loadAttendance();
+                await loadAttendance({ silent: false });
             } catch (err) {
                 alert(`Failed to save attendance: ${err.message}`);
             }
@@ -1453,7 +1522,8 @@
                 status: statusVal,
                 clock_in_time: document.getElementById("attClockIn").value || null,
                 clock_out_time: document.getElementById("attClockOut").value || null,
-                half_day_type: statusVal === "halfday_first" ? "first_half" : (statusVal === "halfday_second" ? "second_half" : null),
+                half_day_type: statusVal === "halfday" ? (document.getElementById("attHalfDayType").value || null) : null,
+                overtime_hours: document.getElementById("attOvertime").value || null,
                 is_late: document.getElementById("attIsLate").checked,
                 working_from: document.getElementById("attWorkingFrom").value || null,
                 location: document.getElementById("attLocation").value || null,
@@ -1462,7 +1532,7 @@
             try {
                 await API.markAdminAttendance(payload);
                 closeAttendanceModal();
-                await loadAttendance();
+                await loadAttendance({ silent: false });
             } catch (err) {
                 alert(`Failed to add manual entry: ${err.message}`);
             }
@@ -1473,7 +1543,7 @@
             try {
                 await API.deleteAdminAttendance(selectedAttendance.attendance_id, document.getElementById("attReason").value || "");
                 closeAttendanceModal();
-                await loadAttendance();
+                await loadAttendance({ silent: false });
             } catch (err) {
                 alert(`Failed to delete attendance: ${err.message}`);
             }

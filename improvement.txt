@@ -4,11 +4,9 @@ id add in dooon task section series wise
 task page status
 absent
 task description
-leave firt half second half
-leave validation
-leave history  static data remove
+
 dashboard notices notification
-phone number validation in profile page 
+
 start task  ,selected users in doc ,filed empty after creation,height of doc 
 idele time remove
 inprogress in status,calender validation
@@ -16,4 +14,4 @@ inprogress in status,calender validation
 
 task na section ma id series wise plus status and e complete task jashe qa pase and e accept krshe etle employee ne batavshe qa check kre che ke pending ma che
 
-task description batavanu che 
+task description batavanu che
