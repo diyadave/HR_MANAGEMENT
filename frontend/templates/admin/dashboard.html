@@ -36,7 +36,50 @@
         }
 
         .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 24px;
+        }
+        .page-header-left {
+            min-width: 0;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+        }
+        .admin-profile-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            text-decoration: none;
+        }
+        .admin-profile-link:hover {
+            background: #eef2f7;
+        }
+        .profile-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #073379;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            overflow: hidden;
+        }
+        .profile-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
         }
 
         .page-title {
@@ -556,6 +599,16 @@
                 font-size: 20px;
             }
 
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-actions {
+                margin-left: 0;
+            }
+
             .notice-list {
                 grid-template-columns: 1fr;
             }
@@ -598,9 +651,19 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 class="page-title">Dashboard Overview</h1>
-            <div class="breadcrumb">
-                <a href="#">Home</a> / Dashboard
+            <div class="page-header-left">
+                <h1 class="page-title">Dashboard Overview</h1>
+                <div class="breadcrumb">
+                    <a href="#">Home</a> / Dashboard
+                </div>
+            </div>
+            <div class="header-actions">
+                <a id="adminProfileLink" class="admin-profile-link" href="admin_profile.html" title="Open admin profile">
+                    <div class="profile-placeholder">
+                        <img id="adminProfileAvatar" alt="Admin profile photo">
+                        <span id="adminProfileInitials">AD</span>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -724,6 +787,63 @@ function escapeHtml(v) {
     .replace(/'/g, "&#039;");
 }
 
+function getAdminInitials(name) {
+  return String(name || "Admin")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "AD";
+}
+
+function getProfileImageUrl(path) {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const base = (window.BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+  let normalized = String(path).replace(/\\/g, "/").replace(/^\/+/, "");
+  if (normalized.startsWith("profile_images/")) normalized = `uploads/${normalized}`;
+  return `${base}/${normalized}`;
+}
+
+async function loadAdminHeaderProfile() {
+  const avatarImg = document.getElementById("adminProfileAvatar");
+  const initialsEl = document.getElementById("adminProfileInitials");
+  let name = "Admin";
+  let profileImage = "";
+
+  try {
+    if (window.API?.getAdminProfile) {
+      const profile = await window.API.getAdminProfile();
+      name = profile?.name || name;
+      profileImage = profile?.profile_image || "";
+    } else {
+      const userRaw = localStorage.getItem("user");
+      if (userRaw) {
+        const user = JSON.parse(userRaw);
+        name = user?.name || name;
+        profileImage = user?.profile_image || "";
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to load admin header profile:", err);
+  }
+
+  initialsEl.textContent = getAdminInitials(name);
+  const imageUrl = getProfileImageUrl(profileImage);
+  if (imageUrl) {
+    avatarImg.src = imageUrl;
+    avatarImg.style.display = "block";
+    initialsEl.style.display = "none";
+    avatarImg.onerror = () => {
+      avatarImg.style.display = "none";
+      initialsEl.style.display = "inline";
+    };
+  } else {
+    avatarImg.style.display = "none";
+    initialsEl.style.display = "inline";
+  }
+}
+
 async function loadAdminDashboard() {
   if (!localStorage.getItem("access_token")) return;
   if (!window.API) return;
@@ -837,9 +957,17 @@ async function loadAdminDashboard() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadAdminDashboard);
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminHeaderProfile();
+  loadAdminDashboard();
+});
 </script>
 <script src="../../static/js/api.js"></script>
 
+<script src="../../static/js/admin_header_profile.js"></script>
 </body>
 </html>
+
+
+
+

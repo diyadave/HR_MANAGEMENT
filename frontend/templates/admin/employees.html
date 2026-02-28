@@ -498,6 +498,50 @@
             transform: rotate(180deg);
         }
 
+        .account-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-toggle {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            background: #cbd5e1;
+            transition: background 0.2s;
+        }
+        .status-toggle::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .status-toggle.active {
+            background: #059669;
+        }
+        .status-toggle.active::after {
+            transform: translateX(22px);
+        }
+        .status-toggle:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .account-toggle-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-600);
+            min-width: 62px;
+        }
+
         /* Footer Actions */
         .table-footer {
             padding: 20px;
@@ -794,7 +838,7 @@
                 <div class="stat-card">
                     <div class="stat-content">
                         <div class="stat-info">
-                            <h3>1,284</h3>
+                            <h3 id="statTotalEmployees">0</h3>
                             <p>Total Employees</p>
                         </div>
                         <div class="stat-icon">
@@ -806,7 +850,7 @@
                 <div class="stat-card">
                     <div class="stat-content">
                         <div class="stat-info">
-                            <h3>1,219</h3>
+                            <h3 id="statActiveEmployees">0</h3>
                             <p>Active</p>
                         </div>
                         <div class="stat-icon">
@@ -818,7 +862,7 @@
                 <div class="stat-card">
                     <div class="stat-content">
                         <div class="stat-info">
-                            <h3>65</h3>
+                            <h3 id="statInactiveEmployees">0</h3>
                             <p>Inactive</p>
                         </div>
                         <div class="stat-icon">
@@ -832,7 +876,7 @@
             <div class="table-container">
                 <div class="table-header">
                     <h2>Employee Directory</h2>
-                    <div class="pagination-info">Showing 8 of 1,284 employees</div>
+                    <div class="pagination-info" id="tableShowingInfo">Showing 0 of 0 employees</div>
                 </div>
                 
                 <table class="employee-table">
@@ -842,7 +886,7 @@
                             <th>Department</th>
                             <th>Designation</th>
                             <th>Status</th>
-                            <th>Permissions</th>
+                            <th>Account Access</th>
                         </tr>
                     </thead>
                     <tbody id="employeesBody">
@@ -853,20 +897,8 @@
                 
                 <!-- Footer -->
                 <div class="table-footer">
-                    <div class="pagination-info">1-8 of 1,284 employees</div>
-                    <div class="pagination-controls">
-                        <button class="page-btn" disabled>
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <span style="padding: 0 4px; color: var(--gray-400); align-self: center;">...</span>
-                        <button class="page-btn">156</button>
-                        <button class="page-btn">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="pagination-info" id="footerRangeInfo">0-0 of 0 employees</div>
+                    <div class="pagination-controls" id="paginationControls"></div>
                 </div>
             </div>
         </div>
@@ -904,9 +936,12 @@
 const API_BASE = "http://127.0.0.1:8000"; // adjust if needed
 
 let allEmployees = [];
+let filteredEmployees = [];
 let allTasks = [];
 let allProjects = [];
 let attendanceByEmployee = {};
+let currentPage = 1;
+const pageSize = 8;
 
 // 🔹 Load employees on page load
 document.addEventListener("DOMContentLoaded", () => {
@@ -920,6 +955,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("statusFilter")
     .addEventListener("change", applyFilters);
+
+  const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+  if (addEmployeeBtn) {
+    addEmployeeBtn.addEventListener("click", () => {
+      window.location.href = "create_employee.html";
+    });
+  }
 });
 
 async function loadEmployees() {
@@ -941,24 +983,14 @@ async function loadEmployees() {
     const attendance = attendanceRes.ok ? await attendanceRes.json() : [];
     attendanceByEmployee = Object.fromEntries((attendance || []).map(a => [a.employee_id, a]));
 
-    renderEmployees(allEmployees);
-    updateStats(allEmployees);
+    filteredEmployees = [...allEmployees];
+    updateStats();
+    renderCurrentPage();
 
   } catch (err) {
     console.error("Failed to load employees", err);
   }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
-
-    if (addEmployeeBtn) {
-        addEmployeeBtn.addEventListener("click", function () {
-            window.location.href = "create_employee.html";
-        });
-    }
-});
-
 
 function renderEmployees(employees) {
   const tbody = document.getElementById("employeesBody");
@@ -1004,7 +1036,16 @@ function renderEmployees(employees) {
         </span>
       </td>
       <td>
-        <button class="toggle-btn">Task & Project Permissions</button>
+        <div class="account-toggle">
+          <button
+            class="status-toggle ${emp.is_active ? "active" : ""}"
+            type="button"
+            data-emp-id="${emp.id}"
+            data-is-active="${emp.is_active ? "1" : "0"}"
+            title="${emp.is_active ? "Click to deactivate employee login" : "Click to activate employee login"}"
+          ></button>
+          <span class="account-toggle-label">${emp.is_active ? "Active" : "Inactive"}</span>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -1016,6 +1057,14 @@ function renderEmployees(employees) {
       openEmployeeDetail(id);
     });
   });
+
+  tbody.querySelectorAll(".status-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.empId || 0);
+      if (!id) return;
+      toggleEmployeeStatus(id, btn);
+    });
+  });
 }
 
 function applyFilters() {
@@ -1023,7 +1072,7 @@ function applyFilters() {
   const dept = document.getElementById("departmentFilter").value.toLowerCase();
   const status = document.getElementById("statusFilter").value.toLowerCase();
 
-  const filtered = allEmployees.filter(emp => {
+  filteredEmployees = allEmployees.filter(emp => {
     const matchSearch =
       emp.name.toLowerCase().includes(search) ||
       emp.email.toLowerCase().includes(search) ||
@@ -1040,18 +1089,19 @@ function applyFilters() {
     return matchSearch && matchDept && matchStatus;
   });
 
-  renderEmployees(filtered);
-  updateStats(filtered);
+  currentPage = 1;
+  renderCurrentPage();
+  updateStats();
 }
 
-function updateStats(list) {
-  const total = list.length;
-  const active = list.filter(e => e.is_active).length;
+function updateStats() {
+  const total = filteredEmployees.length;
+  const active = filteredEmployees.filter(e => e.is_active).length;
   const inactive = total - active;
 
-  document.querySelectorAll(".stat-card h3")[0].textContent = total;
-  document.querySelectorAll(".stat-card h3")[1].textContent = active;
-  document.querySelectorAll(".stat-card h3")[2].textContent = inactive;
+  document.getElementById("statTotalEmployees").textContent = total.toLocaleString();
+  document.getElementById("statActiveEmployees").textContent = active.toLocaleString();
+  document.getElementById("statInactiveEmployees").textContent = inactive.toLocaleString();
 }
 
 function escapeHtml(value) {
@@ -1077,6 +1127,120 @@ function getAttendancePercent(employeeId) {
   const att = attendanceByEmployee[employeeId];
   if (!att || !days) return 0;
   return Math.round(((att.total_present_days || 0) / days) * 100);
+}
+
+async function toggleEmployeeStatus(employeeId, toggleEl) {
+  const previous = toggleEl.dataset.isActive === "1";
+  toggleEl.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/employees/${employeeId}/toggle-status`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("access_token")
+      }
+    });
+
+    if (!res.ok) {
+      let detail = "Failed to update employee status";
+      try {
+        const data = await res.json();
+        detail = data.detail || detail;
+      } catch {}
+      throw new Error(detail);
+    }
+
+    const data = await res.json();
+    const isActive = Boolean(data.is_active);
+
+    allEmployees = allEmployees.map((emp) =>
+      Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
+    );
+    filteredEmployees = filteredEmployees.map((emp) =>
+      Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
+    );
+
+    updateStats();
+    renderCurrentPage();
+  } catch (err) {
+    console.error("Toggle employee status failed:", err);
+    alert(err.message || "Failed to update status");
+    toggleEl.dataset.isActive = previous ? "1" : "0";
+    toggleEl.classList.toggle("active", previous);
+  } finally {
+    toggleEl.disabled = false;
+  }
+}
+
+function renderCurrentPage() {
+  const total = filteredEmployees.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageEmployees = filteredEmployees.slice(startIdx, startIdx + pageSize);
+  renderEmployees(pageEmployees);
+  updateTableMeta(total, startIdx, pageEmployees.length, totalPages);
+  renderPagination(totalPages);
+}
+
+function updateTableMeta(total, startIdx, pageCount) {
+  const start = total ? startIdx + 1 : 0;
+  const end = total ? startIdx + pageCount : 0;
+  document.getElementById("tableShowingInfo").textContent = `Showing ${pageCount} of ${total.toLocaleString()} employees`;
+  document.getElementById("footerRangeInfo").textContent = `${start}-${end} of ${total.toLocaleString()} employees`;
+}
+
+function renderPagination(totalPages) {
+  const controls = document.getElementById("paginationControls");
+  controls.innerHTML = "";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "page-btn";
+  prevBtn.disabled = currentPage <= 1;
+  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage -= 1;
+      renderCurrentPage();
+    }
+  });
+  controls.appendChild(prevBtn);
+
+  const pagesToShow = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+  const ordered = [...pagesToShow].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+
+  let lastPage = 0;
+  ordered.forEach((page) => {
+    if (page - lastPage > 1) {
+      const dots = document.createElement("span");
+      dots.style.padding = "0 4px";
+      dots.style.color = "var(--gray-400)";
+      dots.style.alignSelf = "center";
+      dots.textContent = "...";
+      controls.appendChild(dots);
+    }
+    const btn = document.createElement("button");
+    btn.className = `page-btn${page === currentPage ? " active" : ""}`;
+    btn.textContent = String(page);
+    btn.addEventListener("click", () => {
+      currentPage = page;
+      renderCurrentPage();
+    });
+    controls.appendChild(btn);
+    lastPage = page;
+  });
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "page-btn";
+  nextBtn.disabled = currentPage >= totalPages;
+  nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+  nextBtn.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage += 1;
+      renderCurrentPage();
+    }
+  });
+  controls.appendChild(nextBtn);
 }
 
 function openEmployeeDetail(employeeId) {
@@ -1174,3 +1338,7 @@ document.getElementById("employeeDetailModal").addEventListener("click", (e) => 
 
 </body>
 </html>
+
+
+
+

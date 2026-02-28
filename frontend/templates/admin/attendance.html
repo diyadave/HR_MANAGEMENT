@@ -99,6 +99,19 @@
             color: var(--text-dark);
         }
 
+        .admin-profile-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            text-decoration: none;
+        }
+        .admin-profile-link:hover {
+            background: var(--border-faint);
+        }
+
         .profile-placeholder {
             width: 30px;
             height: 30px;
@@ -110,6 +123,13 @@
             justify-content: center;
             font-weight: 600;
             font-size: 11px;
+            overflow: hidden;
+        }
+        .profile-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
         }
 
         /* ── Filter Bar ── */
@@ -834,8 +854,12 @@
                 <h1 class="page-title">Attendance</h1>
             </div>
             <div class="header-actions">
-
-                <div class="profile-placeholder">AD</div>
+                <a id="adminProfileLink" class="admin-profile-link" href="admin_profile.html" title="Open admin profile">
+                    <div class="profile-placeholder">
+                        <img id="adminProfileAvatar" alt="Admin profile photo">
+                        <span id="adminProfileInitials">AD</span>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -1100,6 +1124,54 @@
         let allAttendanceRaw = [];
         let selectedAttendance = null;
         let attendanceStreamSocket = null;
+
+        function getAdminInitials(name) {
+            return String(name || "Admin")
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0]?.toUpperCase() || "")
+                .join("") || "AD";
+        }
+
+        async function loadAdminHeaderProfile() {
+            const avatarImg = document.getElementById("adminProfileAvatar");
+            const initialsEl = document.getElementById("adminProfileInitials");
+            let name = "Admin";
+            let profileImage = "";
+
+            try {
+                if (window.API?.getAdminProfile) {
+                    const profile = await window.API.getAdminProfile();
+                    name = profile?.name || name;
+                    profileImage = profile?.profile_image || "";
+                } else {
+                    const userRaw = localStorage.getItem("user");
+                    if (userRaw) {
+                        const user = JSON.parse(userRaw);
+                        name = user?.name || name;
+                        profileImage = user?.profile_image || "";
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to load admin header profile:", err);
+            }
+
+            initialsEl.textContent = getAdminInitials(name);
+            const imageUrl = getProfileImageUrl(profileImage);
+            if (imageUrl) {
+                avatarImg.src = imageUrl;
+                avatarImg.style.display = "block";
+                initialsEl.style.display = "none";
+                avatarImg.onerror = () => {
+                    avatarImg.style.display = "none";
+                    initialsEl.style.display = "inline";
+                };
+            } else {
+                avatarImg.style.display = "none";
+                initialsEl.style.display = "inline";
+            }
+        }
 
         function esc(s) {
             return String(s || "")
@@ -1584,6 +1656,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            loadAdminHeaderProfile();
             const monthFilter = document.getElementById("monthFilter");
             const yearFilter = document.getElementById("yearFilter");
             if (monthFilter) monthFilter.value = String(currentMonth);
@@ -1616,5 +1689,10 @@
             });
         });
     </script>
+<script src="../../static/js/admin_header_profile.js"></script>
 </body>
 </html>
+
+
+
+

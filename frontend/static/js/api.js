@@ -157,6 +157,28 @@ function redirectToLogin() {
     window.location.href = "../auth/login.html";
 }
 
+function extractErrorDetail(err) {
+    if (!err) return "";
+    if (typeof err.detail === "string") return err.detail;
+    if (Array.isArray(err.detail)) {
+        return err.detail
+            .map((item) => item?.msg || item?.message || "")
+            .filter(Boolean)
+            .join(", ");
+    }
+    if (err.detail && typeof err.detail === "object") {
+        return err.detail.msg || err.detail.message || JSON.stringify(err.detail);
+    }
+    if (typeof err.message === "string") return err.message;
+    return "";
+}
+
+function isInactiveAccountError(status, err) {
+    if (status !== 401 && status !== 403) return false;
+    const msg = extractErrorDetail(err).toLowerCase();
+    return msg.includes("inactive") || msg.includes("not available");
+}
+
 function buildHeaders(token, isJson = true) {
     const headers = {};
     if (isJson) headers["Content-Type"] = "application/json";
@@ -222,6 +244,11 @@ async function apiRequest(endpoint, method = "GET", body = null, options = {}) {
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
+        if (isInactiveAccountError(response.status, err)) {
+            clearAuthState();
+            redirectToLogin();
+            throw new Error("Account is inactive");
+        }
         if (Array.isArray(err.errors) && err.errors.length) {
             throw new Error(err.errors[0]);
         }
@@ -244,6 +271,53 @@ async function apiRequest(endpoint, method = "GET", body = null, options = {}) {
 }
 
 window.apiRequest = apiRequest;
+
+let authStateMonitorTimer = null;
+
+async function checkCurrentSessionState() {
+    const token = getAccessToken();
+    if (!token) return;
+
+    const role = (localStorage.getItem("user_role") || "").toLowerCase();
+    const endpoint = role === "admin" ? "/admin/profile" : "/profile/";
+    const requestWithToken = (bearerToken) =>
+        fetch(`${BASE_URL}${endpoint}`, {
+            method: "GET",
+            headers: buildHeaders(bearerToken, false)
+        });
+
+    let response = await requestWithToken(token);
+
+    if (response.status === 401) {
+        try {
+            const refreshedToken = await refreshAccessToken();
+            response = await requestWithToken(refreshedToken);
+        } catch {
+            clearAuthState();
+            redirectToLogin();
+            return;
+        }
+    }
+
+    if (response.status === 401 || response.status === 403) {
+        const err = await response.json().catch(() => ({}));
+        if (isInactiveAccountError(response.status, err)) {
+            clearAuthState();
+            redirectToLogin();
+        }
+    }
+}
+
+function startAuthStateMonitor() {
+    if (authStateMonitorTimer) return;
+    if (!getAccessToken()) return;
+    if (window.location.pathname.includes("/auth/")) return;
+
+    checkCurrentSessionState().catch(() => {});
+    authStateMonitorTimer = window.setInterval(() => {
+        checkCurrentSessionState().catch(() => {});
+    }, 30000);
+}
 
 async function safeLogout() {
     try {
@@ -334,6 +408,7 @@ function applyUserInfo() {
 document.addEventListener("DOMContentLoaded", () => {
     applyUserInfo();
     ensureLogoutModal();
+    startAuthStateMonitor();
 });
 
 let userApplied = false;
@@ -394,6 +469,7 @@ window.API = {
 
     // Admin
     getAdminEmployees: () => apiRequest("/admin/employees"),
+    toggleEmployeeStatus: (employeeId) => apiRequest(`/admin/employees/${employeeId}/toggle-status`, "POST"),
     getAdminTasks: () => apiRequest("/admin/tasks"),
     createAdminTask: (data) => apiRequest("/admin/tasks", "POST", data),
     updateAdminTask: (taskId, data) => apiRequest(`/admin/tasks/${taskId}`, "PUT", data),

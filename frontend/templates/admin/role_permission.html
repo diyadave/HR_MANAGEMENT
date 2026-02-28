@@ -354,7 +354,7 @@
         <div class="header">
             <div>
                 <div class="page-title">Roles & Permissions</div>
-                <div class="page-subtitle">Manage user roles and their access permissions</div>
+                <div class="page-subtitle" id="permissionPageSubtitle">Manage user roles and their access permissions</div>
             </div>
             <button class="save-btn" onclick="savePermissions()">
                 <span>💾</span>
@@ -617,50 +617,90 @@
             }
         };
 
+        function getContextFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                employeeId: params.get("employee_id") || "",
+                employeeName: params.get("employee_name") || "",
+                employeeRole: (params.get("employee_role") || "employee").toLowerCase(),
+                employeeCode: params.get("employee_code") || ""
+            };
+        }
+
+        function getStorageKey(ctx) {
+            return ctx.employeeId ? `employee_permissions_${ctx.employeeId}` : "role_permissions_defaults";
+        }
+
+        function setSubtitle(ctx) {
+            const subtitle = document.getElementById('permissionPageSubtitle');
+            if (!subtitle) return;
+            if (ctx.employeeId) {
+                const displayName = ctx.employeeName || "Employee";
+                const codeText = ctx.employeeCode ? ` (${ctx.employeeCode})` : "";
+                subtitle.textContent = `Manage task/project permissions for ${displayName}${codeText}`;
+                return;
+            }
+            subtitle.textContent = "Manage user roles and their access permissions";
+        }
+
+        function readPermissions(ctx) {
+            try {
+                const raw = localStorage.getItem(getStorageKey(ctx));
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (err) {
+                console.warn("Failed to parse saved permissions:", err);
+                return null;
+            }
+        }
+
+        function applyPermissions(permissions) {
+            document.getElementById('manager-create-projects').checked = Boolean(permissions.manager?.['create-projects']);
+            document.getElementById('manager-assign-tasks').checked = Boolean(permissions.manager?.['assign-tasks']);
+            document.getElementById('manager-approve-tasks').checked = Boolean(permissions.manager?.['approve-tasks']);
+            document.getElementById('manager-approve-leaves').checked = Boolean(permissions.manager?.['approve-leaves']);
+            document.getElementById('manager-approve-timesheets').checked = Boolean(permissions.manager?.['approve-timesheets']);
+
+            document.getElementById('employee-create-projects').checked = Boolean(permissions.employee?.['create-projects']);
+            document.getElementById('employee-assign-tasks').checked = Boolean(permissions.employee?.['assign-tasks']);
+            document.getElementById('employee-approve-tasks').checked = Boolean(permissions.employee?.['approve-tasks']);
+            document.getElementById('employee-approve-leaves').checked = Boolean(permissions.employee?.['approve-leaves']);
+            document.getElementById('employee-approve-timesheets').checked = Boolean(permissions.employee?.['approve-timesheets']);
+        }
+
+        function permissionsFromInputs() {
+            return {
+                manager: {
+                    'create-projects': document.getElementById('manager-create-projects').checked,
+                    'assign-tasks': document.getElementById('manager-assign-tasks').checked,
+                    'approve-tasks': document.getElementById('manager-approve-tasks').checked,
+                    'approve-leaves': document.getElementById('manager-approve-leaves').checked,
+                    'approve-timesheets': document.getElementById('manager-approve-timesheets').checked
+                },
+                employee: {
+                    'create-projects': document.getElementById('employee-create-projects').checked,
+                    'assign-tasks': document.getElementById('employee-assign-tasks').checked,
+                    'approve-tasks': document.getElementById('employee-approve-tasks').checked,
+                    'approve-leaves': document.getElementById('employee-approve-leaves').checked,
+                    'approve-timesheets': document.getElementById('employee-approve-timesheets').checked
+                }
+            };
+        }
+
         // Set initial states
         document.addEventListener('DOMContentLoaded', () => {
-            // Manager permissions
-            document.getElementById('manager-create-projects').checked = defaultPermissions.manager['create-projects'];
-            document.getElementById('manager-assign-tasks').checked = defaultPermissions.manager['assign-tasks'];
-            document.getElementById('manager-approve-tasks').checked = defaultPermissions.manager['approve-tasks'];
-            document.getElementById('manager-approve-leaves').checked = defaultPermissions.manager['approve-leaves'];
-            document.getElementById('manager-approve-timesheets').checked = defaultPermissions.manager['approve-timesheets'];
-            
-            // Employee permissions
-            document.getElementById('employee-create-projects').checked = defaultPermissions.employee['create-projects'];
-            document.getElementById('employee-assign-tasks').checked = defaultPermissions.employee['assign-tasks'];
-            document.getElementById('employee-approve-tasks').checked = defaultPermissions.employee['approve-tasks'];
-            document.getElementById('employee-approve-leaves').checked = defaultPermissions.employee['approve-leaves'];
-            document.getElementById('employee-approve-timesheets').checked = defaultPermissions.employee['approve-timesheets'];
+            const context = getContextFromQuery();
+            setSubtitle(context);
+            const saved = readPermissions(context);
+            applyPermissions(saved || defaultPermissions);
         });
 
         // Save permissions function
         function savePermissions() {
-            // Collect manager permissions
-            const managerPermissions = {
-                'create-projects': document.getElementById('manager-create-projects').checked,
-                'assign-tasks': document.getElementById('manager-assign-tasks').checked,
-                'approve-tasks': document.getElementById('manager-approve-tasks').checked,
-                'approve-leaves': document.getElementById('manager-approve-leaves').checked,
-                'approve-timesheets': document.getElementById('manager-approve-timesheets').checked
-            };
-
-            // Collect employee permissions
-            const employeePermissions = {
-                'create-projects': document.getElementById('employee-create-projects').checked,
-                'assign-tasks': document.getElementById('employee-assign-tasks').checked,
-                'approve-tasks': document.getElementById('employee-approve-tasks').checked,
-                'approve-leaves': document.getElementById('employee-approve-leaves').checked,
-                'approve-timesheets': document.getElementById('employee-approve-timesheets').checked
-            };
-
-            // In a real application, you would send this data to your backend
-            console.log('Saving permissions:', {
-                manager: managerPermissions,
-                employee: employeePermissions
-            });
-
-            // Show success toast
+            const context = getContextFromQuery();
+            const permissions = permissionsFromInputs();
+            localStorage.setItem(getStorageKey(context), JSON.stringify(permissions));
+            console.log('Saving permissions:', permissions, context);
             showToast('Permissions saved successfully!');
         }
 
@@ -699,5 +739,9 @@
             });
         });
     </script>
+<script src="../../static/js/admin_header_profile.js"></script>
 </body>
 </html>
+
+
+

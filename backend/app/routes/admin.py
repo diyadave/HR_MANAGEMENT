@@ -121,6 +121,30 @@ def get_employees(
     return db.query(User).filter(User.role == "employee").all()
 
 
+@router.post("/employees/{employee_id}/toggle-status")
+def toggle_employee_status(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    employee = db.query(User).filter(
+        User.id == employee_id,
+        User.role == "employee"
+    ).first()
+
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    employee.is_active = not employee.is_active
+    db.commit()
+    db.refresh(employee)
+
+    return {
+        "message": f"Employee {'activated' if employee.is_active else 'deactivated'} successfully",
+        "is_active": employee.is_active
+    }
+
+
 # ================= PROJECTS =================
 
 
