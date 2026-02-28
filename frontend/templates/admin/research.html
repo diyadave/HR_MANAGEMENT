@@ -418,8 +418,19 @@
             overflow-x: auto;
         }
 
+        .excel-table-card {
+            max-height: 62vh;
+            overflow: auto;
+            scrollbar-gutter: stable both-edges;
+            padding-bottom: 8px;
+        }
+
+        .excel-table-card table {
+            margin-bottom: 8px;
+        }
+
         /* Custom scrollbar for table */
-        .table-card::-webkit-scrollbar { height: 5px; }
+        .table-card::-webkit-scrollbar { height: 5px; width: 6px; }
         .table-card::-webkit-scrollbar-track { background: var(--border-light); }
         .table-card::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
@@ -1025,6 +1036,7 @@
             .research-grid { flex-wrap: wrap; }
             .files-panel { width: 100%; height: auto; }
             .settings-panel { width: 100%; }
+            .excel-table-card { max-height: 56vh; }
         }
         @media (max-width: 768px) {
             .main-wrapper { margin-left: 0; padding: 20px 16px; }
@@ -1035,6 +1047,7 @@
             .btn-primary { width: 100%; justify-content: center; }
             .info-bar { flex-direction: column; align-items: flex-start; }
             .stats-strip { flex-wrap: wrap; }
+            .excel-table-card { max-height: 50vh; }
         }
 
         /* misc */
@@ -1085,6 +1098,35 @@
         .file-item.active .file-ext.docx {
             background: #bfdbfe;
             color: #1e3a8a;
+        }
+        .file-item-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .file-delete-btn {
+            width: 22px;
+            height: 22px;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 6px;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .file-delete-btn:hover {
+            color: #be123c;
+            border-color: #fecdd3;
+            background: #fff1f2;
+        }
+        .file-delete-btn i {
+            width: auto;
+            font-size: 0.74rem;
+            color: inherit;
         }
 
         /* ── DOCUMENT CARD VIEW ── */
@@ -1524,7 +1566,7 @@
                    <!-- Table shown when an excel card is clicked -->
                         <div id="excelTableArea" style="margin-top:20px; display:none;">
                             <div id="activeExcelName" class="section-label" style="margin-bottom:10px;"><i class="fas fa-table" style="color:#16a34a;"></i> <span>File</span></div>
-                            <div class="table-card">
+                            <div class="table-card excel-table-card">
                                 <table>
                                     <thead>
                                         <tr>
@@ -1735,6 +1777,19 @@
                 <button class="btn-primary" id="saveFileBtn" style="border-radius:10px;">
                 <i class="fas fa-save"></i> Save File
             </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteFileModal">
+        <div class="modal-card" style="max-width:420px;">
+            <h2 style="margin-bottom:8px;">Delete File</h2>
+            <small id="deleteFileText" style="display:block;margin-bottom:16px;">Do you want to confirm delete this file?</small>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancelDeleteFileBtn">Cancel</button>
+                <button class="btn-primary" id="confirmDeleteFileBtn" style="background:#dc2626;border-color:#dc2626;">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
             </div>
         </div>
     </div>

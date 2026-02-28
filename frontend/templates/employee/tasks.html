@@ -201,6 +201,15 @@
             margin-bottom: 3px;
         }
 
+        .task-public-id {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
         .task-project {
             font-size: 12px;
             color: #64748b;
@@ -723,6 +732,7 @@
         // ==================== RENDER TASKS ====================
         function renderTasks(tasks) {
             const tbody = document.getElementById('tasksTableBody');
+            const displayIdMap = buildTaskDisplayIdMap(tasks);
 
             if (!tasks || tasks.length === 0) {
                 tbody.innerHTML = `
@@ -762,6 +772,7 @@
 
                 // Get project name safely
                 const projectName = task.project?.name || task.project_name || 'No Project';
+                const displayTaskId = displayIdMap[Number(task.id)] || `task-${task.id}`;
 
                 // Status class mapping
                 const statusClass = task.status === 'in_progress' ? 'in-progress' :
@@ -770,6 +781,7 @@
                 return `
                     <tr data-task-id="${task.id}" class="${rowClass}">
                         <td>
+                            <div class="task-public-id">${escapeHtml(displayTaskId)}</div>
                             <div class="task-name">${escapeHtml(task.title)}</div>
                             <div class="task-project">${escapeHtml(projectName)}</div>
                             <div class="task-description">${escapeHtml(task.description || 'No description')}</div>
@@ -824,6 +836,27 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function buildTaskDisplayIdMap(tasks) {
+            const sortedTasks = [...(tasks || [])].sort((a, b) => Number(a.id) - Number(b.id));
+            const counters = {};
+            const map = {};
+
+            sortedTasks.forEach((task) => {
+                const projectName = task.project?.name || task.project_name || "project";
+                const projectKey = String(projectName)
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, "")
+                    .replace(/\s+/g, "-")
+                    .replace(/-+/g, "-") || "project";
+
+                counters[projectKey] = (counters[projectKey] || 0) + 1;
+                map[Number(task.id)] = `${projectKey}-${counters[projectKey]}`;
+            });
+
+            return map;
         }
 
         // ==================== TASK ACTIONS ====================

@@ -396,6 +396,7 @@ window.API = {
     getAdminEmployees: () => apiRequest("/admin/employees"),
     getAdminTasks: () => apiRequest("/admin/tasks"),
     createAdminTask: (data) => apiRequest("/admin/tasks", "POST", data),
+    updateAdminTask: (taskId, data) => apiRequest(`/admin/tasks/${taskId}`, "PUT", data),
     deleteAdminTask: (taskId) => apiRequest(`/admin/tasks/${taskId}`, "DELETE"),
     getAdminProjects: () => apiRequest("/admin/projects/"),
     getAdminAttendance: (month, year) => apiRequest(`/admin/attendance?month=${month}&year=${year}`),

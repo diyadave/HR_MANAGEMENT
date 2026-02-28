@@ -37,7 +37,7 @@ from app.core.validation import (
 )
 
 from app.schemas.user import EmployeeCreate, EmployeeCreateResponse, EmployeeOut, AdminCreate, AdminProfileUpdateSchema
-from app.schemas.task import TaskCreate, TaskOut
+from app.schemas.task import TaskCreate, TaskOut, TaskUpdate
 
 from app.utils.email import send_employee_credentials
 from app.services.notification_service import push_notification
@@ -209,6 +209,65 @@ def get_all_tasks(
         })
 
     return result
+
+
+@router.put("/tasks/{task_id}", response_model=TaskOut)
+def update_task(
+    task_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    raw_updates = dict(payload or {})
+    project_id = raw_updates.pop("project_id", None)
+
+    try:
+        validated = TaskUpdate(**raw_updates)
+    except ValidationError as exc:
+        errors = [str(err.get("msg")) for err in exc.errors() if err.get("msg")]
+        detail = ", ".join(errors) if errors else "Invalid task update payload"
+        raise HTTPException(status_code=400, detail=detail)
+
+    updates = validated.model_dump(exclude_unset=True)
+
+    if project_id is not None:
+        project = db.query(Project).filter(Project.id == int(project_id)).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        updates["project_id"] = int(project_id)
+
+    if "assigned_to" in updates:
+        if not updates["assigned_to"] or int(updates["assigned_to"]) <= 0:
+            raise HTTPException(status_code=400, detail="Please select at least one employee.")
+        require_employee_exists(db, int(updates["assigned_to"]), detail="Selected employee not found")
+
+    for key, value in updates.items():
+        setattr(task, key, value)
+
+    db.commit()
+    db.refresh(task)
+
+    return {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "project_id": task.project_id,
+        "project_name": task.project.name if task.project else None,
+        "assigned_to": task.assigned_to,
+        "assignee_name": task.assigned_user.name if task.assigned_user else None,
+        "assignee_profile_image": task.assigned_user.profile_image if task.assigned_user else None,
+        "created_by": task.created_by,
+        "created_by_name": task.created_user.name if task.created_user else None,
+        "created_by_profile_image": task.created_user.profile_image if task.created_user else None,
+        "priority": task.priority,
+        "status": task.status,
+        "due_date": task.due_date,
+        "estimated_hours": task.estimated_hours
+    }
 
 
 @router.delete("/tasks/{task_id}")

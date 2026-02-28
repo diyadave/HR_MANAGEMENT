@@ -449,6 +449,15 @@
             margin-bottom: 4px;
         }
 
+        .task-public-id {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
         .project-description-small {
             font-size: 13px;
             color: var(--gray-500);
@@ -779,6 +788,8 @@
                 <div class="section-header" style="margin-bottom: 10px;">
                     <div class="section-title">Selected Task Details</div>
                 </div>
+                <div class="meta-label">Task ID</div>
+                <div class="meta-value-large" id="selectedTaskDisplayId">-</div>
                 <div class="meta-label">Task Name</div>
                 <div class="meta-value-large" id="selectedTaskName">-</div>
                 <div class="meta-label" style="margin-top: 10px;">Task Details</div>
@@ -915,6 +926,7 @@
         const queryParams = new URLSearchParams(window.location.search);
         const projectId = queryParams.get("id");
         const selectedTaskId = Number(queryParams.get("task"));
+        let currentTaskDisplayIdMap = {};
 
         document.addEventListener("DOMContentLoaded", loadProjectDetails);
 
@@ -953,6 +965,7 @@
 
                 // Tasks
                 const tasks = project.tasks || [];
+                currentTaskDisplayIdMap = buildProjectTaskDisplayIdMap(tasks, project.name || "project");
                 document.getElementById("taskCount").innerText =
                     tasks.length + " tasks";
 
@@ -1037,9 +1050,13 @@
                 const createdPhoto = getProfileImageUrl(t.created_by_profile_image || t.created_user?.profile_image);
                 const assignedInitials = assignedName.split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
                 const createdInitials = createdName.split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase() || "?";
+                const displayTaskId = currentTaskDisplayIdMap[Number(t.id)] || `task-${t.id}`;
 
                 tr.innerHTML = `
-                    <td>${escapeHtml(t.title || "-")}</td>
+                    <td>
+                        <div class="task-public-id">${escapeHtml(displayTaskId)}</div>
+                        <div>${escapeHtml(t.title || "-")}</div>
+                    </td>
                     <td>
                         <div class="user-cell">
                             <div class="user-avatar">${
@@ -1088,6 +1105,8 @@
                 return;
             }
 
+            const displayTaskId = currentTaskDisplayIdMap[Number(task.id)] || `task-${task.id}`;
+            document.getElementById("selectedTaskDisplayId").innerText = displayTaskId;
             document.getElementById("selectedTaskName").innerText = task.title || "-";
             document.getElementById("selectedTaskDescription").innerText = task.description || "No task details available.";
             document.getElementById("selectedTaskStatus").innerText = task.status || "-";
@@ -1095,6 +1114,22 @@
             document.getElementById("selectedTaskDueDate").innerText = task.due_date || "-";
             document.getElementById("selectedTaskAssignedTo").innerText = task.assignee_name || task.assigned_user?.name || "-";
             card.style.display = "block";
+        }
+
+        function buildProjectTaskDisplayIdMap(tasks, projectName) {
+            const sorted = [...(tasks || [])].sort((a, b) => Number(a.id) - Number(b.id));
+            const prefix = String(projectName || "project")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-") || "project";
+
+            const map = {};
+            sorted.forEach((task, idx) => {
+                map[Number(task.id)] = `${prefix}-${idx + 1}`;
+            });
+            return map;
         }
 
     </script>
