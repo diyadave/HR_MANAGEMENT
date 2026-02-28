@@ -13,6 +13,7 @@ class Attendance(Base):
     # 🔥 VERY IMPORTANT FIX
     clock_in_time = Column(DateTime(timezone=True), nullable=True)
     clock_out_time = Column(DateTime(timezone=True), nullable=True)
+    first_clock_in_time = Column(DateTime(timezone=True), nullable=True)
 
     total_seconds = Column(Integer, default=0)
     status = Column(String(20), nullable=True)

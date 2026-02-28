@@ -15,6 +15,8 @@
   let lastSyncTime = 0;
   let attendanceSeconds = 0;
   let taskSeconds = 0;
+  let clockInLocked = false;
+  let clockInLockReason = null;
   
   let isClockedIn = false;
   let activeTask = null;
@@ -87,6 +89,8 @@ function initTrackerElements() {
     lastServerSeconds = data.worked_seconds || 0;
     lastSyncTime = Date.now();
     isClockedIn = data.is_running || false;
+    clockInLocked = Boolean(data.clock_in_locked);
+    clockInLockReason = data.clock_in_lock_reason || null;
     attendanceSeconds = lastServerSeconds;
     elements.attendanceTimer.textContent = formatTime(attendanceSeconds);
     updateClockButtonState();
@@ -216,10 +220,22 @@ function initTrackerElements() {
   function updateClockButtonState() {
     const { hour } = getIstHourMinute();
 
-    if (hour >= 13 && hour < 14) {
+    if (!isClockedIn && clockInLocked) {
+      elements.clockBtn.disabled = true;
+      const lockText = {
+        holiday: "Holiday",
+        leave: "On Leave",
+        unapproved_leave: "Leave Pending",
+        break: "Break Time"
+      }[clockInLockReason] || "Clock Disabled";
+      elements.clockBtn.textContent = lockText;
+      return;
+    }
+
+    if (!isClockedIn && hour >= 13 && hour < 14) {
       elements.clockBtn.disabled = true;
       elements.clockBtn.textContent = "Break Time";
-    } else if (hour >= 18) {
+    } else if (!isClockedIn && hour >= 18) {
       elements.clockBtn.disabled = true;
       elements.clockBtn.textContent = "Office Closed";
     } else {

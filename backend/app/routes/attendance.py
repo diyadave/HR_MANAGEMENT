@@ -21,6 +21,7 @@ from app.services.attendance_service import (
     ensure_attendance_schema,
     get_attendance_worked_seconds,
     get_attendance_status_meta,
+    get_clock_in_lock_reason,
     get_ist_date,
     IST
 )
@@ -122,18 +123,21 @@ def active_attendance(
     Attendance.user_id == current_user.id,
     Attendance.date == today
     ).first()
+    lock_reason = get_clock_in_lock_reason(current_user, db, now=now)
     if not attendance:
-        return {"worked_seconds": 0, "is_running": False}
+        return {"worked_seconds": 0, "is_running": False, "clock_in_locked": bool(lock_reason), "clock_in_lock_reason": lock_reason}
 
     if attendance.date != today:
-        return {"worked_seconds": 0, "is_running": False}
+        return {"worked_seconds": 0, "is_running": False, "clock_in_locked": bool(lock_reason), "clock_in_lock_reason": lock_reason}
 
     worked_seconds = attendance.total_seconds or 0
     worked_seconds = get_attendance_worked_seconds(attendance, now)
 
     return {
         "worked_seconds": worked_seconds,
-        "is_running": attendance.clock_in_time is not None and attendance.clock_out_time is None
+        "is_running": attendance.clock_in_time is not None and attendance.clock_out_time is None,
+        "clock_in_locked": bool(lock_reason),
+        "clock_in_lock_reason": lock_reason
     }
 
 
