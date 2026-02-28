@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Text, Date, DateTime, 
+    Boolean, Column, Integer, String, Text, Date, DateTime,
     ForeignKey, Float, Enum
 )
 from sqlalchemy.sql import func
@@ -28,6 +28,7 @@ class Task(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String(50), default=TaskStatus.PENDING.value, nullable=False)
+    is_overtime = Column(Boolean, default=False, nullable=False)
     due_date = Column(Date, nullable=True)
     estimated_hours = Column(Float, nullable=True)
     

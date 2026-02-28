@@ -131,6 +131,7 @@ class TaskOut(BaseModel):
     created_by_profile_image: Optional[str] = None
     priority: Optional[str] = None
     status: Optional[str] = None
+    is_overtime: bool = False
     due_date: Optional[date]
     estimated_hours: Optional[float]
     total_time_spent: float = 0.0

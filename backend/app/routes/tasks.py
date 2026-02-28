@@ -16,6 +16,12 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.attendance import Attendance
 from app.services.attendance_service import auto_close_open_attendances_for_user, is_break_time_ist
+from app.services.tracker_service import (
+    apply_overtime_status_if_needed,
+    set_task_completed,
+    set_task_in_progress,
+    set_task_paused,
+)
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -268,6 +274,13 @@ def start_task(
                 "duration_seconds": current_duration
             }
         running.end_time = now
+        previous_task = db.query(Task).filter(
+            Task.id == running.task_id,
+            Task.assigned_to == current_user.id
+        ).first()
+        if previous_task:
+            set_task_paused(previous_task, db)
+            apply_overtime_status_if_needed(previous_task, db)
 
     # Create time log
     log = TaskTimeLog(
@@ -276,9 +289,8 @@ def start_task(
         start_time=now
     )
 
-    # Update task status to in_progress if it was pending
-    if task.status == "pending":
-        task.status = "in_progress"
+    # Task becomes active whenever timer starts.
+    set_task_in_progress(task, db)
 
     db.add(log)
     db.commit()
@@ -312,10 +324,16 @@ def stop_task(
 
     # Stop the timer
     log.end_time = datetime.now(timezone.utc)
-    
-    # Calculate duration and update if needed (optional)
+
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.assigned_to == current_user.id
+    ).first()
+    if task:
+        set_task_paused(task, db)
+        apply_overtime_status_if_needed(task, db)
+
     duration = (log.end_time - log.start_time).total_seconds()
-    
     db.commit()
 
     return {
@@ -357,10 +375,9 @@ def complete_task(
     if running_log:
         running_log.end_time = datetime.now(timezone.utc)
 
-    # Update task status
-    task.status = "completed"
-    task.completed_at = datetime.now(timezone.utc)
-    task.completed_by = current_user.id
+    # Mark as completed and then check if logged time exceeded estimate.
+    set_task_completed(task, current_user.id, db)
+    apply_overtime_status_if_needed(task, db)
 
     db.commit()
     db.refresh(task)

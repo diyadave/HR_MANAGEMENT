@@ -1127,19 +1127,50 @@ document.getElementById("employeeDetailModal").addEventListener("click", (e) => 
 </script>
 
     <script>
-fetch("../shared/sidebar_admin.html")
-  .then(res => res.text())
-  .then(html => {
-    document.getElementById("sidebar-container").innerHTML = html;
+        if (typeof window.toggleSidebar !== "function") {
+            window.toggleSidebar = function toggleSidebar() {
+                const sidebar = document.getElementById("adminSidebar");
+                if (sidebar) sidebar.classList.toggle("active");
+            };
+        }
 
-    const current = location.pathname.split("/").pop();
-    document.querySelectorAll(".sidebar a").forEach(link => {
-      if (link.getAttribute("href")?.includes(current)) {
-        link.classList.add("active");
-      }
-    });
-  });
-</script>
+        if (typeof window.toggleSubmenu !== "function") {
+            window.toggleSubmenu = function toggleSubmenu(event, submenuId) {
+                if (event) event.preventDefault();
+                const submenu = document.getElementById(submenuId);
+                if (!submenu) return;
+                submenu.classList.toggle("expanded");
+                const parent = submenu.closest(".nav-parent");
+                if (parent) parent.classList.toggle("expanded");
+            };
+        }
+
+        if (typeof window.handleLogout !== "function") {
+            window.handleLogout = function handleLogout(event) {
+                if (event) event.preventDefault();
+                if (window.API && typeof window.API.logout === "function") {
+                    window.API.logout();
+                    return;
+                }
+                if (confirm("Are you sure you want to logout?")) {
+                    window.location.href = "../auth/login.html";
+                }
+            };
+        }
+
+        fetch("../shared/sidebar_admin.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+
+                const current = location.pathname.split("/").pop();
+                document.querySelectorAll(".sidebar a").forEach(link => {
+                    if (link.getAttribute("href")?.includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            });
+    </script>
 
 </body>
 </html>

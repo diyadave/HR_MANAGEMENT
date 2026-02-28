@@ -31,6 +31,7 @@ from app.core.security import decode_token
 from app.core.attendance_ws_manager import attendance_ws_manager
 from app.core.notification_ws_manager import notification_ws_manager
 from app.database.session import SessionLocal
+from app.services.tracker_service import ensure_task_schema
 
 app = FastAPI()
 
@@ -53,6 +54,11 @@ app.add_middleware(
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        ensure_task_schema(db)
+    finally:
+        db.close()
 
 
 def _format_validation_messages(exc: RequestValidationError, request: Request) -> list[str]:

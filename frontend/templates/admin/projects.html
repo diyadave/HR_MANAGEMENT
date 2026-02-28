@@ -1682,6 +1682,35 @@ async function loadProjectOwners() {
 </script>
 
     <script>
+if (typeof window.toggleSidebar !== "function") {
+  window.toggleSidebar = function toggleSidebar() {
+    const sidebar = document.getElementById("adminSidebar");
+    if (sidebar) sidebar.classList.toggle("active");
+  };
+}
+
+if (typeof window.toggleSubmenu !== "function") {
+  window.toggleSubmenu = function toggleSubmenu(event, submenuId) {
+    if (event) event.preventDefault();
+    const submenu = document.getElementById(submenuId);
+    if (!submenu) return;
+    submenu.classList.toggle("expanded");
+    const parent = submenu.closest(".nav-parent");
+    if (parent) parent.classList.toggle("expanded");
+  };
+}
+
+if (typeof window.handleLogout !== "function") {
+  window.handleLogout = function handleLogout(event) {
+    if (event) event.preventDefault();
+    if (window.API && typeof window.API.logout === "function") {
+      window.API.logout();
+    } else {
+      window.location.href = "../auth/login.html";
+    }
+  };
+}
+
 fetch("../shared/sidebar_admin.html")
   .then(res => res.text())
   .then(html => {
