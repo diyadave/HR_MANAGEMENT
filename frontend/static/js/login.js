@@ -29,12 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
         hideError();
         setLoading(true);
 
-        const employee_id = document.getElementById("employee_id").value.trim().toUpperCase();
+        const employee_id = document.getElementById("employee_id").value.trim();
         const password = passwordInput.value;
         const stayLoggedIn = document.getElementById("stayLoggedIn")?.checked === true;
 
         if (!employee_id || !password) {
             showError("Employee ID and password are required");
+            setLoading(false);
+            return;
+        }
+        if (/\s/.test(employee_id)) {
+            showError("Employee ID cannot contain spaces");
             setLoading(false);
             return;
         }
