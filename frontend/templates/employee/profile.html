@@ -173,7 +173,7 @@
 
         .profile-stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 14px;
         }
 
@@ -360,10 +360,6 @@
                 <div class="profile-divider"></div>
                 <div class="profile-stats">
                     <div class="stat-item">
-                        <div class="stat-value" id="statTenure">-</div>
-                        <div class="stat-label">Years with us</div>
-                    </div>
-                    <div class="stat-item">
                         <div class="stat-value" id="statLeaveBalance">-</div>
                         <div class="stat-label">Leave balance</div>
                     </div>
@@ -541,7 +537,6 @@
                     }
 
                     // stats (if available from backend, otherwise show placeholder)
-                    document.getElementById('statTenure').innerText = data.years_of_service || '2';
                     document.getElementById('statLeaveBalance').innerText = data.leave_balance || '18';
 
                     // --- contact view ---
