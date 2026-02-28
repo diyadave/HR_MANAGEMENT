@@ -415,6 +415,8 @@ def normalize_status_value(raw_status: Optional[str]) -> Optional[str]:
     mapping = {
         "halfday_first": "halfday",
         "halfday_second": "halfday",
+        "first_half": "halfday",
+        "second_half": "halfday",
         "on_leave": "leave",
     }
     return mapping.get(value, value)
@@ -758,6 +760,8 @@ def mark_attendance(
     half_day_type = payload.get("half_day_type") or None
     if payload.get("status") in {"halfday_first", "halfday_second"}:
         half_day_type = "first_half" if payload.get("status") == "halfday_first" else "second_half"
+    if payload.get("status") in {"first_half", "second_half"}:
+        half_day_type = str(payload.get("status"))
 
     overtime_supplied = payload.get("overtime_hours") is not None and payload.get("overtime_hours") != ""
     manual_overtime_hours = parse_overtime_hours(payload.get("overtime_hours"))
@@ -770,6 +774,7 @@ def mark_attendance(
     attendance.status = status
     attendance.clock_in_time = clock_in_time
     attendance.clock_out_time = clock_out_time
+    attendance.first_clock_in_time = clock_in_time
     attendance.half_day_type = half_day_type if status == "halfday" else None
     attendance.working_from = payload.get("working_from") or None
     attendance.location = payload.get("location") or None
@@ -781,6 +786,7 @@ def mark_attendance(
     if status in {"absent", "leave", "holiday"}:
         attendance.clock_in_time = None
         attendance.clock_out_time = None
+        attendance.first_clock_in_time = None
         attendance.total_seconds = 0
         attendance.half_day_type = None
         attendance.is_late = False

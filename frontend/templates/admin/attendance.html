@@ -991,6 +991,8 @@
                             <option value="present">Present</option>
                             <option value="late">Late</option>
                             <option value="halfday">Half Day</option>
+                            <option value="first_half">First Half</option>
+                            <option value="second_half">Second Half</option>
                             <option value="leave">Leave</option>
                             <option value="absent">Absent</option>
                             <option value="holiday">Holiday</option>
@@ -1078,6 +1080,8 @@
                             <option value="present">Present</option>
                             <option value="late">Late</option>
                             <option value="halfday">Half Day</option>
+                            <option value="first_half">First Half</option>
+                            <option value="second_half">Second Half</option>
                             <option value="leave">Leave</option>
                             <option value="absent">Absent</option>
                             <option value="holiday">Holiday</option>
@@ -1210,6 +1214,7 @@
         function normalizeStatus(status) {
             const value = String(status || "").toLowerCase();
             if (value === "halfday_first" || value === "halfday_second") return "halfday";
+            if (value === "first_half" || value === "second_half") return "halfday";
             if (value === "on_leave") return "leave";
             return value || "absent";
         }
@@ -1528,6 +1533,10 @@
             if (data.status === "present") statusValue = "present";
             if (data.status === "late") statusValue = "late";
             if (data.status === "halfday") statusValue = "halfday";
+            if (data.status === "first_half") statusValue = "first_half";
+            if (data.status === "second_half") statusValue = "second_half";
+            if (data.status === "halfday" && data.half_day_type === "first_half") statusValue = "first_half";
+            if (data.status === "halfday" && data.half_day_type === "second_half") statusValue = "second_half";
             if (data.status === "leave") statusValue = "leave";
             if (data.status === "holiday") statusValue = "holiday";
             document.getElementById("attStatus").value = statusValue;
@@ -1559,7 +1568,11 @@
                 date: document.getElementById("attDate").value,
                 clock_in_time: document.getElementById("attClockIn").value || null,
                 clock_out_time: document.getElementById("attClockOut").value || null,
-                half_day_type: statusVal === "halfday" ? (document.getElementById("attHalfDayType").value || null) : null,
+                half_day_type: (statusVal === "halfday" || statusVal === "first_half" || statusVal === "second_half")
+                    ? (statusVal === "first_half" || statusVal === "second_half"
+                        ? statusVal
+                        : (document.getElementById("attHalfDayType").value || null))
+                    : null,
                 overtime_hours: document.getElementById("attOvertime").value || null,
                 is_late: document.getElementById("attIsLate").checked,
                 working_from: document.getElementById("attWorkingFrom").value || null,
@@ -1590,7 +1603,11 @@
                 status: statusVal,
                 clock_in_time: document.getElementById("attClockIn").value || null,
                 clock_out_time: document.getElementById("attClockOut").value || null,
-                half_day_type: statusVal === "halfday" ? (document.getElementById("attHalfDayType").value || null) : null,
+                half_day_type: (statusVal === "halfday" || statusVal === "first_half" || statusVal === "second_half")
+                    ? (statusVal === "first_half" || statusVal === "second_half"
+                        ? statusVal
+                        : (document.getElementById("attHalfDayType").value || null))
+                    : null,
                 overtime_hours: document.getElementById("attOvertime").value || null,
                 is_late: document.getElementById("attIsLate").checked,
                 working_from: document.getElementById("attWorkingFrom").value || null,
