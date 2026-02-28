@@ -243,6 +243,15 @@
             min-width: 240px;
         }
 
+        .task-public-id {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
         .task-title {
             font-weight: 600;
             color: #0f172a;
@@ -377,8 +386,25 @@
         }
 
         /* Actions */
+        .actions-col {
+            text-align: center;
+            width: 180px;
+            min-width: 180px;
+        }
+
         .actions-cell {
-            display: flex;
+            text-align: center;
+            width: 180px;
+            min-width: 180px;
+            white-space: nowrap;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .actions-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
@@ -400,6 +426,12 @@
             background: #f8fafc;
             border-color: #073379;
             color: #073379;
+        }
+
+        .action-edit:hover {
+            color: #059669;
+            border-color: #059669;
+            background: #ecfdf5;
         }
 
         .action-delete:hover {
@@ -740,7 +772,14 @@
             }
             
             .actions-cell {
+                width: auto;
+                min-width: 120px;
+            }
+
+            .actions-wrap {
+                display: flex;
                 flex-direction: column;
+                width: 100%;
             }
             
             .action-btn {
@@ -820,7 +859,7 @@
                                 <th>Priority</th>
                                 <th>Due Date</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                            <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="tasksTableBody">
@@ -844,7 +883,7 @@
         <div id="createTaskModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title">Create New Task</div>
+                    <div class="modal-title" id="taskModalTitle">Create New Task</div>
                     <button class="modal-close" onclick="closeModal()">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -897,7 +936,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="createTask()">Create Task</button>
+                    <button class="btn btn-primary" id="taskSaveBtn" onclick="createTask()">Create Task</button>
                 </div>
             </div>
         </div>
@@ -927,6 +966,7 @@
         let allTasks = [];
         let selectedEmployeeId = null;
         let pendingDeleteTask = null;
+        let editingTaskId = null;
 
         function getProfileImageUrl(path) {
             if (!path) return "";
@@ -1029,6 +1069,28 @@
             });
         }
 
+        function buildTaskDisplayIdMap() {
+            const sourceTasks = Array.isArray(allTasks) && allTasks.length ? [...allTasks] : [];
+            sourceTasks.sort((a, b) => Number(a.id) - Number(b.id));
+
+            const counters = {};
+            const idMap = {};
+
+            sourceTasks.forEach((task) => {
+                const project = allProjects.find((p) => Number(p.id) === Number(task.project_id));
+                const rawProjectName = String(project?.name || 'project').trim().toLowerCase();
+                const projectKey = rawProjectName
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-') || 'project';
+
+                counters[projectKey] = (counters[projectKey] || 0) + 1;
+                idMap[Number(task.id)] = `${projectKey}-${counters[projectKey]}`;
+            });
+
+            return idMap;
+        }
+
         // Render tasks table
         function renderTasks(tasks) {
             const tbody = document.getElementById('tasksTableBody');
@@ -1045,6 +1107,7 @@
 
             emptyState.style.display = 'none';
             tableContainer.style.display = 'block';
+            const displayIdMap = buildTaskDisplayIdMap();
 
             tasks.forEach(task => {
                 // Find project by ID
@@ -1052,6 +1115,7 @@
                 
                 // Find assignee by ID
                 const assignee = allEmployees.find(e => Number(e.id) === Number(task.assigned_to));
+                const displayTaskId = displayIdMap[Number(task.id)] || `task-${task.id}`;
                 
                 // Determine status class
                 let statusClass = 'status-pending';
@@ -1082,6 +1146,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="task-title-cell">
+                        <div class="task-public-id">${escapeHtml(displayTaskId)}</div>
                         <div class="task-title">${escapeHtml(task.title)}</div>
                         <div class="task-description">${escapeHtml(task.description) || 'No description'}</div>
                     </td>
@@ -1101,14 +1166,19 @@
                     <td><span class="due-date ${dueClass}">${task.due_date || '-'}</span></td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td class="actions-cell">
-                        <button class="action-btn" onclick="viewTaskDetails(${task.id})" title="View Task">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn action-delete"
-                                title="Delete Task"
-                                onclick='openDeleteTaskModal(${task.id}, ${JSON.stringify(task.title || "this task")})'>
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="actions-wrap">
+                            <button class="action-btn" onclick="viewTaskDetails(${task.id})" title="View Task">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn action-edit" onclick="openEditTaskModal(${task.id})" title="Edit Task">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn action-delete"
+                                    title="Delete Task"
+                                    onclick='openDeleteTaskModal(${task.id}, ${JSON.stringify(task.title || "this task")})'>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -1161,66 +1231,108 @@
             renderTasks(allTasks);
         }
 
-        // Open create task modal
-        function openCreateTaskModal() {
-            resetForm();
-            
-            // Populate project dropdown
+        function setTaskModalMode(isEditMode) {
+            const titleEl = document.getElementById('taskModalTitle');
+            const saveBtn = document.getElementById('taskSaveBtn');
+            if (titleEl) titleEl.textContent = isEditMode ? 'Edit Task' : 'Create New Task';
+            if (saveBtn) saveBtn.textContent = isEditMode ? 'Update Task' : 'Create Task';
+        }
+
+        function populateTaskModalOptions(selectedProjectId = '', selectedAssigneeId = null) {
             const projectSelect = document.getElementById('taskProject');
             projectSelect.innerHTML = '<option value="">Select Project</option>';
             allProjects.forEach(project => {
                 const option = document.createElement('option');
                 option.value = project.id;
                 option.textContent = project.name;
+                if (String(project.id) === String(selectedProjectId || '')) {
+                    option.selected = true;
+                }
                 projectSelect.appendChild(option);
             });
-            
-            // Show ALL employees in the assignee list
+
             const assigneeList = document.getElementById('assigneeList');
             assigneeList.innerHTML = '';
-            selectedEmployeeId = null;
-            
+            selectedEmployeeId = selectedAssigneeId ? Number(selectedAssigneeId) : null;
+
             if (allEmployees.length === 0) {
                 assigneeList.innerHTML = '<div style="padding: 10px; color: #64748b;">No employees found</div>';
-            } else {
-                allEmployees.forEach(emp => {
-                    const div = document.createElement('div');
-                    div.className = 'employee-option';
-                    div.dataset.empId = emp.id;
-                    
-                    div.onclick = function() {
-                        document.querySelectorAll('.employee-option').forEach(el => {
-                            el.classList.remove('selected');
-                        });
-                        this.classList.add('selected');
-                        selectedEmployeeId = emp.id;
-                        clearTaskFieldError('assigneeList');
-                    };
-                    
-                    div.innerHTML = `
-                        <div class="user-avatar small">
-                            ${emp.profile_image
-                                ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${escapeHtml(emp.name || 'User')}" onerror="this.parentElement.textContent='${emp.name ? emp.name.charAt(0).toUpperCase() : '?'}'">`
-                                : `${emp.name ? emp.name.charAt(0).toUpperCase() : '?'}`
-                            }
-                        </div>
-                        <div class="employee-info">
-                            <span class="employee-name">${escapeHtml(emp.name)}</span>
-                            <span class="employee-detail">${emp.department || emp.designation || 'Employee'}</span>
-                        </div>
-                    `;
-                    
-                    assigneeList.appendChild(div);
-                });
+                return;
             }
-            
+
+            allEmployees.forEach(emp => {
+                const div = document.createElement('div');
+                div.className = 'employee-option';
+                div.dataset.empId = emp.id;
+
+                if (Number(emp.id) === Number(selectedEmployeeId)) {
+                    div.classList.add('selected');
+                }
+
+                div.onclick = function() {
+                    document.querySelectorAll('.employee-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    selectedEmployeeId = Number(emp.id);
+                    clearTaskFieldError('assigneeList');
+                };
+
+                div.innerHTML = `
+                    <div class="user-avatar small">
+                        ${emp.profile_image
+                            ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${escapeHtml(emp.name || 'User')}" onerror="this.parentElement.textContent='${emp.name ? emp.name.charAt(0).toUpperCase() : '?'}'">`
+                            : `${emp.name ? emp.name.charAt(0).toUpperCase() : '?'}`
+                        }
+                    </div>
+                    <div class="employee-info">
+                        <span class="employee-name">${escapeHtml(emp.name)}</span>
+                        <span class="employee-detail">${emp.department || emp.designation || 'Employee'}</span>
+                    </div>
+                `;
+
+                assigneeList.appendChild(div);
+            });
+        }
+
+        // Open create task modal
+        function openCreateTaskModal() {
+            editingTaskId = null;
+            resetForm();
+            setTaskModalMode(false);
+            populateTaskModalOptions('', null);
+
             // Show modal
             document.getElementById('createTaskModal').style.display = 'flex';
             setDefaultDate();
         }
 
+        function openEditTaskModal(taskId) {
+            const task = allTasks.find(t => Number(t.id) === Number(taskId));
+            if (!task) {
+                showToast('Task details not available', 'warning');
+                return;
+            }
+
+            editingTaskId = Number(task.id);
+            resetForm();
+            setTaskModalMode(true);
+            populateTaskModalOptions(task.project_id, task.assigned_to);
+
+            document.getElementById('taskTitle').value = task.title || '';
+            document.getElementById('taskDescription').value = task.description || '';
+            document.getElementById('taskPriority').value = task.priority || 'medium';
+            document.getElementById('taskDueDate').value = task.due_date || '';
+            document.getElementById('taskHours').value = task.estimated_hours ?? '';
+
+            document.getElementById('createTaskModal').style.display = 'flex';
+            setDueDateMin();
+        }
+
         function closeModal() {
             document.getElementById('createTaskModal').style.display = 'none';
+            editingTaskId = null;
+            setTaskModalMode(false);
             resetForm();
         }
 
@@ -1375,7 +1487,7 @@
             const payload = {
                 title: title,
                 description: description || '',
-                project_id: parseInt(projectId),
+                project_id: parseInt(projectId, 10),
                 assigned_to: selectedEmployeeId,
                 priority: priority,
                 due_date: dueDate,
@@ -1383,13 +1495,18 @@
             };
 
             try {
-                await API.createAdminTask(payload);
-                showToast('Task created successfully!', 'success');
+                if (editingTaskId) {
+                    await API.updateAdminTask(editingTaskId, payload);
+                    showToast('Task updated successfully!', 'success');
+                } else {
+                    await API.createAdminTask(payload);
+                    showToast('Task created successfully!', 'success');
+                }
                 closeModal();
                 
                 // Refresh tasks list
                 allTasks = await API.request("/admin/tasks");
-                renderTasks(allTasks);
+                filterTasks();
                 
             } catch (err) {
                 console.error('Error creating task:', err);

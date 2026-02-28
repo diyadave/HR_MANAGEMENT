@@ -672,3 +672,62 @@ def delete_document(
     db.commit()
 
     return {"message": "Document deleted", "file_id": file_id}
+
+
+# =========================
+# DELETE FILE (admin only)
+# =========================
+@router.delete("/files/{file_id}")
+def delete_file(
+    file_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    file = db.query(ResearchFile).filter(ResearchFile.id == file_id).first()
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if file.type == "excel":
+        column_ids = [
+            c.id for c in db.query(ResearchColumn.id).filter(ResearchColumn.file_id == file_id).all()
+        ]
+        row_ids = [
+            r.id for r in db.query(ResearchRow.id).filter(ResearchRow.file_id == file_id).all()
+        ]
+
+        if column_ids:
+            db.query(ResearchColumnPermission).filter(
+                ResearchColumnPermission.column_id.in_(column_ids)
+            ).delete(synchronize_session=False)
+            db.query(ResearchCell).filter(
+                ResearchCell.column_id.in_(column_ids)
+            ).delete(synchronize_session=False)
+
+        if row_ids:
+            db.query(ResearchCell).filter(
+                ResearchCell.row_id.in_(row_ids)
+            ).delete(synchronize_session=False)
+
+        db.query(ResearchColumn).filter(
+            ResearchColumn.file_id == file_id
+        ).delete(synchronize_session=False)
+        db.query(ResearchRow).filter(
+            ResearchRow.file_id == file_id
+        ).delete(synchronize_session=False)
+
+    else:
+        doc_ids = [
+            d.id for d in db.query(ResearchDocument.id).filter(ResearchDocument.file_id == file_id).all()
+        ]
+        if doc_ids:
+            db.query(ResearchDocumentPermission).filter(
+                ResearchDocumentPermission.document_id.in_(doc_ids)
+            ).delete(synchronize_session=False)
+        db.query(ResearchDocument).filter(
+            ResearchDocument.file_id == file_id
+        ).delete(synchronize_session=False)
+
+    db.query(ResearchFile).filter(ResearchFile.id == file_id).delete(synchronize_session=False)
+    db.commit()
+
+    return {"message": "File deleted", "file_id": file_id}

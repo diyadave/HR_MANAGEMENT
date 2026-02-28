@@ -193,6 +193,67 @@ def get_project_detail(
     return serialize_project(project)
 
 
+@router.put("/{project_id}", response_model=ProjectOut)
+def update_project(
+    project_id: int,
+    data: ProjectCreate,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    data.name = require_non_empty_text(data.name, "Project name")
+    data.description = require_non_empty_text(data.description, "Project description")
+    if data.end_date < data.start_date:
+        raise HTTPException(status_code=400, detail="Project end date cannot be before start date")
+
+    owner = require_employee_exists(db, int(data.owner_id), detail="Project owner not found")
+
+    old_member_ids = {member.id for member in (project.team_members or []) if member.role == "employee"}
+
+    project.name = data.name
+    project.description = data.description
+    project.start_date = data.start_date
+    project.end_date = data.end_date
+    project.owner_id = data.owner_id
+
+    member_ids = sorted({int(uid) for uid in (data.team_members or []) if int(uid) > 0})
+    users = []
+    if member_ids:
+        users = db.query(User).filter(
+            User.id.in_(member_ids),
+            User.role == "employee",
+            User.is_active == True,  # noqa: E712
+        ).all()
+        if len(users) != len(member_ids):
+            raise HTTPException(status_code=400, detail="One or more team members are invalid")
+
+    team_by_id = {owner.id: owner}
+    for user in users:
+        team_by_id[user.id] = user
+    project.team_members = list(team_by_id.values())
+
+    db.commit()
+    db.refresh(project)
+
+    new_member_ids = {member.id for member in (project.team_members or []) if member.role == "employee"}
+    added_member_ids = sorted(new_member_ids - old_member_ids)
+    push_notifications(
+        db,
+        user_ids=added_member_ids,
+        title="Added to a project",
+        message=f"You have been added to project: {project.name}",
+        event_type="project_assigned",
+        reference_type="project",
+        reference_id=project.id,
+        created_by=admin.id
+    )
+
+    return serialize_project(project)
+
+
 @router.delete("/{project_id}")
 def delete_project(
     project_id: int,

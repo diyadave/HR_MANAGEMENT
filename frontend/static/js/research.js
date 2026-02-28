@@ -11,6 +11,7 @@ let currentUserRole = (localStorage.getItem("user_role") || "").toLowerCase() ||
 let createDocEmployees = [];
 let selectedCreateDocUserIds = new Set();
 let fileSearchTerm = "";
+let pendingDeleteFile = null;
 
 // ── ROLE HELPER ───────────────────────────────────────────────────────────────
 function isAdmin() {
@@ -75,6 +76,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Version History button (in info bar)
     document.getElementById("versionHistoryBtn")?.addEventListener("click", toggleVersionDrawer);
+
+    document.getElementById("confirmDeleteFileBtn")?.addEventListener("click", confirmDeleteResearchFile);
+    document.getElementById("cancelDeleteFileBtn")?.addEventListener("click", closeDeleteFileModal);
+    document.getElementById("deleteFileModal")?.addEventListener("click", (e) => {
+        if (e.target?.id === "deleteFileModal") closeDeleteFileModal();
+    });
 });
 
 function resetCreateFileModal() {
@@ -293,11 +300,76 @@ function renderFileList(files) {
                 <i class="${iconCls}"></i>
                 <span>${file.name}</span>
             </div>
-            <span class="file-ext ${extCls}">${extTxt}</span>
+            <div class="file-item-right">
+                <span class="file-ext ${extCls}">${extTxt}</span>
+                ${isAdmin() ? `<button type="button" class="file-delete-btn" data-delete-file-id="${file.id}" title="Delete file"><i class="fas fa-trash"></i></button>` : ""}
+            </div>
         `;
         div.onclick = () => loadFile(file.id);
+
+        if (isAdmin()) {
+            const deleteBtn = div.querySelector(`[data-delete-file-id="${file.id}"]`);
+            if (deleteBtn) {
+                deleteBtn.onclick = async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openDeleteFileModal(file);
+                };
+            }
+        }
         fileList.appendChild(div);
     });
+}
+
+function openDeleteFileModal(file) {
+    const fileId = Number(file?.id);
+    if (!fileId) return;
+    pendingDeleteFile = { id: fileId, name: String(file?.name || "this file") };
+
+    const text = document.getElementById("deleteFileText");
+    if (text) {
+        text.textContent = `Do you want to confirm delete "${pendingDeleteFile.name}" file?`;
+    }
+
+    const modal = document.getElementById("deleteFileModal");
+    if (modal) modal.classList.add("show");
+}
+
+function closeDeleteFileModal() {
+    pendingDeleteFile = null;
+    const modal = document.getElementById("deleteFileModal");
+    if (modal) modal.classList.remove("show");
+}
+
+async function confirmDeleteResearchFile() {
+    if (!pendingDeleteFile?.id) return;
+    const confirmBtn = document.getElementById("confirmDeleteFileBtn");
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    try {
+        await API.request(`/research/files/${pendingDeleteFile.id}`, "DELETE");
+        closeDeleteFileModal();
+        await loadFiles();
+
+        if (!allFiles.length) {
+            currentFileId = null;
+            const content = document.getElementById("contentArea");
+            const nameEl = document.getElementById("fileName");
+            const creatorEl = document.getElementById("fileCreator");
+            const dateEl = document.getElementById("fileDate");
+            if (nameEl) nameEl.textContent = "-";
+            if (creatorEl) creatorEl.textContent = "-";
+            if (dateEl) dateEl.textContent = "-";
+            if (content) {
+                content.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No files found</p></div>`;
+            }
+        }
+    } catch (err) {
+        console.error("Delete file error:", err);
+        alert(err?.message || "Failed to delete file");
+    } finally {
+        if (confirmBtn) confirmBtn.disabled = false;
+    }
 }
 
 // ── LOAD SINGLE FILE ──────────────────────────────────────────────────────────
@@ -433,7 +505,7 @@ function renderExcel(data) {
     }
 
     const tableCard = document.createElement("div");
-    tableCard.className = "table-card";
+    tableCard.className = "table-card excel-table-card";
 
     const table = document.createElement("table");
 
@@ -473,10 +545,11 @@ function renderExcel(data) {
     if (isAdmin()) {
         const actionHeader = document.createElement("th");
         actionHeader.textContent = "Action";
+        actionHeader.className = "excel-action-sticky-header";
         actionHeader.style.cssText = [
             "text-align:center",
             "position:sticky",
-            "right:0",
+            "right:0px",
             "min-width:84px",
             "z-index:4",
             "border-left:1.5px solid var(--border)",
@@ -531,12 +604,13 @@ function renderExcel(data) {
 
         if (isAdmin()) {
             const actionTd = document.createElement("td");
+            actionTd.className = "excel-action-sticky-cell";
             actionTd.style.cssText = [
                 "text-align:center",
                 "position:sticky",
-                "right:0",
+                "right:0px",
                 "min-width:84px",
-                "z-index:3",
+                "z-index:1",
                 "border-left:1px solid var(--border-light)",
                 "background:var(--surface)"
             ].join(";");
@@ -562,12 +636,30 @@ function renderExcel(data) {
     table.appendChild(tbody);
     tableCard.appendChild(table);
     contentArea.appendChild(tableCard);
+
+    requestAnimationFrame(() => {
+        adjustExcelStickyActionOffset(tableCard);
+    });
+}
+
+function adjustExcelStickyActionOffset(tableCard) {
+    if (!tableCard) return;
+    const scrollbarWidth = Math.max(0, tableCard.offsetWidth - tableCard.clientWidth);
+    const rightOffset = `${scrollbarWidth}px`;
+    tableCard.querySelectorAll(".excel-action-sticky-header, .excel-action-sticky-cell").forEach((cell) => {
+        cell.style.right = rightOffset;
+    });
 }
 
 // ── ADD ROW ───────────────────────────────────────────────────────────────────
 async function addRow(fileId) {
+    const count = await askForCount("rows");
+    if (!count) return;
+
     try {
-        await API.request(`/research/files/${fileId}/rows`, "POST", {});
+        for (let i = 0; i < count; i++) {
+            await API.request(`/research/files/${fileId}/rows`, "POST", {});
+        }
         loadFile(fileId);
     } catch (err) {
         console.error("Add row error:", err);
@@ -576,14 +668,96 @@ async function addRow(fileId) {
 
 // ── ADD COLUMN ────────────────────────────────────────────────────────────────
 async function addColumn(fileId) {
-    const name = prompt("Enter column name:");
-    if (!name) return;
+    const count = await askForCount("columns");
+    if (!count) return;
+
     try {
-        await API.request(`/research/files/${fileId}/columns`, "POST", { name });
+        for (let i = 0; i < count; i++) {
+            await API.request(`/research/files/${fileId}/columns`, "POST", {});
+        }
         loadFile(fileId);
     } catch (err) {
         console.error("Add column error:", err);
     }
+}
+
+function askForCount(typeLabel) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement("div");
+        overlay.className = "modal-overlay show";
+
+        const card = document.createElement("div");
+        card.className = "modal-card";
+        card.style.maxWidth = "420px";
+        card.innerHTML = `
+            <h2>Add ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}</h2>
+            <small>How many ${typeLabel} do you want to add?</small>
+            <input id="countInput" type="text" class="input-field" inputmode="numeric" autocomplete="off" placeholder="Enter a number (e.g. 5)">
+            <div id="countInputError" style="display:none;color:#dc2626;font-size:12px;margin-top:2px;">Please enter a valid whole number greater than 0.</div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" id="countCancelBtn">Cancel</button>
+                <button type="button" class="btn-primary" id="countConfirmBtn" style="border-radius:10px;">Add</button>
+            </div>
+        `;
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        const input = card.querySelector("#countInput");
+        const error = card.querySelector("#countInputError");
+        const confirmBtn = card.querySelector("#countConfirmBtn");
+        const cancelBtn = card.querySelector("#countCancelBtn");
+
+        const close = (value) => {
+            overlay.remove();
+            resolve(value);
+        };
+
+        const showError = () => {
+            if (error) error.style.display = "block";
+        };
+
+        const clearError = () => {
+            if (error) error.style.display = "none";
+        };
+
+        const getValidCount = () => {
+            const raw = String(input?.value || "").trim();
+            if (!/^\d+$/.test(raw)) return null;
+            const parsed = Number.parseInt(raw, 10);
+            if (!Number.isFinite(parsed) || parsed <= 0) return null;
+            return parsed;
+        };
+
+        const onConfirm = () => {
+            const count = getValidCount();
+            if (!count) {
+                showError();
+                input?.focus();
+                return;
+            }
+            close(count);
+        };
+
+        if (input) {
+            input.focus();
+            input.addEventListener("input", () => {
+                input.value = String(input.value || "").replace(/[^\d]/g, "");
+                clearError();
+            });
+            input.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    onConfirm();
+                }
+            });
+        }
+
+        cancelBtn?.addEventListener("click", () => close(null));
+        confirmBtn?.addEventListener("click", onConfirm);
+        overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) close(null);
+        });
+    });
 }
 
 // ── UPDATE CELL ───────────────────────────────────────────────────────────────
@@ -870,7 +1044,7 @@ function generatePreviewTable() {
     content.innerHTML = "";
 
     const tableCard = document.createElement("div");
-    tableCard.className = "table-card";
+    tableCard.className = "table-card excel-table-card";
 
     const table = document.createElement("table");
 

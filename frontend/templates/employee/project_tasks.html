@@ -347,6 +347,15 @@
             background-color: var(--gray-50);
         }
 
+        .task-public-id {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
         .status-badge {
             padding: 6px 12px;
             border-radius: 6px;
@@ -823,6 +832,7 @@
 
         let currentTasks = [];
         let canManageTasks = false;
+        let currentProjectName = "project";
         const projectId = new URLSearchParams(window.location.search).get("id");
         if (!projectId) {
             alert("Invalid project");
@@ -858,6 +868,7 @@
                 document.getElementById("teamMembersCount").innerText = `${project.team_members?.length || 0} Members`;
                 document.getElementById("totalTasksCount").innerText = (project.tasks || []).length;
                 document.getElementById("projectName").innerText = project.name;
+                currentProjectName = project.name || "project";
 
                 // Hide create button if not owner
                 const currentUser = JSON.parse(localStorage.getItem("user") || '{}');
@@ -899,6 +910,7 @@
             currentTasks = tasks;
             const tbody = document.getElementById("tasksTableBody");
             tbody.innerHTML = "";
+            const displayIdMap = buildProjectTaskDisplayIdMap(tasks, currentProjectName);
 
             tasks.forEach(task => {
                 const tr = document.createElement("tr");
@@ -913,9 +925,13 @@
                 if (task.priority === 'low') priorityClass = 'priority-low';
                 else if (task.priority === 'high') priorityClass = 'priority-high';
                 else if (task.priority === 'urgent') priorityClass = 'priority-urgent';
+                const displayTaskId = displayIdMap[Number(task.id)] || `task-${task.id}`;
 
                 tr.innerHTML = `
-                    <td><span class="task-name">${escapeHtml(task.title || '')}</span></td>
+                    <td>
+                        <div class="task-public-id">${escapeHtml(displayTaskId)}</div>
+                        <span class="task-name">${escapeHtml(task.title || '')}</span>
+                    </td>
                     <td><span class="status-badge ${statusClass}">${task.status || 'pending'}</span></td>
                     <td>${renderUserWithAvatar(task.assignee_name || task.assigned_user?.name || '-', task.assignee_profile_image || task.assigned_user?.profile_image)}</td>
                     <td><span class="priority-badge ${priorityClass}">${task.priority || 'medium'}</span></td>
@@ -933,6 +949,22 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function buildProjectTaskDisplayIdMap(tasks, projectName) {
+            const sorted = [...(tasks || [])].sort((a, b) => Number(a.id) - Number(b.id));
+            const prefix = String(projectName || "project")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-") || "project";
+
+            const map = {};
+            sorted.forEach((task, idx) => {
+                map[Number(task.id)] = `${prefix}-${idx + 1}`;
+            });
+            return map;
         }
 
         function escapeHtml(text) {

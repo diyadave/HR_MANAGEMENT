@@ -418,10 +418,26 @@
         }
 
         /* Actions */
+        .actions-col {
+            text-align: center;
+            width: 160px;
+            min-width: 160px;
+        }
+
         .actions-cell {
-            display: flex;
-            gap: 8px;
-            min-width: 100px;
+            width: 160px;
+            min-width: 160px;
+            text-align: center;
+            white-space: nowrap;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .actions-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .action-btn {
@@ -781,9 +797,14 @@
 
         @media (max-width: 480px) {
             .actions-cell {
+                width: auto;
+                min-width: 100px;
+            }
+
+            .actions-wrap {
                 flex-direction: column;
             }
-            
+
             .action-btn {
                 width: 100%;
             }
@@ -864,7 +885,7 @@
                                 <th>Progress</th>
                                 <th>Tasks</th>
                                 <th>Hours</th>
-                                <th>Actions</th>
+                                <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -887,7 +908,7 @@
     <div id="createProjectModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">Create New Project</div>
+                <div class="modal-title" id="projectModalTitle">Create New Project</div>
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -947,7 +968,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveProject()">Create Project</button>
+                <button class="btn btn-primary" id="projectSaveBtn" onclick="saveProject()">Create Project</button>
             </div>
         </div>
     </div>
@@ -979,6 +1000,7 @@ let filteredProjects = [];
 let currentProjectPage = 1;
 const projectsPerPage = 6;
 let pendingDeleteProject = null;
+let editingProjectId = null;
 function getProfileImageUrl(path) {
     if (!path) return "";
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -1024,11 +1046,18 @@ async function apiRequest(url, method = "GET", body = null) {
     }
     return res.json();
 }
-function openCreateProjectModal() {
+async function openCreateProjectModal() {
+    editingProjectId = null;
+    resetModalForm();
+    const titleEl = document.getElementById("projectModalTitle");
+    const saveBtn = document.getElementById("projectSaveBtn");
+    if (titleEl) titleEl.textContent = "Create New Project";
+    if (saveBtn) saveBtn.textContent = "Create Project";
     document.getElementById("createProjectModal").style.display = "flex";
-    applyProjectDateConstraints();
-    loadProjectOwners();
-    loadTeamMembers();
+    applyProjectDateConstraints(false);
+    await loadProjectOwners();
+    currentOwnerId = null;
+    await loadTeamMembers();
 }
 
 function getTodayISODate() {
@@ -1078,7 +1107,7 @@ function validateProjectDateField(fieldId, options = {}) {
         setProjectFieldError(fieldId, "Year must be exactly 4 digits.");
         return false;
     }
-    if (parsed.year < currentYear) {
+    if (!options.allowPastYear && parsed.year < currentYear) {
         setProjectFieldError(fieldId, "Previous years are not allowed.");
         return false;
     }
@@ -1094,16 +1123,16 @@ function validateProjectDateField(fieldId, options = {}) {
     return true;
 }
 
-function applyProjectDateConstraints() {
+function applyProjectDateConstraints(allowPastDates = false) {
     const startInput = document.getElementById("projectStartDate");
     const endInput = document.getElementById("projectEndDate");
     if (!startInput || !endInput) return;
 
     const todayISO = getTodayISODate();
     const maxISO = "9999-12-31";
-    startInput.min = todayISO;
+    startInput.min = allowPastDates ? "1900-01-01" : todayISO;
     startInput.max = maxISO;
-    endInput.min = startInput.value || todayISO;
+    endInput.min = startInput.value || (allowPastDates ? "1900-01-01" : todayISO);
     endInput.max = maxISO;
 }
 
@@ -1177,8 +1206,15 @@ async function saveProject() {
     }
     if (hasError) return;
 
-    const startDateValid = validateProjectDateField("projectStartDate", { enforceToday: true });
-    const endDateValid = validateProjectDateField("projectEndDate", { enforceToday: true });
+    const isEditMode = Number.isFinite(Number(editingProjectId)) && Number(editingProjectId) > 0;
+    const startDateValid = validateProjectDateField("projectStartDate", {
+        enforceToday: !isEditMode,
+        allowPastYear: isEditMode
+    });
+    const endDateValid = validateProjectDateField("projectEndDate", {
+        enforceToday: !isEditMode,
+        allowPastYear: isEditMode
+    });
     if (!startDateValid || !endDateValid) return;
 
     if (end_date < start_date) {
@@ -1187,7 +1223,9 @@ async function saveProject() {
     }
 
     try {
-        await apiRequest("/admin/projects/", "POST", {
+        const endpoint = isEditMode ? `/admin/projects/${editingProjectId}` : "/admin/projects/";
+        const method = isEditMode ? "PUT" : "POST";
+        await apiRequest(endpoint, method, {
             name,
             description,
             start_date,
@@ -1198,7 +1236,10 @@ async function saveProject() {
 
         closeModal();
         resetModalForm();
-        loadProjects();
+        await loadProjects();
+        if (window.showUIPopup) {
+            window.showUIPopup(isEditMode ? "Project updated successfully" : "Project created successfully", "success");
+        }
     } catch (err) {
         const teamError = String(err.message || "").toLowerCase().includes("team member");
         if (teamError) {
@@ -1209,7 +1250,7 @@ async function saveProject() {
             }
             return;
         }
-        setProjectFieldError("projectName", err.message || "Unable to create project. Please check required details.");
+        setProjectFieldError("projectName", err.message || "Unable to save project. Please check required details.");
     }
 }
 
@@ -1230,6 +1271,42 @@ function onOwnerChange(ownerId) {
 function closeModal() {
     document.getElementById("createProjectModal").style.display = "none";
     clearProjectFormErrors();
+}
+
+async function openEditProjectModal(projectId) {
+    try {
+        const project = await apiRequest(`/admin/projects/${projectId}`);
+        editingProjectId = Number(projectId);
+
+        const titleEl = document.getElementById("projectModalTitle");
+        const saveBtn = document.getElementById("projectSaveBtn");
+        if (titleEl) titleEl.textContent = "Edit Project";
+        if (saveBtn) saveBtn.textContent = "Update Project";
+
+        document.getElementById("projectName").value = project.name || "";
+        document.getElementById("projectDescription").value = project.description || "";
+        document.getElementById("projectStartDate").value = project.start_date || "";
+        document.getElementById("projectEndDate").value = project.end_date || "";
+
+        await loadProjectOwners();
+        document.getElementById("projectOwner").value = String(project.owner_id || "");
+
+        currentOwnerId = String(project.owner_id || "");
+        selectedTeamMembers = new Set(
+            (project.team_members || [])
+                .map((member) => String(member.id))
+                .filter((id) => id !== currentOwnerId)
+        );
+
+        applyProjectDateConstraints(true);
+        await loadTeamMembers();
+        clearProjectFormErrors();
+        document.getElementById("createProjectModal").style.display = "flex";
+    } catch (err) {
+        if (window.showUIPopup) {
+            window.showUIPopup(err.message || "Failed to load project details", "error");
+        }
+    }
 }
 async function loadTeamMembers() {
     const list = document.getElementById("teamMembersList");
@@ -1319,15 +1396,22 @@ function renderProjects(projects) {
             <td class="stats-cell">${taskCount}</td>
             <td class="stats-cell">${totalHours.toFixed(1)}</td>
             <td class="actions-cell">
-                <button class="action-btn action-view"
-                onclick="viewProject(${p.id})">
-            <i class="fas fa-eye"></i>
-        </button>
-                <button class="action-btn action-delete"
-                title="Delete Project"
-                onclick='openDeleteProjectModal(${p.id}, ${JSON.stringify(p.name || "this project")})'>
-            <i class="fas fa-trash"></i>
-        </button>
+                <div class="actions-wrap">
+                    <button class="action-btn action-view"
+                    onclick="viewProject(${p.id})">
+                <i class="fas fa-eye"></i>
+            </button>
+                    <button class="action-btn action-edit"
+                    title="Edit Project"
+                    onclick="openEditProjectModal(${p.id})">
+                <i class="fas fa-edit"></i>
+            </button>
+                    <button class="action-btn action-delete"
+                    title="Delete Project"
+                    onclick='openDeleteProjectModal(${p.id}, ${JSON.stringify(p.name || "this project")})'>
+                <i class="fas fa-trash"></i>
+            </button>
+                </div>
 
             </td>
         `;
@@ -1571,11 +1655,17 @@ function toggleTeamMember(element) {
 }
 
 function resetModalForm() {
+    editingProjectId = null;
     projectName.value = "";
     projectDescription.value = "";
     projectStartDate.value = "";
     projectEndDate.value = "";
     projectOwner.selectedIndex = 0;
+    const titleEl = document.getElementById("projectModalTitle");
+    const saveBtn = document.getElementById("projectSaveBtn");
+    if (titleEl) titleEl.textContent = "Create New Project";
+    if (saveBtn) saveBtn.textContent = "Create Project";
+    currentOwnerId = null;
 
     selectedTeamMembers.clear();
     document.querySelectorAll(".member-checkbox")
@@ -1587,14 +1677,15 @@ function resetModalForm() {
 
 document.addEventListener("DOMContentLoaded", loadProjects);
 document.addEventListener("DOMContentLoaded", () => {
-    applyProjectDateConstraints();
+    applyProjectDateConstraints(false);
     const startInput = document.getElementById("projectStartDate");
     const endInput = document.getElementById("projectEndDate");
     if (startInput) {
         startInput.addEventListener("change", () => {
             clearProjectFieldError("projectStartDate");
-            validateProjectDateField("projectStartDate", { enforceToday: true });
-            applyProjectDateConstraints();
+            const isEditMode = Number.isFinite(Number(editingProjectId)) && Number(editingProjectId) > 0;
+            validateProjectDateField("projectStartDate", { enforceToday: !isEditMode, allowPastYear: isEditMode });
+            applyProjectDateConstraints(isEditMode);
             if (endInput && endInput.value && endInput.value < startInput.value) {
                 endInput.value = startInput.value;
             }
@@ -1603,7 +1694,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (endInput) {
         endInput.addEventListener("change", () => {
             clearProjectFieldError("projectEndDate");
-            validateProjectDateField("projectEndDate", { enforceToday: true });
+            const isEditMode = Number.isFinite(Number(editingProjectId)) && Number(editingProjectId) > 0;
+            validateProjectDateField("projectEndDate", { enforceToday: !isEditMode, allowPastYear: isEditMode });
         });
     }
 

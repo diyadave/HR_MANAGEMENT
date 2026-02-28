@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -527,11 +528,11 @@
             .main-content {
                 margin-left: 0;
             }
-            
+
             .notices-container {
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             }
-            
+
             .search-input {
                 width: 250px;
             }
@@ -541,54 +542,54 @@
             .main-content {
                 margin-left: 0;
             }
-            
+
             .header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
                 padding: 20px;
             }
-            
+
             .header-actions {
                 width: 100%;
                 justify-content: space-between;
             }
-            
+
             .search-container {
                 width: 100%;
             }
-            
+
             .search-input {
                 width: 100%;
             }
-            
+
             .action-bar {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
                 padding: 20px;
             }
-            
+
             .filter-tabs {
                 width: 100%;
                 justify-content: space-between;
             }
-            
+
             .filter-tab {
                 flex-grow: 1;
                 text-align: center;
                 font-size: 0.75rem;
                 padding: 8px 12px;
             }
-            
+
             .notices-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .notices-section {
                 padding: 20px;
             }
-            
+
             .section-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -601,135 +602,146 @@
                 width: 100%;
                 flex-wrap: wrap;
             }
-            
+
             .btn {
                 flex-grow: 1;
                 justify-content: center;
                 min-width: 140px;
             }
-            
+
             .notice-header {
                 flex-direction: column;
                 gap: 0.75rem;
             }
-            
+
             .notice-badge {
                 margin-left: 0;
                 align-self: flex-start;
             }
         }
-        .hidden { display: none; }
+
+        .hidden {
+            display: none;
+        }
 
         /* Mini Modal Overlay - UPDATED */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.35);
-    backdrop-filter: blur(4px);
-    display: none; /* Start as hidden */
-    align-items: center;
-    justify-content: center;
-    z-index: 1000; /* Increased z-index */
-}
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(4px);
+            display: none;
+            /* Start as hidden */
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            /* Increased z-index */
+        }
 
-.modal:not(.hidden) {
-    display: flex; /* Only show when not hidden */
-    animation: fadeIn 0.2s ease;
-}
+        .modal:not(.hidden) {
+            display: flex;
+            /* Only show when not hidden */
+            animation: fadeIn 0.2s ease;
+        }
 
-/* Mini Card */
-.modal-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 24px;
-    width: 420px;
-    box-shadow: var(--shadow-hover);
-    animation: scaleIn 0.2s ease;
-    max-width: 90vw; /* Responsive */
-    max-height: 90vh; /* Responsive */
-    overflow-y: auto; /* Scroll if needed */
-}
+        /* Mini Card */
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            width: 420px;
+            box-shadow: var(--shadow-hover);
+            animation: scaleIn 0.2s ease;
+            max-width: 90vw;
+            /* Responsive */
+            max-height: 90vh;
+            /* Responsive */
+            overflow-y: auto;
+            /* Scroll if needed */
+        }
 
-.modal-card h3 {
-    margin-bottom: 16px;
-    font-size: 1.125rem;
-    font-weight: 600;
-}
+        .modal-card h3 {
+            margin-bottom: 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
 
-/* Inputs */
-.modal-card input,
-.modal-card textarea,
-.modal-card select {
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    font-size: 0.875rem;
-    background: #f8fafc;
-}
+        /* Inputs */
+        .modal-card input,
+        .modal-card textarea,
+        .modal-card select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            background: #f8fafc;
+        }
 
-.modal-card input.input-error,
-.modal-card textarea.input-error,
-.modal-card select.input-error {
-    border-color: #cc1f1f;
-    box-shadow: 0 0 0 3px rgba(204, 31, 31, 0.12);
-    background: #fff;
-}
+        .modal-card input.input-error,
+        .modal-card textarea.input-error,
+        .modal-card select.input-error {
+            border-color: #cc1f1f;
+            box-shadow: 0 0 0 3px rgba(204, 31, 31, 0.12);
+            background: #fff;
+        }
 
-.field-error {
-    display: none;
-    color: #cc1f1f;
-    font-size: 13px;
-    line-height: 1.3;
-    margin: -6px 0 10px;
-}
+        .field-error {
+            display: none;
+            color: #cc1f1f;
+            font-size: 13px;
+            line-height: 1.3;
+            margin: -6px 0 10px;
+        }
 
-.field-error.show {
-    display: block;
-}
+        .field-error.show {
+            display: block;
+        }
 
-.modal-card input:focus,
-.modal-card textarea:focus,
-.modal-card select:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-    background: white;
-}
+        .modal-card input:focus,
+        .modal-card textarea:focus,
+        .modal-card select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: white;
+        }
 
-/* Actions */
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 12px;
-}
+        /* Actions */
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 12px;
+        }
 
-/* Animations */
-@keyframes scaleIn {
-    from {
-        transform: scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
+        /* Animations */
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
 
-/* Hidden class - IMPORTANT */
-.hidden {
-    display: none !important;
-}
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Hidden class - IMPORTANT */
+        .hidden {
+            display: none !important;
+        }
 
         /* Animation */
         @keyframes scaleIn {
@@ -737,14 +749,15 @@
                 transform: scale(0.95);
                 opacity: 0;
             }
+
             to {
                 transform: scale(1);
                 opacity: 1;
             }
         }
-       
     </style>
 </head>
+
 <body>
     <!-- Sidebar container -->
     <div id="sidebar-container"></div>
@@ -762,18 +775,18 @@
                 <h1>Company Notices</h1>
                 <p>Manage company-wide announcements</p>
             </div>
-            
+
             <div class="header-actions">
                 <div class="search-container">
                     <i class="fas fa-search" id="searchIcon" role="button" tabindex="0" aria-label="Search"></i>
                     <input type="text" class="search-input" id="noticeSearchInput" placeholder="Search notices...">
                 </div>
-                
+
                 <div class="notification" id="notificationBtn" role="button" tabindex="0" aria-label="Refresh notices">
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge" id="notificationBadge">0</div>
                 </div>
-                
+
                 <a class="admin-profile" id="adminProfileBtn" href="admin_profile.html" title="Open admin profile">
                     <div class="avatar" id="adminAvatar">A</div>
                     <div class="admin-info">
@@ -784,7 +797,7 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- Action Bar -->
         <div class="action-bar">
             <div class="action-buttons">
@@ -793,7 +806,7 @@
                     Add New Notice
                 </button>
             </div>
-            
+
             <div class="filter-tabs">
                 <button class="filter-tab active" data-filter="all">All Notices</button>
                 <button class="filter-tab" data-filter="active">Active</button>
@@ -801,25 +814,25 @@
                 <button class="filter-tab" data-filter="expired">Expired</button>
             </div>
         </div>
-        
+
         <!-- Add Notice Mini Modal -->
         <div id="noticeModal" class="modal hidden">
             <div class="modal-card">
                 <h3 id="noticeModalTitle">Add New Notice</h3>
-                
+
                 <input id="noticeTitle" type="text" placeholder="Notice title">
                 <div class="field-error" id="noticeTitleError"></div>
-                
+
                 <textarea id="noticeDescription" rows="4" placeholder="Notice description"></textarea>
                 <div class="field-error" id="noticeDescriptionError"></div>
-                
+
                 <select id="noticeCategory">
                     <option value="general">General</option>
                     <option value="policy">Policy</option>
                     <option value="event">Event</option>
                     <option value="urgent">Urgent</option>
                 </select>
-                
+
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="closeNoticeModal">Cancel</button>
                     <button class="btn btn-primary" id="saveNoticeBtn">Save Notice</button>
@@ -843,14 +856,14 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Notices Listing -->
         <div class="notices-section">
             <div class="section-header">
                 <h2>Company Announcements</h2>
                 <div class="notices-count">Loading notices...</div>
             </div>
-            
+
             <div class="notices-container" id="noticesContainer">
                 <!-- Notices will be loaded here dynamically -->
             </div>
@@ -858,256 +871,256 @@
     </div>
 
     <script src="../../static/js/api.js"></script>
-    
+
     <script>
-    let allNotices = [];
-    let activeFilter = "all";
-    let searchTerm = "";
-    let editingNoticeId = null;
+        let allNotices = [];
+        let activeFilter = "all";
+        let searchTerm = "";
+        let editingNoticeId = null;
 
-    document.addEventListener("DOMContentLoaded", () => {
-        loadSidebar();
-        loadAdminHeaderProfile();
-        bindPageEvents();
-        loadNotices();
-    });
+        document.addEventListener("DOMContentLoaded", () => {
+            loadSidebar();
+            loadAdminHeaderProfile();
+            bindPageEvents();
+            loadNotices();
+        });
 
-    function loadSidebar() {
-        fetch("../shared/sidebar_admin.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("sidebar-container").innerHTML = html;
-                const currentPage = location.pathname.split("/").pop();
-                document.querySelectorAll(".sidebar a").forEach(link => {
-                    if (link.getAttribute("href")?.includes(currentPage)) {
-                        link.classList.add("active");
-                    }
-                });
-            })
-            .catch(err => console.error("Failed to load sidebar:", err));
-    }
+        function loadSidebar() {
+            fetch("../shared/sidebar_admin.html")
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("sidebar-container").innerHTML = html;
+                    const currentPage = location.pathname.split("/").pop();
+                    document.querySelectorAll(".sidebar a").forEach(link => {
+                        if (link.getAttribute("href")?.includes(currentPage)) {
+                            link.classList.add("active");
+                        }
+                    });
+                })
+                .catch(err => console.error("Failed to load sidebar:", err));
+        }
 
-    async function loadAdminHeaderProfile() {
-        const nameEl = document.getElementById("adminName");
-        const roleEl = document.getElementById("adminRole");
-        const avatarEl = document.getElementById("adminAvatar");
-        let name = "Admin";
-        let role = "Administrator";
+        async function loadAdminHeaderProfile() {
+            const nameEl = document.getElementById("adminName");
+            const roleEl = document.getElementById("adminRole");
+            const avatarEl = document.getElementById("adminAvatar");
+            let name = "Admin";
+            let role = "Administrator";
 
-        try {
-            if (window.API?.getAdminProfile) {
-                const profile = await window.API.getAdminProfile();
-                name = profile?.name || name;
-                role = profile?.designation || profile?.role || role;
-            } else {
-                const userRaw = localStorage.getItem("user");
-                if (userRaw) {
-                    const user = JSON.parse(userRaw);
-                    name = user?.name || name;
-                    role = user?.designation || role;
-                }
-            }
-        } catch (err) {
-            console.warn("Failed to load admin profile for header:", err);
             try {
-                const userRaw = localStorage.getItem("user");
-                if (userRaw) {
-                    const user = JSON.parse(userRaw);
-                    name = user?.name || name;
-                    role = user?.designation || role;
+                if (window.API?.getAdminProfile) {
+                    const profile = await window.API.getAdminProfile();
+                    name = profile?.name || name;
+                    role = profile?.designation || profile?.role || role;
+                } else {
+                    const userRaw = localStorage.getItem("user");
+                    if (userRaw) {
+                        const user = JSON.parse(userRaw);
+                        name = user?.name || name;
+                        role = user?.designation || role;
+                    }
                 }
-            } catch {}
+            } catch (err) {
+                console.warn("Failed to load admin profile for header:", err);
+                try {
+                    const userRaw = localStorage.getItem("user");
+                    if (userRaw) {
+                        const user = JSON.parse(userRaw);
+                        name = user?.name || name;
+                        role = user?.designation || role;
+                    }
+                } catch { }
+            }
+
+            if (nameEl) nameEl.textContent = name;
+            if (roleEl) roleEl.textContent = role;
+            if (avatarEl) {
+                avatarEl.textContent = name
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase() || "")
+                    .join("") || "A";
+            }
         }
 
-        if (nameEl) nameEl.textContent = name;
-        if (roleEl) roleEl.textContent = role;
-        if (avatarEl) {
-            avatarEl.textContent = name
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part) => part[0]?.toUpperCase() || "")
-                .join("") || "A";
-        }
-    }
+        function bindPageEvents() {
+            const addBtn = document.getElementById("addNoticeBtn");
+            const modal = document.getElementById("noticeModal");
+            const closeBtn = document.getElementById("closeNoticeModal");
+            const saveBtn = document.getElementById("saveNoticeBtn");
+            const searchInput = document.getElementById("noticeSearchInput");
+            const noticeTitle = document.getElementById("noticeTitle");
+            const noticeDescription = document.getElementById("noticeDescription");
+            const searchIcon = document.getElementById("searchIcon");
+            const notificationBtn = document.getElementById("notificationBtn");
+            const viewModal = document.getElementById("viewNoticeModal");
+            const closeViewBtn = document.getElementById("closeViewNoticeModal");
+            const noticesContainer = document.getElementById("noticesContainer");
 
-    function bindPageEvents() {
-        const addBtn = document.getElementById("addNoticeBtn");
-        const modal = document.getElementById("noticeModal");
-        const closeBtn = document.getElementById("closeNoticeModal");
-        const saveBtn = document.getElementById("saveNoticeBtn");
-        const searchInput = document.getElementById("noticeSearchInput");
-        const noticeTitle = document.getElementById("noticeTitle");
-        const noticeDescription = document.getElementById("noticeDescription");
-        const searchIcon = document.getElementById("searchIcon");
-        const notificationBtn = document.getElementById("notificationBtn");
-        const viewModal = document.getElementById("viewNoticeModal");
-        const closeViewBtn = document.getElementById("closeViewNoticeModal");
-        const noticesContainer = document.getElementById("noticesContainer");
+            addBtn?.addEventListener("click", openCreateNoticeModal);
+            closeBtn?.addEventListener("click", closeNoticeModal);
+            saveBtn?.addEventListener("click", createNotice);
+            noticeTitle?.addEventListener("input", () => clearNoticeFieldError("noticeTitle"));
+            noticeDescription?.addEventListener("input", () => clearNoticeFieldError("noticeDescription"));
 
-        addBtn?.addEventListener("click", openCreateNoticeModal);
-        closeBtn?.addEventListener("click", closeNoticeModal);
-        saveBtn?.addEventListener("click", createNotice);
-        noticeTitle?.addEventListener("input", () => clearNoticeFieldError("noticeTitle"));
-        noticeDescription?.addEventListener("input", () => clearNoticeFieldError("noticeDescription"));
+            modal?.addEventListener("click", (e) => {
+                if (e.target === modal) closeNoticeModal();
+            });
+            viewModal?.addEventListener("click", (e) => {
+                if (e.target === viewModal) closeViewNoticeModal();
+            });
+            closeViewBtn?.addEventListener("click", closeViewNoticeModal);
 
-        modal?.addEventListener("click", (e) => {
-            if (e.target === modal) closeNoticeModal();
-        });
-        viewModal?.addEventListener("click", (e) => {
-            if (e.target === viewModal) closeViewNoticeModal();
-        });
-        closeViewBtn?.addEventListener("click", closeViewNoticeModal);
-
-        searchInput?.addEventListener("input", (e) => {
-            searchTerm = (e.target.value || "").trim().toLowerCase();
-            applyFiltersAndRender();
-        });
-        searchIcon?.addEventListener("click", () => searchInput?.focus());
-        searchIcon?.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                searchInput?.focus();
-            }
-        });
-
-        notificationBtn?.addEventListener("click", async () => {
-            await loadNotices();
-            showSuccessMessage("Notices refreshed");
-        });
-        notificationBtn?.addEventListener("keydown", async (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                await loadNotices();
-                showSuccessMessage("Notices refreshed");
-            }
-        });
-
-        noticesContainer?.addEventListener("click", async (e) => {
-            const actionBtn = e.target.closest(".action-btn");
-            if (!actionBtn) return;
-            const noticeId = Number(actionBtn.dataset.noticeId);
-            const action = actionBtn.dataset.action;
-            const notice = allNotices.find((n) => Number(n.id) === noticeId);
-            if (!notice) return;
-
-            if (action === "view") {
-                openViewNoticeModal(notice);
-            } else if (action === "edit") {
-                openEditNoticeModal(notice);
-            } else if (action === "disable") {
-                await toggleNoticeStatus(notice);
-            }
-        });
-
-        document.querySelectorAll(".filter-tab").forEach(tab => {
-            tab.addEventListener("click", (e) => {
-                document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
-                e.currentTarget.classList.add("active");
-                activeFilter = e.currentTarget.dataset.filter || "all";
+            searchInput?.addEventListener("input", (e) => {
+                searchTerm = (e.target.value || "").trim().toLowerCase();
                 applyFiltersAndRender();
             });
-        });
-    }
-    
-    function clearModalForm() {
-        document.getElementById("noticeTitle").value = "";
-        document.getElementById("noticeDescription").value = "";
-        document.getElementById("noticeCategory").value = "general";
-        clearNoticeFormErrors();
-    }
+            searchIcon?.addEventListener("click", () => searchInput?.focus());
+            searchIcon?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    searchInput?.focus();
+                }
+            });
 
-    function clearNoticeFieldError(fieldId) {
-        const input = document.getElementById(fieldId);
-        const err = document.getElementById(`${fieldId}Error`);
-        if (input) input.classList.remove("input-error");
-        if (err) {
-            err.textContent = "";
-            err.classList.remove("show");
+            notificationBtn?.addEventListener("click", async () => {
+                await loadNotices();
+                showSuccessMessage("Notices refreshed");
+            });
+            notificationBtn?.addEventListener("keydown", async (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    await loadNotices();
+                    showSuccessMessage("Notices refreshed");
+                }
+            });
+
+            noticesContainer?.addEventListener("click", async (e) => {
+                const actionBtn = e.target.closest(".action-btn");
+                if (!actionBtn) return;
+                const noticeId = Number(actionBtn.dataset.noticeId);
+                const action = actionBtn.dataset.action;
+                const notice = allNotices.find((n) => Number(n.id) === noticeId);
+                if (!notice) return;
+
+                if (action === "view") {
+                    openViewNoticeModal(notice);
+                } else if (action === "edit") {
+                    openEditNoticeModal(notice);
+                } else if (action === "disable") {
+                    await toggleNoticeStatus(notice);
+                }
+            });
+
+            document.querySelectorAll(".filter-tab").forEach(tab => {
+                tab.addEventListener("click", (e) => {
+                    document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+                    e.currentTarget.classList.add("active");
+                    activeFilter = e.currentTarget.dataset.filter || "all";
+                    applyFiltersAndRender();
+                });
+            });
         }
-    }
 
-    function setNoticeFieldError(fieldId, message) {
-        const input = document.getElementById(fieldId);
-        const err = document.getElementById(`${fieldId}Error`);
-        if (input) input.classList.add("input-error");
-        if (err) {
-            err.textContent = message;
-            err.classList.add("show");
+        function clearModalForm() {
+            document.getElementById("noticeTitle").value = "";
+            document.getElementById("noticeDescription").value = "";
+            document.getElementById("noticeCategory").value = "general";
+            clearNoticeFormErrors();
         }
-    }
 
-    function clearNoticeFormErrors() {
-        clearNoticeFieldError("noticeTitle");
-        clearNoticeFieldError("noticeDescription");
-    }
-
-    function openCreateNoticeModal() {
-        editingNoticeId = null;
-        document.getElementById("noticeModalTitle").textContent = "Add New Notice";
-        document.getElementById("saveNoticeBtn").textContent = "Save Notice";
-        clearModalForm();
-        document.getElementById("noticeModal").classList.remove("hidden");
-    }
-
-    function openEditNoticeModal(notice) {
-        editingNoticeId = notice.id;
-        document.getElementById("noticeModalTitle").textContent = "Edit Notice";
-        document.getElementById("saveNoticeBtn").textContent = "Update Notice";
-        document.getElementById("noticeTitle").value = notice.title || "";
-        document.getElementById("noticeDescription").value = notice.description || "";
-        document.getElementById("noticeCategory").value = notice.category || "general";
-        document.getElementById("noticeModal").classList.remove("hidden");
-    }
-
-    function closeNoticeModal() {
-        document.getElementById("noticeModal").classList.add("hidden");
-        clearModalForm();
-        editingNoticeId = null;
-        document.getElementById("noticeModalTitle").textContent = "Add New Notice";
-        document.getElementById("saveNoticeBtn").textContent = "Save Notice";
-    }
-
-    function openViewNoticeModal(notice) {
-        document.getElementById("viewNoticeTitle").textContent = notice.title || "Untitled";
-        document.getElementById("viewNoticeCategory").textContent = notice.category || "General";
-        document.getElementById("viewNoticeCreated").textContent = formatDateLabel(notice.created_at);
-        document.getElementById("viewNoticeStatus").textContent = getNoticeStatus(notice);
-        document.getElementById("viewNoticeDescription").textContent = notice.description || "No description";
-        document.getElementById("viewNoticeModal").classList.remove("hidden");
-    }
-
-    function closeViewNoticeModal() {
-        document.getElementById("viewNoticeModal").classList.add("hidden");
-    }
-
-    function formatDateLabel(dateValue) {
-        if (!dateValue) return "-";
-        return new Date(dateValue).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        });
-    }
-
-    function getNoticeStatus(notice) {
-        if (notice?.is_active === false) return "disabled";
-        if (notice?.expires_at && new Date(notice.expires_at).getTime() < Date.now()) return "expired";
-        return "active";
-    }
-    
-    async function loadNotices() {
-        try {
-            const container = document.getElementById("noticesContainer");
-            const countElement = document.querySelector('.notices-count');
-            
-            if (!container) {
-                console.error("Notices container not found!");
-                return;
+        function clearNoticeFieldError(fieldId) {
+            const input = document.getElementById(fieldId);
+            const err = document.getElementById(`${fieldId}Error`);
+            if (input) input.classList.remove("input-error");
+            if (err) {
+                err.textContent = "";
+                err.classList.remove("show");
             }
-            
-            // Show loading state
-            container.innerHTML = `
+        }
+
+        function setNoticeFieldError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const err = document.getElementById(`${fieldId}Error`);
+            if (input) input.classList.add("input-error");
+            if (err) {
+                err.textContent = message;
+                err.classList.add("show");
+            }
+        }
+
+        function clearNoticeFormErrors() {
+            clearNoticeFieldError("noticeTitle");
+            clearNoticeFieldError("noticeDescription");
+        }
+
+        function openCreateNoticeModal() {
+            editingNoticeId = null;
+            document.getElementById("noticeModalTitle").textContent = "Add New Notice";
+            document.getElementById("saveNoticeBtn").textContent = "Save Notice";
+            clearModalForm();
+            document.getElementById("noticeModal").classList.remove("hidden");
+        }
+
+        function openEditNoticeModal(notice) {
+            editingNoticeId = notice.id;
+            document.getElementById("noticeModalTitle").textContent = "Edit Notice";
+            document.getElementById("saveNoticeBtn").textContent = "Update Notice";
+            document.getElementById("noticeTitle").value = notice.title || "";
+            document.getElementById("noticeDescription").value = notice.description || "";
+            document.getElementById("noticeCategory").value = notice.category || "general";
+            document.getElementById("noticeModal").classList.remove("hidden");
+        }
+
+        function closeNoticeModal() {
+            document.getElementById("noticeModal").classList.add("hidden");
+            clearModalForm();
+            editingNoticeId = null;
+            document.getElementById("noticeModalTitle").textContent = "Add New Notice";
+            document.getElementById("saveNoticeBtn").textContent = "Save Notice";
+        }
+
+        function openViewNoticeModal(notice) {
+            document.getElementById("viewNoticeTitle").textContent = notice.title || "Untitled";
+            document.getElementById("viewNoticeCategory").textContent = notice.category || "General";
+            document.getElementById("viewNoticeCreated").textContent = formatDateLabel(notice.created_at);
+            document.getElementById("viewNoticeStatus").textContent = getNoticeStatus(notice);
+            document.getElementById("viewNoticeDescription").textContent = notice.description || "No description";
+            document.getElementById("viewNoticeModal").classList.remove("hidden");
+        }
+
+        function closeViewNoticeModal() {
+            document.getElementById("viewNoticeModal").classList.add("hidden");
+        }
+
+        function formatDateLabel(dateValue) {
+            if (!dateValue) return "-";
+            return new Date(dateValue).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        }
+
+        function getNoticeStatus(notice) {
+            if (notice?.is_active === false) return "disabled";
+            if (notice?.expires_at && new Date(notice.expires_at).getTime() < Date.now()) return "expired";
+            return "active";
+        }
+
+        async function loadNotices() {
+            try {
+                const container = document.getElementById("noticesContainer");
+                const countElement = document.querySelector('.notices-count');
+
+                if (!container) {
+                    console.error("Notices container not found!");
+                    return;
+                }
+
+                // Show loading state
+                container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <div class="empty-icon">
                         <i class="fas fa-spinner fa-spin"></i>
@@ -1115,33 +1128,33 @@
                     <p>Loading notices...</p>
                 </div>
             `;
-            
-            if (countElement) {
-                countElement.textContent = "Loading...";
-            }
-            
-            const response = await apiRequest("/notices/", "GET");
-            
-            let notices = [];
-            if (response && Array.isArray(response)) {
-                notices = response;
-            } else if (response && response.data && Array.isArray(response.data)) {
-                notices = response.data;
-            } else if (response && Array.isArray(response.notices)) {
-                notices = response.notices;
-            }
-            
-            allNotices = notices;
-            applyFiltersAndRender();
-            if (countElement) {
-                countElement.textContent = `Showing ${notices.length} notice${notices.length !== 1 ? "s" : ""}`;
-            }
-            updateNotificationBadge(notices.length);
-            
-        } catch (error) {
-            console.error("Error loading notices:", error);
-            const container = document.getElementById("noticesContainer");
-            container.innerHTML = `
+
+                if (countElement) {
+                    countElement.textContent = "Loading...";
+                }
+
+                const response = await apiRequest("/notices/", "GET");
+
+                let notices = [];
+                if (response && Array.isArray(response)) {
+                    notices = response;
+                } else if (response && response.data && Array.isArray(response.data)) {
+                    notices = response.data;
+                } else if (response && Array.isArray(response.notices)) {
+                    notices = response.notices;
+                }
+
+                allNotices = notices;
+                applyFiltersAndRender();
+                if (countElement) {
+                    countElement.textContent = `Showing ${notices.length} notice${notices.length !== 1 ? "s" : ""}`;
+                }
+                updateNotificationBadge(notices.length);
+
+            } catch (error) {
+                console.error("Error loading notices:", error);
+                const container = document.getElementById("noticesContainer");
+                container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <div class="empty-icon" style="background-color: rgba(239, 71, 111, 0.1); color: var(--warning-red);">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -1151,84 +1164,84 @@
                     <p style="font-size: 12px; margin-top: 10px;">Error: ${error.message || 'Unknown error'}</p>
                 </div>
             `;
-            updateNotificationBadge(0);
+                updateNotificationBadge(0);
+            }
         }
-    }
 
-    function applyFiltersAndRender() {
-        const container = document.getElementById("noticesContainer");
-        const countElement = document.querySelector(".notices-count");
-        if (!container) return;
+        function applyFiltersAndRender() {
+            const container = document.getElementById("noticesContainer");
+            const countElement = document.querySelector(".notices-count");
+            if (!container) return;
 
-        const filtered = allNotices.filter((notice) => {
-            const status = getNoticeStatus(notice);
-            const text = `${notice.title || ""} ${notice.description || ""}`.toLowerCase();
-            const matchesSearch = !searchTerm || text.includes(searchTerm);
-            const matchesFilter =
-                activeFilter === "all" ||
-                (activeFilter === "active" && status === "active") ||
-                (activeFilter === "published" && (status === "active" || status === "published")) ||
-                (activeFilter === "expired" && status === "expired");
-            return matchesSearch && matchesFilter;
-        });
+            const filtered = allNotices.filter((notice) => {
+                const status = getNoticeStatus(notice);
+                const text = `${notice.title || ""} ${notice.description || ""}`.toLowerCase();
+                const matchesSearch = !searchTerm || text.includes(searchTerm);
+                const matchesFilter =
+                    activeFilter === "all" ||
+                    (activeFilter === "active" && status === "active") ||
+                    (activeFilter === "published" && (status === "active" || status === "published")) ||
+                    (activeFilter === "expired" && status === "expired");
+                return matchesSearch && matchesFilter;
+            });
 
-        if (!filtered.length) {
-            container.innerHTML = `
+            if (!filtered.length) {
+                container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <div class="empty-icon"><i class="fas fa-bullhorn"></i></div>
                     <h3>No Notices Found</h3>
                     <p>No notices match your current search or filter.</p>
                 </div>
             `;
-            if (countElement) countElement.textContent = "No notices";
-            return;
+                if (countElement) countElement.textContent = "No notices";
+                return;
+            }
+
+            container.innerHTML = "";
+            filtered.forEach(notice => container.appendChild(createNoticeCard(notice)));
+            if (countElement) {
+                countElement.textContent = `Showing ${filtered.length} notice${filtered.length !== 1 ? "s" : ""}`;
+            }
         }
 
-        container.innerHTML = "";
-        filtered.forEach(notice => container.appendChild(createNoticeCard(notice)));
-        if (countElement) {
-            countElement.textContent = `Showing ${filtered.length} notice${filtered.length !== 1 ? "s" : ""}`;
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById("notificationBadge");
+            if (badge) badge.textContent = String(count);
         }
-    }
 
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById("notificationBadge");
-        if (badge) badge.textContent = String(count);
-    }
-    
-    function createNoticeCard(notice) {
-        const div = document.createElement('div');
-        const status = getNoticeStatus(notice);
-        div.className = `notice-card ${status === 'expired' ? 'expired' : ''} ${status === 'disabled' ? 'disabled' : ''}`;
-        div.dataset.noticeId = String(notice.id || "");
-        div.dataset.status = status;
-        
-        // Format dates
-        const createdDate = notice.created_at ? new Date(notice.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }) : 'N/A';
-        
-        const expiryDate = notice.expires_at ? new Date(notice.expires_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }) : 'No expiry';
-        
-        // Determine badge based on status
-        let badgeClass = 'badge-active';
-        let badgeText = 'Active';
-        
-        if (status === 'expired') {
-            badgeClass = 'badge-expired';
-            badgeText = 'Expired';
-        } else if (status === 'disabled') {
-            badgeClass = 'badge-disabled';
-            badgeText = 'Disabled';
-        }
-        
-        div.innerHTML = `
+        function createNoticeCard(notice) {
+            const div = document.createElement('div');
+            const status = getNoticeStatus(notice);
+            div.className = `notice-card ${status === 'expired' ? 'expired' : ''} ${status === 'disabled' ? 'disabled' : ''}`;
+            div.dataset.noticeId = String(notice.id || "");
+            div.dataset.status = status;
+
+            // Format dates
+            const createdDate = notice.created_at ? new Date(notice.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            }) : 'N/A';
+
+            const expiryDate = notice.expires_at ? new Date(notice.expires_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            }) : 'No expiry';
+
+            // Determine badge based on status
+            let badgeClass = 'badge-active';
+            let badgeText = 'Active';
+
+            if (status === 'expired') {
+                badgeClass = 'badge-expired';
+                badgeText = 'Expired';
+            } else if (status === 'disabled') {
+                badgeClass = 'badge-disabled';
+                badgeText = 'Disabled';
+            }
+
+            div.innerHTML = `
             <div class="notice-header">
                 <div>
                     <div class="notice-title">${escapeHtml(notice.title || 'Untitled')}</div>
@@ -1264,89 +1277,89 @@
                 </div>
             </div>
         `;
-        
-        return div;
-    }
-    
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    async function createNotice() {
-        clearNoticeFormErrors();
-        const title = document.getElementById("noticeTitle").value.trim();
-        const description = document.getElementById("noticeDescription").value.trim();
-        const category = document.getElementById("noticeCategory").value;
-        const isEdit = Boolean(editingNoticeId);
 
-        let hasError = false;
-        if (!title) {
-            setNoticeFieldError("noticeTitle", "Please fill the required details.");
-            hasError = true;
+            return div;
         }
-        if (!description) {
-            setNoticeFieldError("noticeDescription", "Please fill the required details.");
-            hasError = true;
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
-        if (hasError) return;
-        
-        const saveBtn = document.getElementById("saveNoticeBtn");
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        saveBtn.disabled = true;
-        
-        try {
-            const payload = {
-                title,
-                description,
-                category
-            };
-            if (isEdit) {
-                await apiRequest(`/notices/${editingNoticeId}`, "PUT", payload);
-            } else {
-                await apiRequest("/notices/", "POST", payload);
+
+        async function createNotice() {
+            clearNoticeFormErrors();
+            const title = document.getElementById("noticeTitle").value.trim();
+            const description = document.getElementById("noticeDescription").value.trim();
+            const category = document.getElementById("noticeCategory").value;
+            const isEdit = Boolean(editingNoticeId);
+
+            let hasError = false;
+            if (!title) {
+                setNoticeFieldError("noticeTitle", "Please fill the required details.");
+                hasError = true;
             }
-
-            closeNoticeModal();
-            await loadNotices();
-            showSuccessMessage(isEdit ? "Notice updated successfully!" : "Notice added successfully!");
-            
-        } catch (error) {
-            console.error("Error creating notice:", error);
-            const message = String(error?.message || "Failed to save notice.");
-            const lower = message.toLowerCase();
-            if (lower.includes("title")) {
-                setNoticeFieldError("noticeTitle", message);
-            } else if (lower.includes("description")) {
-                setNoticeFieldError("noticeDescription", message);
-            } else {
-                setNoticeFieldError("noticeDescription", message);
+            if (!description) {
+                setNoticeFieldError("noticeDescription", "Please fill the required details.");
+                hasError = true;
             }
-        } finally {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-        }
-    }
+            if (hasError) return;
 
-    async function toggleNoticeStatus(notice) {
-        const ok = window.confirm(`Disable "${notice.title || "this notice"}"?`);
-        if (!ok) return;
-        try {
-            await apiRequest(`/notices/${notice.id}/toggle`, "PATCH");
-            await loadNotices();
-            showSuccessMessage("Notice status updated");
-        } catch (error) {
-            console.error("Failed to toggle notice status:", error);
-            alert(`Failed to disable notice: ${error.message || "Unknown error"}`);
+            const saveBtn = document.getElementById("saveNoticeBtn");
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+
+            try {
+                const payload = {
+                    title,
+                    description,
+                    category
+                };
+                if (isEdit) {
+                    await apiRequest(`/notices/${editingNoticeId}`, "PUT", payload);
+                } else {
+                    await apiRequest("/notices/", "POST", payload);
+                }
+
+                closeNoticeModal();
+                await loadNotices();
+                showSuccessMessage(isEdit ? "Notice updated successfully!" : "Notice added successfully!");
+
+            } catch (error) {
+                console.error("Error creating notice:", error);
+                const message = String(error?.message || "Failed to save notice.");
+                const lower = message.toLowerCase();
+                if (lower.includes("title")) {
+                    setNoticeFieldError("noticeTitle", message);
+                } else if (lower.includes("description")) {
+                    setNoticeFieldError("noticeDescription", message);
+                } else {
+                    setNoticeFieldError("noticeDescription", message);
+                }
+            } finally {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
         }
-    }
-    
-    function showSuccessMessage(message) {
-        // Create temporary success message
-        const messageDiv = document.createElement('div');
-        messageDiv.style.cssText = `
+
+        async function toggleNoticeStatus(notice) {
+            const ok = window.confirm(`Disable "${notice.title || "this notice"}"?`);
+            if (!ok) return;
+            try {
+                await apiRequest(`/notices/${notice.id}/toggle`, "PATCH");
+                await loadNotices();
+                showSuccessMessage("Notice status updated");
+            } catch (error) {
+                console.error("Failed to toggle notice status:", error);
+                alert(`Failed to disable notice: ${error.message || "Unknown error"}`);
+            }
+        }
+
+        function showSuccessMessage(message) {
+            // Create temporary success message
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
@@ -1361,24 +1374,24 @@
             gap: 10px;
             animation: slideIn 0.3s ease;
         `;
-        messageDiv.innerHTML = `
+            messageDiv.innerHTML = `
             <i class="fas fa-check-circle"></i>
             <span>${message}</span>
         `;
-        
-        document.body.appendChild(messageDiv);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            messageDiv.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => messageDiv.remove(), 300);
-        }, 3000);
-        
-        // Add CSS animations if not already present
-        if (!document.querySelector('#success-animation-styles')) {
-            const style = document.createElement('style');
-            style.id = 'success-animation-styles';
-            style.textContent = `
+
+            document.body.appendChild(messageDiv);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => messageDiv.remove(), 300);
+            }, 3000);
+
+            // Add CSS animations if not already present
+            if (!document.querySelector('#success-animation-styles')) {
+                const style = document.createElement('style');
+                style.id = 'success-animation-styles';
+                style.textContent = `
                 @keyframes slideIn {
                     from {
                         transform: translateX(100%);
@@ -1400,10 +1413,11 @@
                     }
                 }
             `;
-            document.head.appendChild(style);
+                document.head.appendChild(style);
+            }
         }
-    }
-    
+
     </script>
 </body>
+
 </html>
