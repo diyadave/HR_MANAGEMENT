@@ -516,9 +516,6 @@ def clock_in(current_user, db):
         if leave_status == "leave":
             raise HTTPException(status_code=400, detail="Approved leave for today. Clock-in is disabled.")
         raise HTTPException(status_code=400, detail="Leave is not approved for today. Attendance marked absent.")
-    if leave_status == "hourly_leave":
-        raise HTTPException(status_code=400, detail="Approved hourly leave is active right now. Clock-in is disabled during that window.")
-
     if BREAK_START_HOUR <= now_ist.hour < BREAK_END_HOUR:
         raise HTTPException(status_code=400, detail="Break time is active. Please clock in after break.")
 
@@ -610,7 +607,7 @@ def get_clock_in_lock_reason(current_user, db, now: datetime | None = None) -> s
     if leave_status == "absent":
         return "unapproved_leave"
     if leave_status == "hourly_leave":
-        return "hourly_leave"
+        return None
 
     if BREAK_START_HOUR <= current.astimezone(IST).hour < BREAK_END_HOUR:
         return "break"
