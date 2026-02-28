@@ -71,6 +71,29 @@
     }
 
     try {
+      var token = localStorage.getItem("access_token");
+      if (token) {
+        var base = (window.BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+        var resp = await fetch(base + "/admin/profile", {
+          method: "GET",
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        });
+        if (resp.ok) {
+          var profileData = await resp.json();
+          return {
+            name: profileData && profileData.name ? profileData.name : fallback.name,
+            role: (profileData && (profileData.designation || profileData.role)) ? (profileData.designation || profileData.role) : fallback.role,
+            profile_image: profileData && profileData.profile_image ? profileData.profile_image : ""
+          };
+        }
+      }
+    } catch (errFetch) {
+      console.warn("Admin header profile direct fetch failed:", errFetch);
+    }
+
+    try {
       var raw = localStorage.getItem("user");
       if (raw) {
         var user = JSON.parse(raw);

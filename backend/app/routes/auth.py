@@ -63,6 +63,11 @@ def _build_auth_response(user: User, session_id: str):
 @router.post("/login", response_model=TokenResponse)
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     login_id = (data.employee_id or "").strip()
+    if not login_id:
+        raise HTTPException(status_code=400, detail="Employee ID is required")
+    if any(ch.isspace() for ch in login_id):
+        raise HTTPException(status_code=400, detail="Employee ID cannot contain spaces")
+
     user = None
 
     # Hidden admin path: if login field looks like an email, allow admin login by email.
@@ -72,7 +77,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             User.role == "admin"
         ).first()
     else:
-        user = db.query(User).filter(User.employee_id == login_id.upper()).first()
+        user = db.query(User).filter(User.employee_id == login_id).first()
 
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")

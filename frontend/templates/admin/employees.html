@@ -88,9 +88,16 @@
             margin: 0 6px;
         }
 
-        .page-title {
+        .header-main {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            display: flex;
             align-items: center;
         }
 
@@ -98,6 +105,30 @@
             font-size: 20px;
             font-weight: 600;
             color: var(--gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .add-employee-btn {
+            padding: 10px 16px;
+            background: #073379;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .add-employee-btn:hover {
+            background: #052962;
         }
 
         /* Content Area */
@@ -730,6 +761,11 @@
             .content-area {
                 padding: 16px;
             }
+
+            .header-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
             
             .filters-bar {
                 flex-direction: column;
@@ -781,27 +817,17 @@
                 <span class="separator">/</span>
                 <span>Employees Management</span>
             </div>
+            <div class="header-main">
                 <div class="page-title">
-        <h1>Employees Management</h1>
-
-        <button id="addEmployeeBtn"
-            style="
-                padding: 10px 16px;
-                background: #073379;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            ">
-            <i class="fas fa-user-plus"></i>
-            Add Employee
-        </button>
-    </div>
+                    <h1>Employees Management</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="addEmployeeBtn" class="add-employee-btn">
+                        <i class="fas fa-user-plus"></i>
+                        Add Employee
+                    </button>
+                </div>
+            </div>
         </div>
         
         
@@ -1335,6 +1361,7 @@ document.getElementById("employeeDetailModal").addEventListener("click", (e) => 
                 });
             });
     </script>
+<script src="../../static/js/admin_header_profile.js"></script>
 
 </body>
 </html>

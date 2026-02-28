@@ -91,14 +91,35 @@
 
         .page-title {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .page-title h1 {
             font-size: 20px;
             font-weight: 600;
             color: var(--gray-900);
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: var(--gray-500);
+            font-weight: 400;
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
         }
 
         /* Content Area */
@@ -118,9 +139,9 @@
 
         .search-box {
             position: relative;
-            flex: 1;
-            min-width: 300px;
-            max-width: 400px;
+            flex: 0 0 340px;
+            min-width: 260px;
+            max-width: 340px;
         }
 
         .search-box i {
@@ -763,6 +784,16 @@
             .header {
                 padding: 16px;
             }
+
+            .header-main {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
             
             .action-bar {
                 flex-direction: column;
@@ -830,36 +861,26 @@
                 <span class="separator">/</span>
                 <span>Projects Management</span>
             </div>
-            <div class="page-title">
-                <h1>Projects Management</h1>
-            </div>
-        </div>
-        
-        <!-- Content Area -->
-        <div class="content-area">
-            <!-- Action Bar -->
-            <div class="action-bar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="search-input" id="projectSearchInput" placeholder="Search projects by name, owner, or description...">
+            <div class="header-main">
+                <div class="page-title">
+                    <h1>Projects Management</h1>
+                    <p class="page-subtitle">View and manage all projects across teams</p>
                 </div>
-                
-                <div class="action-buttons">
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-filter"></i>
-                        Filter
-                    </button>
-                    <button class="btn btn-secondary" id="exportProjectsBtn">
-                        <i class="fas fa-download"></i>
-                        Export
-                    </button>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="projectSearchInput" placeholder="Search projects...">
+                    </div>
                     <button class="btn btn-primary" onclick="openCreateProjectModal()">
                         <i class="fas fa-plus"></i>
                         Create Project
                     </button>
                 </div>
             </div>
-            
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
             <!-- Projects Table -->
             <div class="projects-table">
                 <div class="table-header">
@@ -1816,6 +1837,8 @@ fetch("../shared/sidebar_admin.html")
     });
   });
 </script>
+<script src="../../static/js/api.js"></script>
+<script src="../../static/js/admin_header_profile.js"></script>
 
 </body>
 </html>

@@ -29,7 +29,27 @@
 
         /* Header */
         .header {
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 12px;
             margin-bottom: 24px;
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .header-content {
+            min-width: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .breadcrumb {
@@ -463,6 +483,11 @@
                 flex-wrap: wrap;
                 gap: 16px;
             }
+
+            .header-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -473,8 +498,13 @@
         <!-- Header -->
         <div class="header">
             <div class="breadcrumb">Home / Leaves</div>
-            <h1 class="page-title">All Leaves</h1>
-            <p class="page-subtitle">Complete leave history across the organization</p>
+            <div class="header-main">
+                <div class="header-content">
+                    <h1 class="page-title">All Leaves</h1>
+                    <p class="page-subtitle">Complete leave history across the organization</p>
+                </div>
+                <div class="header-actions"></div>
+            </div>
         </div>
 
         <!-- Summary Strip -->
