@@ -377,9 +377,16 @@ def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]
 
 def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int, year: int) -> dict[date, str]:
     leave_cols = {c["name"] for c in inspect(db.bind).get_columns("leaves")}
-    if "leave_hours" not in leave_cols:
+    ddl = {
+        "leave_hours": "ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION",
+        "hourly_start_time": "ALTER TABLE leaves ADD COLUMN hourly_start_time TIME",
+        "hourly_end_time": "ALTER TABLE leaves ADD COLUMN hourly_end_time TIME",
+    }
+    for col, statement in ddl.items():
+        if col in leave_cols:
+            continue
         try:
-            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.execute(text(statement))
             db.commit()
         except Exception:
             db.rollback()
@@ -414,9 +421,16 @@ def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int,
 
 def get_leave_status_for_date(db: Session, user_id: int, target_date: date) -> Optional[str]:
     leave_cols = {c["name"] for c in inspect(db.bind).get_columns("leaves")}
-    if "leave_hours" not in leave_cols:
+    ddl = {
+        "leave_hours": "ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION",
+        "hourly_start_time": "ALTER TABLE leaves ADD COLUMN hourly_start_time TIME",
+        "hourly_end_time": "ALTER TABLE leaves ADD COLUMN hourly_end_time TIME",
+    }
+    for col, statement in ddl.items():
+        if col in leave_cols:
+            continue
         try:
-            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.execute(text(statement))
             db.commit()
         except Exception:
             db.rollback()
@@ -530,7 +544,7 @@ def get_effective_day_status(
     else:
         leave_status = leave_statuses.get(current_date)
         if leave_status == "hourly_leave":
-            status = "hourly_leave" if meta["status"] in {"late", "in_progress"} else meta["status"]
+            status = "hourly_leave"
         else:
             status = leave_status or meta["status"]
 

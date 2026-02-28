@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator, model_validator
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Optional, Literal
 from app.schemas.user import UserOut
 
@@ -12,6 +12,8 @@ class LeaveCreate(BaseModel):
     end_date: date
     reason: str
     leave_hours: Optional[float] = None
+    hourly_start_time: Optional[time] = None
+    hourly_end_time: Optional[time] = None
 
     @field_validator("reason")
     @classmethod
@@ -37,6 +39,14 @@ class LeaveCreate(BaseModel):
                 raise ValueError("leave_hours cannot exceed 8")
         if self.duration_type == "duration" and self.leave_hours is not None and self.start_date != self.end_date:
             raise ValueError("Hourly leave can only be applied for a single date")
+        has_hourly_window = self.hourly_start_time is not None or self.hourly_end_time is not None
+        if has_hourly_window:
+            if self.hourly_start_time is None or self.hourly_end_time is None:
+                raise ValueError("Both hourly_start_time and hourly_end_time are required for hourly leave window")
+            if self.hourly_end_time <= self.hourly_start_time:
+                raise ValueError("hourly_end_time must be later than hourly_start_time")
+            if self.duration_type != "duration" or self.start_date != self.end_date:
+                raise ValueError("Hourly leave window can only be used for single-date duration leave")
         return self
 
 
@@ -49,6 +59,8 @@ class LeaveOut(BaseModel):
     end_date: date
     total_days: float
     leave_hours: Optional[float] = None
+    hourly_start_time: Optional[time] = None
+    hourly_end_time: Optional[time] = None
     reason: str
     status: str
     created_at: datetime

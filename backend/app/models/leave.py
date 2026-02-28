@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Text, Float
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Text, Float, Time
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.database.base import Base
@@ -19,6 +19,8 @@ class Leave(Base):
 
     total_days = Column(Float, nullable=False)
     leave_hours = Column(Float, nullable=True)
+    hourly_start_time = Column(Time, nullable=True)
+    hourly_end_time = Column(Time, nullable=True)
 
     reason = Column(Text, nullable=False)
 

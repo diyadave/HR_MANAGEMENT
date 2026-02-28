@@ -9,6 +9,7 @@ from app.schemas.leave import LeaveCreate, LeaveOut
 from app.core.dependencies import get_current_user, get_current_admin
 from app.models.user import User
 from app.services.notification_service import push_notification, notify_all_admins
+from app.services.attendance_service import enforce_hourly_leave_window, notify_attendance_state_change
 
 router = APIRouter(prefix="/leaves", tags=["Leaves"])
 
@@ -16,13 +17,19 @@ router = APIRouter(prefix="/leaves", tags=["Leaves"])
 def ensure_leave_schema(db: Session) -> None:
     inspector = inspect(db.bind)
     existing_cols = {c["name"] for c in inspector.get_columns("leaves")}
-    if "leave_hours" in existing_cols:
-        return
-    try:
-        db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
-        db.commit()
-    except Exception:
-        db.rollback()
+    ddl = {
+        "leave_hours": "ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION",
+        "hourly_start_time": "ALTER TABLE leaves ADD COLUMN hourly_start_time TIME",
+        "hourly_end_time": "ALTER TABLE leaves ADD COLUMN hourly_end_time TIME",
+    }
+    for col, statement in ddl.items():
+        if col in existing_cols:
+            continue
+        try:
+            db.execute(text(statement))
+            db.commit()
+        except Exception:
+            db.rollback()
 
 
 # ======================================
@@ -53,6 +60,8 @@ def apply_leave(
         end_date=payload.end_date,
         total_days=total_days,
         leave_hours=payload.leave_hours,
+        hourly_start_time=payload.hourly_start_time,
+        hourly_end_time=payload.hourly_end_time,
         reason=payload.reason,
         status="pending"
     )
@@ -126,6 +135,8 @@ def approve_leave(
     leave.approved_at = datetime.now(timezone.utc)
 
     db.commit()
+    enforce_hourly_leave_window(leave.user_id, db)
+    notify_attendance_state_change(leave.user_id)
     push_notification(
         db,
         user_id=leave.user_id,
@@ -162,6 +173,8 @@ def reject_leave(
     leave.approved_at = datetime.now(timezone.utc)
 
     db.commit()
+    enforce_hourly_leave_window(leave.user_id, db)
+    notify_attendance_state_change(leave.user_id)
     push_notification(
         db,
         user_id=leave.user_id,

@@ -477,8 +477,16 @@
       return `<span class="status-indicator ${config.css}"><span class="status-dot"></span>${config.icon} ${config.label}</span>`;
     }
 
+    function resolveDisplayStatus(record) {
+      const rawStatus = String(record?.status || "absent").toLowerCase();
+      if (rawStatus !== "hourly_leave") return rawStatus;
+      const approval = String(record?.leave_status || record?.leave_approval_status || "").toLowerCase();
+      if (approval && approval !== "approved") return "late";
+      return rawStatus;
+    }
+
     function renderStatus(r) {
-      const status = r.status || "absent";
+      const status = resolveDisplayStatus(r);
       if (status === "in_progress") {
         const label = r.is_late_entry ? "In Progress (Late Entry)" : "In Progress";
         return `<span class="status-indicator status-progress"><span class="status-dot"></span>\u2315 ${label}</span>`;

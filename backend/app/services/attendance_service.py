@@ -72,17 +72,27 @@ def ensure_attendance_schema(db) -> None:
 def _ensure_leave_schema(db) -> None:
     inspector = inspect(db.bind)
     existing_cols = {c["name"] for c in inspector.get_columns("leaves")}
-    if "leave_hours" in existing_cols:
-        return
-    try:
-        db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
-        db.commit()
-    except Exception:
-        db.rollback()
+    ddl = {
+        "leave_hours": "ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION",
+        "hourly_start_time": "ALTER TABLE leaves ADD COLUMN hourly_start_time TIME",
+        "hourly_end_time": "ALTER TABLE leaves ADD COLUMN hourly_end_time TIME",
+    }
+    for col, statement in ddl.items():
+        if col in existing_cols:
+            continue
+        try:
+            db.execute(text(statement))
+            db.commit()
+        except Exception:
+            db.rollback()
 
 
 def _notify_attendance_state_change(user_id: int) -> None:
     attendance_ws_manager.notify_attendance_change_threadsafe(user_id)
+
+
+def notify_attendance_state_change(user_id: int) -> None:
+    _notify_attendance_state_change(user_id)
 
 
 def _ensure_aware_utc(dt: datetime) -> datetime:
@@ -136,7 +146,20 @@ def _is_holiday_for_user(db, user, target_date: date) -> bool:
     return False
 
 
-def _leave_status_for_date(db, user_id: int, target_date: date) -> str | None:
+def _is_time_within_hourly_window(
+    *,
+    leave: Leave,
+    target_time: time | None,
+) -> bool:
+    # Backward compatibility for existing hourly leaves saved without window.
+    if leave.hourly_start_time is None or leave.hourly_end_time is None:
+        return True
+    if target_time is None:
+        return True
+    return leave.hourly_start_time <= target_time < leave.hourly_end_time
+
+
+def _leave_status_for_date(db, user_id: int, target_date: date, target_time: time | None = None) -> str | None:
     _ensure_leave_schema(db)
     leave = db.query(Leave).filter(
         Leave.user_id == user_id,
@@ -151,11 +174,30 @@ def _leave_status_for_date(db, user_id: int, target_date: date) -> str | None:
         and leave.start_date == leave.end_date
     )
     if leave.status == "approved":
-        return "hourly_leave" if is_hourly else "leave"
+        if is_hourly:
+            return "hourly_leave" if _is_time_within_hourly_window(leave=leave, target_time=target_time) else None
+        return "leave"
     if is_hourly:
         # Unapproved hourly leave should not block clock-in; user will be marked late by time.
         return None
     return "absent"
+
+
+def _active_hourly_leave_for_now(db, user_id: int, now_ist: datetime) -> Leave | None:
+    _ensure_leave_schema(db)
+    today = now_ist.date()
+    current_time = now_ist.time()
+    leaves = db.query(Leave).filter(
+        Leave.user_id == user_id,
+        Leave.status == "approved",
+        Leave.duration_type == "duration",
+        Leave.start_date == today,
+        Leave.end_date == today,
+    ).order_by(Leave.created_at.desc()).all()
+    for leave in leaves:
+        if _is_time_within_hourly_window(leave=leave, target_time=current_time):
+            return leave
+    return None
 
 
 def _upsert_non_working_attendance(user_id: int, target_date: date, status: str, db) -> None:
@@ -466,7 +508,7 @@ def clock_in(current_user, db):
         _notify_attendance_state_change(current_user.id)
         raise HTTPException(status_code=400, detail="Today is a holiday. Clock-in is disabled.")
 
-    leave_status = _leave_status_for_date(db, current_user.id, today)
+    leave_status = _leave_status_for_date(db, current_user.id, today, now_ist.time())
     if leave_status in {"leave", "absent"}:
         _upsert_non_working_attendance(current_user.id, today, leave_status, db)
         db.commit()
@@ -474,6 +516,8 @@ def clock_in(current_user, db):
         if leave_status == "leave":
             raise HTTPException(status_code=400, detail="Approved leave for today. Clock-in is disabled.")
         raise HTTPException(status_code=400, detail="Leave is not approved for today. Attendance marked absent.")
+    if leave_status == "hourly_leave":
+        raise HTTPException(status_code=400, detail="Approved hourly leave is active right now. Clock-in is disabled during that window.")
 
     if BREAK_START_HOUR <= now_ist.hour < BREAK_END_HOUR:
         raise HTTPException(status_code=400, detail="Break time is active. Please clock in after break.")
@@ -560,15 +604,43 @@ def get_clock_in_lock_reason(current_user, db, now: datetime | None = None) -> s
     if _is_holiday_for_user(db, current_user, today):
         return "holiday"
 
-    leave_status = _leave_status_for_date(db, current_user.id, today)
+    leave_status = _leave_status_for_date(db, current_user.id, today, current.astimezone(IST).time())
     if leave_status == "leave":
         return "leave"
     if leave_status == "absent":
         return "unapproved_leave"
     if leave_status == "hourly_leave":
-        return None
+        return "hourly_leave"
 
     if BREAK_START_HOUR <= current.astimezone(IST).hour < BREAK_END_HOUR:
         return "break"
 
     return None
+
+
+def enforce_hourly_leave_window(user_id: int, db, now: datetime | None = None) -> bool:
+    current = _ensure_aware_utc(now or datetime.now(timezone.utc))
+    now_ist = current.astimezone(IST)
+    active_leave = _active_hourly_leave_for_now(db, user_id, now_ist)
+    if not active_leave:
+        return False
+
+    attendance = db.query(Attendance).filter(
+        Attendance.user_id == user_id,
+        Attendance.date == now_ist.date(),
+        Attendance.clock_in_time != None,
+        Attendance.clock_out_time == None,
+    ).first()
+    if not attendance:
+        return False
+
+    if active_leave.hourly_start_time is not None:
+        leave_start_ist = datetime.combine(now_ist.date(), active_leave.hourly_start_time, tzinfo=IST)
+        close_at = leave_start_ist.astimezone(timezone.utc)
+    else:
+        close_at = current
+
+    _close_attendance(attendance, close_at, db)
+    db.commit()
+    _notify_attendance_state_change(user_id)
+    return True

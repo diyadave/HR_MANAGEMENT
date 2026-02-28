@@ -226,6 +226,7 @@ function initTrackerElements() {
         holiday: "Holiday",
         leave: "On Leave",
         unapproved_leave: "Leave Pending",
+        hourly_leave: "Hourly Leave",
         break: "Break Time"
       }[clockInLockReason] || "Clock Disabled";
       elements.clockBtn.textContent = lockText;
@@ -439,6 +440,11 @@ function safeInit() {
       console.error("Tracker init failed:", err);
     });
     setInterval(updateClockButtonState, 60000);
+    setInterval(() => {
+      syncAttendance()
+        .then(() => updateUI())
+        .catch(() => {});
+    }, 60000);
     setInterval(() => {
       const { hour, minute } = getIstHourMinute();
       if (hour === 0 && minute === 0) {

@@ -18,6 +18,7 @@ from app.services.attendance_service import (
     clock_out,
     auto_close_open_attendances_for_user,
     calculate_overtime_seconds,
+    enforce_hourly_leave_window,
     ensure_attendance_schema,
     get_attendance_worked_seconds,
     get_attendance_status_meta,
@@ -47,9 +48,16 @@ def _holiday_dates_for_month(db: Session, month: int, year: int) -> set[date_cls
 def _approved_leave_statuses_for_month(db: Session, user_id: int, month: int, year: int) -> dict[date_cls, str]:
     inspector = inspect(db.bind)
     leave_cols = {c["name"] for c in inspector.get_columns("leaves")}
-    if "leave_hours" not in leave_cols:
+    ddl = {
+        "leave_hours": "ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION",
+        "hourly_start_time": "ALTER TABLE leaves ADD COLUMN hourly_start_time TIME",
+        "hourly_end_time": "ALTER TABLE leaves ADD COLUMN hourly_end_time TIME",
+    }
+    for col, statement in ddl.items():
+        if col in leave_cols:
+            continue
         try:
-            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.execute(text(statement))
             db.commit()
         except Exception:
             db.rollback()
@@ -132,6 +140,7 @@ def active_attendance(
     today = get_ist_date(now)
 
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
+    enforce_hourly_leave_window(current_user.id, db, now=now)
 
     attendance = db.query(Attendance).filter(
     Attendance.user_id == current_user.id,
@@ -166,6 +175,7 @@ def attendance_summary(
     today = get_ist_date(now)
 
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
+    enforce_hourly_leave_window(current_user.id, db, now=now)
 
     attendance = db.query(Attendance).filter(
         Attendance.user_id == current_user.id,
@@ -213,6 +223,7 @@ def attendance_history(
     ensure_attendance_schema(db)
     now = datetime.now(timezone.utc)
     auto_close_open_attendances_for_user(current_user.id, db, now=now)
+    enforce_hourly_leave_window(current_user.id, db, now=now)
     
     now_ist = now.astimezone(IST)
     target_month = month or now_ist.month
