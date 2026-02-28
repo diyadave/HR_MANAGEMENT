@@ -321,20 +321,20 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
     effective_clock_in = get_effective_clock_in_time(attendance)
     if not effective_clock_in:
         return "absent"
+    start_ist = effective_clock_in.astimezone(IST)
+    start_t = start_ist.time()
     current = _ensure_aware_utc(now or datetime.now(timezone.utc))
     reference_out = _ensure_aware_utc(attendance.clock_out_time) if attendance.clock_out_time else None
     if attendance.clock_in_time and not attendance.clock_out_time and attendance.date == get_ist_date(current):
         reference_out = current
-    if not reference_out:
-        return "in_progress"
-
-    start_ist = effective_clock_in.astimezone(IST)
-    end_ist = reference_out.astimezone(IST)
-    start_t = start_ist.time()
-    end_t = end_ist.time()
-    worked_seconds = int(seconds or 0)
     user_shift = ((getattr(getattr(attendance, "user", None), "shift", None) or "full_day").strip().lower())
     shift_late_threshold = _late_threshold_for_shift(user_shift)
+    if not reference_out:
+        return "late" if start_t > shift_late_threshold else "present"
+
+    end_ist = reference_out.astimezone(IST)
+    end_t = end_ist.time()
+    worked_seconds = int(seconds or 0)
 
     # Shift-aware attendance:
     # - first_half and second_half are complete shifts, so valid completion is "present"/"late", not "halfday".

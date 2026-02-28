@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,29 +14,38 @@
            Professional Icons - No Cartoonish Elements
         ───────────────────────────────────────── */
         :root {
-            --blue:         #073379;
-            --blue-hover:   #052a65;
-            --blue-faint:   #f0f4ff;
-            --text-dark:    #1a2332;
-            --text-mid:     #52616e;
-            --text-light:   #8e9daa;
-            --border:       #e5e9ed;
+            --blue: #073379;
+            --blue-hover: #052a65;
+            --blue-faint: #f0f4ff;
+            --text-dark: #1a2332;
+            --text-mid: #52616e;
+            --text-light: #8e9daa;
+            --border: #e5e9ed;
             --border-faint: #f0f2f4;
-            --bg:           #f6f8fa;
-            --white:        #ffffff;
-            --radius:       5px;
+            --bg: #f6f8fa;
+            --white: #ffffff;
+            --radius: 5px;
 
             /* Status — Professional colors */
-            --c-present:  #059669;  /* Emerald green */
-            --c-absent:   #DC2626;  /* Professional red */
-            --c-late:     #F59E0B;  /* Amber */
-            --c-halfday:  #6366F1;  /* Indigo */
-            --c-holiday:  #E83E8C;  /* Pink/magenta for holiday */
-            --c-leave:    #8B5CF6;  /* Purple for leave */
+            --c-present: #059669;
+            /* Emerald green */
+            --c-absent: #DC2626;
+            /* Professional red */
+            --c-late: #F59E0B;
+            /* Amber */
+            --c-halfday: #6366F1;
+            /* Indigo */
+            --c-holiday: #E83E8C;
+            /* Pink/magenta for holiday */
+            --c-leave: #8B5CF6;
+            /* Purple for leave */
         }
 
-        *, *::before, *::after {
-            margin: 0; padding: 0;
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, system-ui, sans-serif;
         }
@@ -94,6 +104,7 @@
             justify-content: center;
             transition: background 0.15s, color 0.15s;
         }
+
         .icon-button:hover {
             background: var(--border-faint);
             color: var(--text-dark);
@@ -108,6 +119,7 @@
             border-radius: 50%;
             text-decoration: none;
         }
+
         .admin-profile-link:hover {
             background: var(--border-faint);
         }
@@ -125,6 +137,7 @@
             font-size: 11px;
             overflow: hidden;
         }
+
         .profile-placeholder img {
             width: 100%;
             height: 100%;
@@ -172,6 +185,7 @@
             transition: border-color 0.15s;
             cursor: pointer;
         }
+
         .filter-select:focus {
             border-color: #8eaad8;
         }
@@ -212,10 +226,12 @@
             color: white;
             border-color: var(--blue);
         }
+
         .btn-primary:hover {
             background: var(--blue-hover);
             border-color: var(--blue-hover);
         }
+
         .btn-primary:active {
             opacity: 0.92;
         }
@@ -225,6 +241,7 @@
             color: var(--text-mid);
             border-color: var(--border);
         }
+
         .btn-secondary:hover {
             background: var(--bg);
             color: var(--text-dark);
@@ -236,6 +253,7 @@
             color: #c0392b;
             border-color: #e8c8c4;
         }
+
         .btn-danger:hover {
             background: #fdf3f2;
         }
@@ -264,35 +282,42 @@
             line-height: 1;
             font-weight: 500;
         }
-        .icon-present { 
-            color: var(--c-present); 
+
+        .icon-present {
+            color: var(--c-present);
             font-family: 'Inter', 'Segoe UI', sans-serif;
         }
-        .icon-absent { 
-            color: var(--c-absent); 
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            font-size: 16px;
-        }
-        .icon-halfday { 
-            color: var(--c-halfday); 
+
+        .icon-absent {
+            color: var(--c-absent);
             font-family: 'Inter', 'Segoe UI', sans-serif;
             font-size: 16px;
         }
-        .icon-late { 
-            color: var(--c-late); 
+
+        .icon-halfday {
+            color: var(--c-halfday);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
+
+        .icon-late {
+            color: var(--c-late);
             font-family: 'Inter', 'Segoe UI', sans-serif;
         }
+
         .icon-hourly-leave {
             color: var(--c-late);
             font-family: 'Inter', 'Segoe UI', sans-serif;
         }
-        .icon-holiday { 
-            color: var(--c-holiday); 
+
+        .icon-holiday {
+            color: var(--c-holiday);
             font-family: 'Inter', 'Segoe UI', sans-serif;
             font-size: 16px;
         }
-        .icon-leave { 
-            color: var(--c-leave); 
+
+        .icon-leave {
+            color: var(--c-leave);
             font-family: 'Inter', 'Segoe UI', sans-serif;
             font-size: 16px;
         }
@@ -327,7 +352,9 @@
         .attendance-table thead::after {
             content: '';
             position: absolute;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             height: 1px;
             background: var(--border);
         }
@@ -366,6 +393,7 @@
         .attendance-table tbody tr:hover td {
             background: #fafbfd;
         }
+
         .attendance-table tbody tr:hover .employee-col {
             background: #fafbfd;
         }
@@ -411,9 +439,12 @@
             font-weight: 600;
             overflow: hidden;
         }
+
         .employee-avatar img {
-            width: 100%; height: 100%;
-            object-fit: cover; display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .employee-name {
@@ -422,6 +453,7 @@
             font-size: 12.5px;
             line-height: 1.3;
         }
+
         .employee-details {
             font-size: 10.5px;
             color: var(--text-light);
@@ -481,6 +513,7 @@
             position: relative;
             font-family: 'Inter', 'Segoe UI', sans-serif;
         }
+
         .day-cell:hover {
             background: var(--border-faint);
         }
@@ -495,35 +528,41 @@
         }
 
         /* Status colours — professional colors */
-        .status-present { 
-            color: var(--c-present); 
+        .status-present {
+            color: var(--c-present);
             font-weight: 600;
         }
-        .status-late { 
-            color: var(--c-late); 
+
+        .status-late {
+            color: var(--c-late);
             font-weight: 600;
         }
+
         .status-hourly-leave {
             color: var(--c-late);
             font-weight: 600;
         }
-        .status-absent { 
-            color: var(--c-absent); 
+
+        .status-absent {
+            color: var(--c-absent);
             font-weight: 600;
             font-size: 18px;
         }
-        .status-halfday { 
-            color: var(--c-halfday); 
+
+        .status-halfday {
+            color: var(--c-halfday);
             font-weight: 600;
             font-size: 18px;
         }
-        .status-holiday { 
-            color: var(--c-holiday); 
+
+        .status-holiday {
+            color: var(--c-holiday);
             font-weight: 600;
             font-size: 18px;
         }
-        .status-leave { 
-            color: var(--c-leave); 
+
+        .status-leave {
+            color: var(--c-leave);
             font-weight: 600;
             font-size: 18px;
         }
@@ -539,11 +578,9 @@
 
         /* Second Half - Right side filled (half-right) */
         .day-cell.half-right .attendance-icon {
-            background: linear-gradient(
-                to right,
-                #d1d5db 50%,
-                var(--c-halfday) 50%
-            );
+            background: linear-gradient(to right,
+                    #d1d5db 50%,
+                    var(--c-halfday) 50%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -551,11 +588,9 @@
 
         /* First Half - Left side filled (half-left) */
         .day-cell.half-left .attendance-icon {
-            background: linear-gradient(
-                to right,
-                var(--c-halfday) 50%,
-                #d1d5db 50%
-            );
+            background: linear-gradient(to right,
+                    var(--c-halfday) 50%,
+                    #d1d5db 50%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -587,6 +622,7 @@
             color: var(--text-light);
             font-size: 13px;
         }
+
         .error {
             text-align: center;
             padding: 40px;
@@ -594,13 +630,23 @@
         }
 
         /* ── Scrollbar — subtle ── */
-        .table-wrapper::-webkit-scrollbar { height: 5px; width: 5px; }
-        .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .table-wrapper::-webkit-scrollbar {
+            height: 5px;
+            width: 5px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
         .table-wrapper::-webkit-scrollbar-thumb {
             background: #d0d7de;
             border-radius: 10px;
         }
-        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #b0bac3; }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #b0bac3;
+        }
 
         /* ── Modal Overlay ── */
         .employee-modal-overlay {
@@ -613,6 +659,7 @@
             z-index: 1200;
             padding: 20px;
         }
+
         .employee-modal-overlay.show {
             display: flex;
         }
@@ -624,7 +671,7 @@
             background: var(--white);
             border-radius: 8px;
             border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
         .employee-modal-head {
@@ -635,6 +682,7 @@
             border-bottom: 1px solid var(--border);
             background: var(--white);
         }
+
         .employee-modal-head h3 {
             font-size: 14px !important;
             font-weight: 600;
@@ -656,6 +704,7 @@
             justify-content: center;
             transition: background 0.12s, color 0.12s;
         }
+
         .employee-modal-close:hover {
             background: var(--bg);
             color: var(--text-dark);
@@ -677,6 +726,7 @@
             margin: 0 auto 10px;
             border: 1px solid var(--border);
         }
+
         .profile-fallback {
             width: 100px;
             height: 100px;
@@ -697,12 +747,14 @@
             gap: 8px;
             margin-bottom: 12px;
         }
+
         .metric {
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 10px 12px;
             background: var(--bg);
         }
+
         .metric h4 {
             font-size: 10px;
             color: var(--text-light);
@@ -711,6 +763,7 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
+
         .metric p {
             font-size: 18px;
             font-weight: 700;
@@ -724,6 +777,7 @@
             margin-top: 8px;
             background: var(--bg);
         }
+
         .employee-list-mini h5 {
             font-size: 10.5px;
             color: var(--text-light);
@@ -732,6 +786,7 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
+
         .employee-list-mini ul {
             list-style: none;
             display: flex;
@@ -747,18 +802,23 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
         }
-        .attendance-form-grid .full { grid-column: 1 / -1; }
+
+        .attendance-form-grid .full {
+            grid-column: 1 / -1;
+        }
 
         .attendance-form-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .attendance-form-group label {
             font-size: 11px;
             color: var(--text-mid);
             font-weight: 500;
         }
+
         .attendance-form-group input,
         .attendance-form-group select,
         .attendance-form-group textarea {
@@ -772,15 +832,18 @@
             outline: none;
             transition: border-color 0.15s;
         }
+
         .attendance-form-group input:focus,
         .attendance-form-group select:focus,
         .attendance-form-group textarea:focus {
             border-color: #8eaad8;
         }
+
         .attendance-form-group input[readonly] {
             background: var(--bg);
             color: var(--text-mid);
         }
+
         .attendance-form-group input:disabled,
         .attendance-form-group select:disabled,
         .attendance-form-group textarea:disabled {
@@ -801,7 +864,10 @@
             transition: border-color 0.15s;
             width: 100%;
         }
-        .form-ctrl:focus { border-color: #8eaad8; }
+
+        .form-ctrl:focus {
+            border-color: #8eaad8;
+        }
 
         .attendance-form-group textarea {
             min-height: 72px;
@@ -827,6 +893,7 @@
             cursor: pointer;
             padding: 6px 0;
         }
+
         .checkbox-line input[type="checkbox"] {
             width: 14px;
             height: 14px;
@@ -836,25 +903,60 @@
 
         /* ── Responsive ── */
         @media (max-width: 1024px) {
-            .container { margin-left: 0; padding: 14px; }
-            .filter-bar { gap: 8px; }
-            .filter-group { min-width: 130px; }
+            .container {
+                margin-left: 0;
+                padding: 14px;
+            }
+
+            .filter-bar {
+                gap: 8px;
+            }
+
+            .filter-group {
+                min-width: 130px;
+            }
         }
+
         @media (max-width: 768px) {
-            .header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .header-actions { width: 100%; justify-content: flex-end; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .filter-group { width: 100%; }
-            .employee-modal-body { grid-template-columns: 1fr; }
-            .employee-metrics { grid-template-columns: 1fr 1fr; }
-            .legend { gap: 10px; }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .employee-modal-body {
+                grid-template-columns: 1fr;
+            }
+
+            .employee-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .legend {
+                gap: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div id="sidebar-container"></div>
-        
+
         <!-- Header -->
         <div class="header">
             <div>
@@ -862,7 +964,8 @@
                 <h1 class="page-title">Attendance</h1>
             </div>
             <div class="header-actions">
-                <a id="adminProfileLink" class="admin-profile-link" href="admin_profile.html" title="Open admin profile">
+                <a id="adminProfileLink" class="admin-profile-link" href="admin_profile.html"
+                    title="Open admin profile">
                     <div class="profile-placeholder">
                         <img id="adminProfileAvatar" alt="Admin profile photo">
                         <span id="adminProfileInitials">AD</span>
@@ -912,7 +1015,7 @@
             <div class="action-buttons">
                 <button class="btn btn-primary" id="openBulkMarkBtn" onclick="openBulkMarkModal()">
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M7 3V11M3 7H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                     </svg>
                     Mark Attendance
                 </button>
@@ -922,7 +1025,8 @@
             <div class="legend">
                 <div class="legend-item"><span class="icon icon-holiday">★</span> Holiday</div>
                 <div class="legend-item"><span class="icon icon-present">✓</span> Present</div>
-                <div class="legend-item"><span class="icon icon-present" style="font-weight:700;">✓+</span> Overtime</div>
+                <div class="legend-item"><span class="icon icon-present" style="font-weight:700;">✓+</span> Overtime
+                </div>
                 <div class="legend-item"><span class="icon icon-halfday">★</span> Half Day</div>
                 <div class="legend-item"><span class="icon icon-late">⏰</span> Late</div>
                 <div class="legend-item"><span class="icon icon-hourly-leave">⏳</span> Hourly Leave</div>
@@ -961,9 +1065,18 @@
                 <div>
                     <div style="font-size:13px;color:#64748B;margin-bottom:8px;" id="employeeMetaTop"></div>
                     <div class="employee-metrics">
-                        <div class="metric"><h4>Attendance</h4><p id="metricAttendance">0%</p></div>
-                        <div class="metric"><h4>Tasks</h4><p id="metricTasks">0</p></div>
-                        <div class="metric"><h4>Projects</h4><p id="metricProjects">0</p></div>
+                        <div class="metric">
+                            <h4>Attendance</h4>
+                            <p id="metricAttendance">0%</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Tasks</h4>
+                            <p id="metricTasks">0</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Projects</h4>
+                            <p id="metricProjects">0</p>
+                        </div>
                     </div>
                     <div class="employee-list-mini">
                         <h5>Project Details</h5>
@@ -1050,7 +1163,8 @@
                 </div>
                 <div class="attendance-modal-actions">
                     <button class="btn btn-secondary" onclick="closeAttendanceModal()">Close</button>
-                    <button class="btn btn-danger" id="deleteAttendanceBtn" onclick="deleteAttendanceEntry()">Delete Attendance</button>
+                    <button class="btn btn-danger" id="deleteAttendanceBtn" onclick="deleteAttendanceEntry()">Delete
+                        Attendance</button>
                     <button class="btn btn-primary" onclick="saveAttendanceChanges()">Save Changes</button>
                     <button class="btn btn-primary" onclick="addManualEntry()">Add Manual Entry</button>
                 </div>
@@ -1082,7 +1196,8 @@
                     </div>
                     <div class="attendance-form-group">
                         <label>Or Month Scope</label>
-                        <label class="checkbox-line"><input id="bulkUseMonth" type="checkbox" checked> Use selected Month/Year filters</label>
+                        <label class="checkbox-line"><input id="bulkUseMonth" type="checkbox" checked> Use selected
+                            Month/Year filters</label>
                     </div>
                     <div class="attendance-form-group">
                         <label>Status</label>
@@ -1110,7 +1225,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="../../static/js/api.js"></script>
     <script>
         if (!localStorage.getItem("access_token")) {
@@ -1305,8 +1420,8 @@
                                 <button class="employee-avatar-btn" data-emp-id="${emp.employee_id}" title="View employee details">
                                     <div class="employee-avatar">
                                         ${getProfileImageUrl(emp.profile_image)
-                                            ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${esc(emp.name)}" onerror="this.parentElement.innerHTML='${esc((emp.name || "?").slice(0,2).toUpperCase())}'">`
-                                            : esc((emp.name || "?").slice(0,2).toUpperCase())}
+                        ? `<img src="${getProfileImageUrl(emp.profile_image)}" alt="${esc(emp.name)}" onerror="this.parentElement.innerHTML='${esc((emp.name || "?").slice(0, 2).toUpperCase())}'">`
+                        : esc((emp.name || "?").slice(0, 2).toUpperCase())}
                                     </div>
                                 </button>
                                 <div>
@@ -1326,7 +1441,7 @@
                         // First priority → backend half_day_type
                         if (detail.half_day_type === "first_half") {
                             halfClass = "half-left";  // First half -> first (left) side filled
-                        } 
+                        }
                         else if (detail.half_day_type === "second_half") {
                             halfClass = "half-right";   // Second half -> second (right) side filled
                         }
@@ -1502,8 +1617,8 @@
             const photoWrap = document.getElementById("profilePhotoWrap");
             const photoUrl = getProfileImageUrl(emp.profile_image);
             photoWrap.innerHTML = photoUrl
-                ? `<img class="profile-photo" src="${photoUrl}" alt="${esc(emp.name || "Employee")}" onerror="this.remove(); this.parentElement.innerHTML='&lt;div class=&quot;profile-fallback&quot;&gt;${esc((emp.name || "?").slice(0,2).toUpperCase())}&lt;/div&gt;'">`
-                : `<div class="profile-fallback">${esc((emp.name || "?").slice(0,2).toUpperCase())}</div>`;
+                ? `<img class="profile-photo" src="${photoUrl}" alt="${esc(emp.name || "Employee")}" onerror="this.remove(); this.parentElement.innerHTML='&lt;div class=&quot;profile-fallback&quot;&gt;${esc((emp.name || "?").slice(0, 2).toUpperCase())}&lt;/div&gt;'">`
+                : `<div class="profile-fallback">${esc((emp.name || "?").slice(0, 2).toUpperCase())}</div>`;
 
             document.getElementById("projectDetailsList").innerHTML = projects.length
                 ? projects.slice(0, 6).map((p) => `<li>${esc(p.name || "Untitled Project")}</li>`).join("")
@@ -1721,10 +1836,7 @@
             });
         });
     </script>
-<script src="../../static/js/admin_header_profile.js"></script>
+    <script src="../../static/js/admin_header_profile.js"></script>
 </body>
+
 </html>
-
-
-
-
