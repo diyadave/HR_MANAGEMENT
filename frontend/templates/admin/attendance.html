@@ -537,7 +537,7 @@
             display: inline-block;
         }
 
-        /* First Half - Right side filled (half-right) */
+        /* Second Half - Right side filled (half-right) */
         .day-cell.half-right .attendance-icon {
             background: linear-gradient(
                 to right,
@@ -549,7 +549,7 @@
             background-clip: text;
         }
 
-        /* Second Half - Left side filled (half-left) */
+        /* First Half - Left side filled (half-left) */
         .day-cell.half-left .attendance-icon {
             background: linear-gradient(
                 to right,
@@ -1325,10 +1325,10 @@
                     if (status === "halfday") {
                         // First priority → backend half_day_type
                         if (detail.half_day_type === "first_half") {
-                            halfClass = "half-right";  // First half → right side filled
+                            halfClass = "half-left";  // First half -> first (left) side filled
                         } 
                         else if (detail.half_day_type === "second_half") {
-                            halfClass = "half-left";   // Second half → left side filled
+                            halfClass = "half-right";   // Second half -> second (right) side filled
                         }
                         // Second priority → derive from clock-in time
                         else if (detail.clock_in_time) {
@@ -1340,9 +1340,9 @@
                             });
                             const hour = Number(hourText);
                             if (hour < 13) {
-                                halfClass = "half-right";  // First half (morning) → right side filled
+                                halfClass = "half-left";  // First half (morning) -> first (left) side filled
                             } else {
-                                halfClass = "half-left";   // Second half (afternoon) → left side filled
+                                halfClass = "half-right";   // Second half (afternoon) -> second (right) side filled
                             }
                         }
                     }

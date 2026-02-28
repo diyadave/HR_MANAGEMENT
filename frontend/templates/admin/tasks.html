@@ -203,6 +203,27 @@
             overflow: hidden;
         }
 
+        .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .table-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .table-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .table-wrapper {
             overflow-x: auto;
         }
@@ -661,6 +682,58 @@
             color: #334155;
         }
 
+        /* Pagination */
+        .table-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: #073379;
+            color: #073379;
+        }
+
+        .page-btn.active {
+            background: #073379;
+            border-color: #073379;
+            color: #fff;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Toast */
         .toast-notification {
             position: fixed;
@@ -849,6 +922,12 @@
 
             <!-- Tasks Table -->
             <div class="table-container">
+                <div class="table-header">
+                    <h2>All Tasks</h2>
+                    <div class="table-controls">
+                        <div class="pagination-info" id="tasksCountInfo">0 tasks</div>
+                    </div>
+                </div>
                 <div class="table-wrapper">
                     <table class="tasks-table">
                         <thead>
@@ -866,6 +945,10 @@
                             <!-- Tasks will be populated here -->
                         </tbody>
                     </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info" id="tasksRangeInfo">Showing 0 of 0 tasks</div>
+                    <div class="pagination-controls" id="tasksPaginationControls"></div>
                 </div>
             </div>
 
@@ -967,6 +1050,9 @@
         let selectedEmployeeId = null;
         let pendingDeleteTask = null;
         let editingTaskId = null;
+        let filteredTasks = [];
+        let currentTaskPage = 1;
+        const tasksPerPage = 6;
 
         function getProfileImageUrl(path) {
             if (!path) return "";
@@ -1026,19 +1112,30 @@
 
                 // Populate filters
                 populateProjectFilters();
-                renderTasks(allTasks);
+                applyTaskFilters();
 
                 // Search functionality
-                document.getElementById('taskSearch').addEventListener('input', filterTasks);
-                document.getElementById('filterProject').addEventListener('change', filterTasks);
-                document.getElementById('filterStatus').addEventListener('change', filterTasks);
-                document.getElementById('filterPriority').addEventListener('change', filterTasks);
+                document.getElementById('taskSearch').addEventListener('input', () => applyTaskFilters());
+                document.getElementById('filterProject').addEventListener('change', () => applyTaskFilters());
+                document.getElementById('filterStatus').addEventListener('change', () => applyTaskFilters());
+                document.getElementById('filterPriority').addEventListener('change', () => applyTaskFilters());
                 document.getElementById('taskProject').addEventListener('change', () => clearTaskFieldError('taskProject'));
                 document.getElementById('taskTitle').addEventListener('input', () => clearTaskFieldError('taskTitle'));
                 document.getElementById('taskDueDate').addEventListener('change', () => {
                     clearTaskFieldError('taskDueDate');
                     validateTaskDueDateField({ enforceToday: true });
                 });
+                const paginationControls = document.getElementById('tasksPaginationControls');
+                if (paginationControls) {
+                    paginationControls.addEventListener('click', (event) => {
+                        const btn = event.target.closest('.page-btn');
+                        if (!btn || btn.disabled) return;
+                        const page = parseInt(btn.dataset.page, 10);
+                        if (!Number.isFinite(page)) return;
+                        currentTaskPage = page;
+                        applyTaskFilters(true);
+                    });
+                }
 
             } catch (err) {
                 console.error('Error loading data:', err);
@@ -1185,14 +1282,96 @@
             });
         }
 
+        function getTaskPageItems(totalPages, currentPage) {
+            if (totalPages <= 7) {
+                return Array.from({ length: totalPages }, (_, i) => i + 1);
+            }
+            if (currentPage <= 3) {
+                return [1, 2, 3, 4, "...", totalPages];
+            }
+            if (currentPage >= totalPages - 2) {
+                return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+            }
+            return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+        }
+
+        function renderTaskPagination(totalItems) {
+            const controls = document.getElementById('tasksPaginationControls');
+            if (!controls) return;
+
+            const totalPages = Math.max(1, Math.ceil(totalItems / tasksPerPage));
+            controls.innerHTML = '';
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.dataset.page = String(currentTaskPage - 1);
+            prevBtn.disabled = currentTaskPage <= 1;
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            controls.appendChild(prevBtn);
+
+            getTaskPageItems(totalPages, currentTaskPage).forEach((item) => {
+                if (item === '...') {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.style.padding = '0 4px';
+                    dots.style.color = '#94a3b8';
+                    dots.style.alignSelf = 'center';
+                    controls.appendChild(dots);
+                    return;
+                }
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn${item === currentTaskPage ? ' active' : ''}`;
+                pageBtn.dataset.page = String(item);
+                pageBtn.textContent = String(item);
+                controls.appendChild(pageBtn);
+            });
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.dataset.page = String(currentTaskPage + 1);
+            nextBtn.disabled = currentTaskPage >= totalPages;
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            controls.appendChild(nextBtn);
+        }
+
+        function renderTaskListPage() {
+            const totalItems = filteredTasks.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / tasksPerPage));
+
+            if (currentTaskPage > totalPages) currentTaskPage = totalPages;
+            if (currentTaskPage < 1) currentTaskPage = 1;
+
+            const startIndex = totalItems ? (currentTaskPage - 1) * tasksPerPage : 0;
+            const endIndex = Math.min(startIndex + tasksPerPage, totalItems);
+            const paged = filteredTasks.slice(startIndex, endIndex);
+
+            renderTasks(paged);
+
+            const countInfo = document.getElementById('tasksCountInfo');
+            if (countInfo) {
+                countInfo.textContent = `${totalItems} task${totalItems !== 1 ? 's' : ''}`;
+            }
+
+            const rangeInfo = document.getElementById('tasksRangeInfo');
+            if (rangeInfo) {
+                if (!totalItems) {
+                    rangeInfo.textContent = 'Showing 0 of 0 tasks';
+                } else {
+                    rangeInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} tasks`;
+                }
+            }
+
+            renderTaskPagination(totalItems);
+        }
+
         // Filter tasks
-        function filterTasks() {
+        function applyTaskFilters(keepPage = false) {
             const searchTerm = document.getElementById('taskSearch').value.toLowerCase();
             const projectId = document.getElementById('filterProject').value;
             const status = document.getElementById('filterStatus').value;
             const priority = document.getElementById('filterPriority').value;
 
-            const filtered = allTasks.filter(task => {
+            filteredTasks = allTasks.filter(task => {
                 // Search filter
                 if (searchTerm) {
                     const project = allProjects.find(p => Number(p.id) === Number(task.project_id));
@@ -1219,7 +1398,8 @@
                 return true;
             });
 
-            renderTasks(filtered);
+            if (!keepPage) currentTaskPage = 1;
+            renderTaskListPage();
         }
 
         // Clear filters
@@ -1228,7 +1408,7 @@
             document.getElementById('filterStatus').value = '';
             document.getElementById('filterPriority').value = '';
             document.getElementById('taskSearch').value = '';
-            renderTasks(allTasks);
+            applyTaskFilters();
         }
 
         function setTaskModalMode(isEditMode) {
@@ -1506,7 +1686,7 @@
                 
                 // Refresh tasks list
                 allTasks = await API.request("/admin/tasks");
-                filterTasks();
+                applyTaskFilters();
                 
             } catch (err) {
                 console.error('Error creating task:', err);
@@ -1562,7 +1742,7 @@
                 await API.deleteAdminTask(pendingDeleteTask.id);
                 closeDeleteTaskModal();
                 allTasks = await API.getAdminTasks();
-                filterTasks();
+                applyTaskFilters();
                 showToast('Task deleted successfully!', 'success');
             } catch (err) {
                 showToast(err.message || 'Failed to delete task', 'error');

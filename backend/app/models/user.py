@@ -19,6 +19,9 @@ class User(Base):
 
     department = Column(String, nullable=True)
     designation = Column(String, nullable=True)
+    shift = Column(String, nullable=True)
+    shift_start_time = Column(String, nullable=True)
+    shift_end_time = Column(String, nullable=True)
 
     # 🔹 PROFILE FIELDS (Employee Editable)
     phone = Column(String, nullable=True)

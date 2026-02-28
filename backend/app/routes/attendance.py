@@ -77,7 +77,7 @@ def _approved_leave_statuses_for_month(db: Session, user_id: int, month: int, ye
         current = start
         while current <= end:
             if leave.duration_type in {"first_half", "second_half"}:
-                out[current] = "halfday"
+                out[current] = leave.duration_type
             elif (
                 leave.duration_type == "duration"
                 and leave.start_date == leave.end_date
@@ -273,8 +273,11 @@ def attendance_history(
 
         if current_date in holiday_dates:
             status = "holiday"
+        elif leave_status in {"first_half", "second_half"}:
+            status = "halfday"
+            meta["half_day_type"] = leave_status
         elif leave_status:
-            status = "hourly_leave" if leave_status == "hourly_leave" and meta["status"] == "late" else leave_status
+            status = leave_status
         else:
             status = meta["status"]
 

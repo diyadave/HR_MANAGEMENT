@@ -75,6 +75,15 @@
             margin-bottom: 24px;
         }
 
+        .time-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .time-col {
+            flex: 1;
+        }
+
         .form-label {
             display: block;
             font-weight: 600;
@@ -286,6 +295,11 @@
             .btn {
                 width: 100%;
             }
+
+            .time-row {
+                flex-direction: column;
+                gap: 0;
+            }
         }
 
         @media (max-width: 480px) {
@@ -361,6 +375,30 @@
                         <small id="designationError" class="field-error"></small>
                     </div>
 
+                    <div class="form-group">
+                        <label for="shift" class="form-label">Shift</label>
+                        <select id="shift" class="form-input" required>
+                            <option value="" disabled selected>Select shift</option>
+                            <option value="full_day">Full Day</option>
+                            <option value="first_half">First Half</option>
+                            <option value="second_half">Second Half</option>
+                        </select>
+                        <small id="shiftError" class="field-error"></small>
+                    </div>
+
+                    <div class="time-row">
+                        <div class="form-group time-col">
+                            <label for="shift_start_time" class="form-label">Shift Start Time</label>
+                            <input type="time" id="shift_start_time" class="form-input" required>
+                            <small id="shiftStartTimeError" class="field-error"></small>
+                        </div>
+                        <div class="form-group time-col">
+                            <label for="shift_end_time" class="form-label">Shift End Time</label>
+                            <input type="time" id="shift_end_time" class="form-input" required>
+                            <small id="shiftEndTimeError" class="field-error"></small>
+                        </div>
+                    </div>
+
                     <span class="helper-text">
                         <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
                         Temporary password will be generated automatically and sent via email.
@@ -400,6 +438,9 @@
             const submitBtn = document.getElementById("createEmployeeBtn");
             const employeeIdInput = document.getElementById("employee_id");
             const departmentSelect = document.getElementById("department");
+            const shiftSelect = document.getElementById("shift");
+            const shiftStartInput = document.getElementById("shift_start_time");
+            const shiftEndInput = document.getElementById("shift_end_time");
             const addDepartmentBtn = document.getElementById("addDepartmentBtn");
             const departmentModalOverlay = document.getElementById("departmentModalOverlay");
             const newDepartmentInput = document.getElementById("newDepartmentInput");
@@ -414,7 +455,10 @@
                 name: "nameError",
                 email: "emailError",
                 department: "departmentError",
-                designation: "designationError"
+                designation: "designationError",
+                shift: "shiftError",
+                shift_start_time: "shiftStartTimeError",
+                shift_end_time: "shiftEndTimeError"
             };
 
             const setFieldError = (fieldId, message) => {
@@ -460,6 +504,19 @@
                 if (!employeeIdInput) return false;
                 const currentId = employeeIdInput.value.trim().toUpperCase();
                 return currentId && existingEmployeeIds.has(currentId);
+            };
+
+            const shiftDefaults = {
+                full_day: { start: "09:00", end: "18:00" },
+                first_half: { start: "09:00", end: "13:00" },
+                second_half: { start: "14:00", end: "18:00" }
+            };
+
+            const parseTimeToMinutes = (value) => {
+                if (!/^\d{2}:\d{2}$/.test(value)) return null;
+                const [hours, minutes] = value.split(":").map(Number);
+                if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+                return (hours * 60) + minutes;
             };
 
             loadExistingEmployeeIds();
@@ -535,12 +592,24 @@
                 });
             }
 
-            ["name", "email", "department", "designation"].forEach((id) => {
+            ["name", "email", "department", "designation", "shift", "shift_start_time", "shift_end_time"].forEach((id) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                const eventName = id === "department" ? "change" : "input";
+                const eventName = (id === "department" || id === "shift") ? "change" : "input";
                 el.addEventListener(eventName, () => clearFieldError(id));
             });
+
+            if (shiftSelect) {
+                shiftSelect.addEventListener("change", () => {
+                    clearFieldError("shift");
+                    const selected = shiftSelect.value;
+                    if (!selected || !shiftDefaults[selected]) return;
+                    if (shiftStartInput) shiftStartInput.value = shiftDefaults[selected].start;
+                    if (shiftEndInput) shiftEndInput.value = shiftDefaults[selected].end;
+                    clearFieldError("shift_start_time");
+                    clearFieldError("shift_end_time");
+                });
+            }
 
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
@@ -551,7 +620,10 @@
                     name: document.getElementById("name").value.trim(),
                     email: document.getElementById("email").value.trim(),
                     department: document.getElementById("department").value,
-                    designation: document.getElementById("designation").value.trim()
+                    designation: document.getElementById("designation").value.trim(),
+                    shift: document.getElementById("shift").value,
+                    shift_start_time: document.getElementById("shift_start_time").value,
+                    shift_end_time: document.getElementById("shift_end_time").value
                 };
 
                 let hasError = false;
@@ -578,6 +650,43 @@
                     setFieldError("designation", "Please fill the required details.");
                     hasError = true;
                 }
+                if (!data.shift) {
+                    setFieldError("shift", "Please select a shift.");
+                    hasError = true;
+                }
+
+                if (!data.shift_start_time) {
+                    setFieldError("shift_start_time", "Please enter shift start time.");
+                    hasError = true;
+                }
+                if (!data.shift_end_time) {
+                    setFieldError("shift_end_time", "Please enter shift end time.");
+                    hasError = true;
+                }
+
+                const startMinutes = parseTimeToMinutes(data.shift_start_time);
+                const endMinutes = parseTimeToMinutes(data.shift_end_time);
+                if (data.shift_start_time && startMinutes === null) {
+                    setFieldError("shift_start_time", "Use valid time format HH:MM.");
+                    hasError = true;
+                }
+                if (data.shift_end_time && endMinutes === null) {
+                    setFieldError("shift_end_time", "Use valid time format HH:MM.");
+                    hasError = true;
+                }
+                if (startMinutes !== null && endMinutes !== null && startMinutes >= endMinutes) {
+                    setFieldError("shift_end_time", "End time must be later than start time.");
+                    hasError = true;
+                }
+
+                if (data.shift && shiftDefaults[data.shift]) {
+                    const expected = shiftDefaults[data.shift];
+                    if (data.shift_start_time !== expected.start || data.shift_end_time !== expected.end) {
+                        setFieldError("shift_start_time", `For selected shift, start time must be ${expected.start}.`);
+                        setFieldError("shift_end_time", `For selected shift, end time must be ${expected.end}.`);
+                        hasError = true;
+                    }
+                }
 
                 if (isDuplicateEmployeeId()) {
                     setFieldError("employee_id", "This employee ID is already exist please enter a unique ID");
@@ -601,6 +710,12 @@
                 } catch (err) {
                     const msg = String(err.message || "Request failed");
                     const lower = msg.toLowerCase();
+                    if (lower.includes("failed to fetch") || lower.includes("networkerror")) {
+                        if (window.showUIPopup) {
+                            window.showUIPopup("Cannot connect to server. Please make sure backend is running on 127.0.0.1:8000.", "error");
+                        }
+                        return;
+                    }
                     if (lower.includes("employee id")) {
                         setFieldError("employee_id", msg);
                     } else if (lower.includes("email")) {
@@ -611,8 +726,14 @@
                         setFieldError("department", msg);
                     } else if (lower.includes("designation")) {
                         setFieldError("designation", msg);
+                    } else if (lower.includes("shift")) {
+                        setFieldError("shift", msg);
                     } else {
-                        setFieldError("employee_id", msg);
+                        if (window.showUIPopup) {
+                            window.showUIPopup(msg, "error");
+                        } else {
+                            setFieldError("employee_id", msg);
+                        }
                     }
                 } finally {
                     if (submitBtn) submitBtn.disabled = false;

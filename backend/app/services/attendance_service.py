@@ -41,6 +41,14 @@ STANDARD_WORK_SECONDS = int(_parse_float_env("ATTENDANCE_STANDARD_WORK_HOURS", 8
 HALF_DAY_MIN_SECONDS = 4 * 3600
 SECOND_HALF_START = time(14, 0)
 FIRST_HALF_END = time(13, 0)
+SECOND_HALF_LATE_THRESHOLD = _parse_time_env("ATTENDANCE_SECOND_HALF_LATE_THRESHOLD", time(14, 30))
+
+
+def _late_threshold_for_shift(shift: str | None) -> time:
+    normalized = (shift or "full_day").strip().lower()
+    if normalized == "second_half":
+        return SECOND_HALF_LATE_THRESHOLD
+    return LATE_THRESHOLD
 
 
 def ensure_attendance_schema(db) -> None:
@@ -325,17 +333,39 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
     start_t = start_ist.time()
     end_t = end_ist.time()
     worked_seconds = int(seconds or 0)
+    user_shift = ((getattr(getattr(attendance, "user", None), "shift", None) or "full_day").strip().lower())
+    shift_late_threshold = _late_threshold_for_shift(user_shift)
+
+    # Shift-aware attendance:
+    # - first_half and second_half are complete shifts, so valid completion is "present"/"late", not "halfday".
+    if user_shift == "first_half":
+        if SHIFT_START <= start_t <= shift_late_threshold and end_t >= FIRST_HALF_END and worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "present"
+        if start_t > shift_late_threshold and end_t >= FIRST_HALF_END and worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "late"
+        if worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "late" if start_t > shift_late_threshold else "present"
+        return "absent"
+
+    if user_shift == "second_half":
+        if SECOND_HALF_START <= start_t <= shift_late_threshold and end_t >= SHIFT_END and worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "present"
+        if start_t > shift_late_threshold and end_t >= SHIFT_END and worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "late"
+        if worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "late" if start_t > shift_late_threshold else "present"
+        return "absent"
 
     # Full day present: on-time entry and day completed until 6:00 PM.
-    if SHIFT_START <= start_t <= LATE_THRESHOLD and end_t >= SHIFT_END:
+    if SHIFT_START <= start_t <= shift_late_threshold and end_t >= SHIFT_END:
         return "present"
 
     # Late but full day: post 9:30 AM entry and completed day till/after 6:01 PM.
-    if start_t > LATE_THRESHOLD and end_t > SHIFT_END:
+    if start_t > shift_late_threshold and end_t > SHIFT_END:
         return "late"
 
     # First half pattern: 9:00-9:30 entry and leaves around 1:00 PM.
-    if SHIFT_START <= start_t <= LATE_THRESHOLD and FIRST_HALF_END <= end_t < SECOND_HALF_START and worked_seconds >= HALF_DAY_MIN_SECONDS:
+    if SHIFT_START <= start_t <= shift_late_threshold and FIRST_HALF_END <= end_t < SECOND_HALF_START and worked_seconds >= HALF_DAY_MIN_SECONDS:
         attendance.half_day_type = "first_half"
         return "halfday"
 
@@ -359,7 +389,9 @@ def get_attendance_status_meta(attendance: Attendance | None, now: datetime | No
     seconds = get_attendance_worked_seconds(attendance, current)
     status = determine_attendance_status(attendance, seconds, current)
     effective_clock_in = get_effective_clock_in_time(attendance)
-    is_late_entry = bool(effective_clock_in and effective_clock_in.astimezone(IST).time() > LATE_THRESHOLD)
+    user_shift = ((getattr(getattr(attendance, "user", None), "shift", None) or "full_day").strip().lower()) if attendance else "full_day"
+    shift_late_threshold = _late_threshold_for_shift(user_shift)
+    is_late_entry = bool(effective_clock_in and effective_clock_in.astimezone(IST).time() > shift_late_threshold)
     overtime_seconds = calculate_overtime_seconds(attendance, seconds, current)
     half_day_type = attendance.half_day_type if attendance else None
     return {
@@ -527,6 +559,8 @@ def clock_in(current_user, db):
         Attendance.date == today
     ).first()
 
+    shift_late_threshold = _late_threshold_for_shift(getattr(current_user, "shift", None))
+
     if not attendance:
         attendance = Attendance(
             user_id=current_user.id,
@@ -534,8 +568,8 @@ def clock_in(current_user, db):
             clock_in_time=now,
             first_clock_in_time=now,
             total_seconds=0,
-            status="late" if now_ist.time() > LATE_THRESHOLD else "present",
-            is_late=now_ist.time() > LATE_THRESHOLD,
+            status="late" if now_ist.time() > shift_late_threshold else "present",
+            is_late=now_ist.time() > shift_late_threshold,
             overtime_hours=0,
         )
         db.add(attendance)
@@ -554,7 +588,7 @@ def clock_in(current_user, db):
     attendance.is_manual_edit = False
     attendance.manual_override = False
     attendance.updated_by_admin_id = None
-    attendance.status = "late" if now_ist.time() > LATE_THRESHOLD else "present"
+    attendance.status = "late" if now_ist.time() > shift_late_threshold else "present"
     _sync_status_fields(attendance, now=now)
     db.commit()
     db.refresh(attendance)

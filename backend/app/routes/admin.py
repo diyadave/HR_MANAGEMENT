@@ -64,6 +64,23 @@ def _send_employee_credentials_safely(
         print(f"Email sending failed for employee {employee_id}: {exc}")
 
 
+def ensure_user_shift_schema(db: Session) -> None:
+    user_columns = {c["name"] for c in inspect(db.bind).get_columns("users")}
+    ddl = {
+        "shift": "ALTER TABLE users ADD COLUMN shift VARCHAR(50)",
+        "shift_start_time": "ALTER TABLE users ADD COLUMN shift_start_time VARCHAR(5)",
+        "shift_end_time": "ALTER TABLE users ADD COLUMN shift_end_time VARCHAR(5)",
+    }
+    for col, statement in ddl.items():
+        if col in user_columns:
+            continue
+        try:
+            db.execute(text(statement))
+            db.commit()
+        except Exception:
+            db.rollback()
+
+
 # ================= EMPLOYEE CREATION =================
 @router.post("/employees", response_model=EmployeeCreateResponse)
 def create_employee(
@@ -72,6 +89,8 @@ def create_employee(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
+    ensure_user_shift_schema(db)
+
     employee_id = payload.employee_id.strip().upper()
     if not employee_id:
         raise HTTPException(status_code=400, detail="Employee ID is required")
@@ -88,6 +107,9 @@ def create_employee(
         email=payload.email,
         department=payload.department,
         designation=payload.designation,
+        shift=payload.shift,
+        shift_start_time=payload.shift_start_time,
+        shift_end_time=payload.shift_end_time,
         role="employee",
         employee_id=employee_id,
         password_hash=hash_password(temp_password),
@@ -407,7 +429,7 @@ def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int,
         current = start
         while current <= end:
             if leave.duration_type in {"first_half", "second_half"}:
-                leave_dates[current] = "halfday"
+                leave_dates[current] = leave.duration_type
             elif (
                 leave.duration_type == "duration"
                 and leave.start_date == leave.end_date
@@ -444,7 +466,7 @@ def get_leave_status_for_date(db: Session, user_id: int, target_date: date) -> O
     if not leave:
         return None
     if leave.duration_type in {"first_half", "second_half"}:
-        return "halfday"
+        return leave.duration_type
     if (
         leave.duration_type == "duration"
         and leave.start_date == leave.end_date
@@ -545,6 +567,9 @@ def get_effective_day_status(
         leave_status = leave_statuses.get(current_date)
         if leave_status == "hourly_leave":
             status = "hourly_leave"
+        elif leave_status in {"first_half", "second_half"}:
+            status = "halfday"
+            meta["half_day_type"] = leave_status
         else:
             status = leave_status or meta["status"]
 
@@ -665,7 +690,7 @@ def get_monthly_attendance(
             overtime_hours_total += overtime_hours
             day_details[day] = {
                 "status": status,
-                "half_day_type": row.half_day_type if row else None,
+                "half_day_type": meta.get("half_day_type") if status == "halfday" else None,
                 "manual_override": bool(row.manual_override) if row else False,
                 "is_manual_edit": bool(row.is_manual_edit) if row else False,
                 "is_late": bool(row.is_late) if row else False,
@@ -758,7 +783,7 @@ def get_attendance_details(
         "clock_in_time": display_clock_in.isoformat() if display_clock_in else None,
         "clock_out_time": attendance.clock_out_time.isoformat() if attendance and attendance.clock_out_time else None,
         "total_seconds": total_seconds,
-        "half_day_type": attendance.half_day_type if attendance else None,
+        "half_day_type": meta.get("half_day_type") if status == "halfday" else None,
         "is_late": bool(attendance.is_late) if attendance else False,
         "working_from": attendance.working_from if attendance else None,
         "location": attendance.location if attendance else None,

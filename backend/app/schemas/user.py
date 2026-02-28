@@ -37,6 +37,46 @@ class EmployeeCreate(BaseModel):
     email: EmailStr
     department: str | None = None
     designation: str | None = None
+    shift: str
+    shift_start_time: str
+    shift_end_time: str
+
+    @field_validator("employee_id", "name", "department", "designation", "shift", "shift_start_time", "shift_end_time", mode="before")
+    @classmethod
+    def strip_strings(cls, value):
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+    @field_validator("shift")
+    @classmethod
+    def validate_shift(cls, value: str):
+        allowed = {"full_day", "first_half", "second_half"}
+        normalized = value.lower()
+        if normalized not in allowed:
+            raise ValueError("Shift must be one of: full_day, first_half, second_half")
+        return normalized
+
+    @field_validator("shift_start_time", "shift_end_time")
+    @classmethod
+    def validate_time_format(cls, value: str):
+        if not re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", value):
+            raise ValueError("Time must be in HH:MM format")
+        return value
+
+    @model_validator(mode="after")
+    def validate_shift_time_window(self):
+        expected_by_shift = {
+            "full_day": ("09:00", "18:00"),
+            "first_half": ("09:00", "13:00"),
+            "second_half": ("14:00", "18:00"),
+        }
+        expected_start, expected_end = expected_by_shift[self.shift]
+        if (self.shift_start_time, self.shift_end_time) != (expected_start, expected_end):
+            raise ValueError(
+                f"For {self.shift.replace('_', ' ')}, time must be {expected_start} to {expected_end}"
+            )
+        return self
 
 
 class EmployeeCreateResponse(BaseModel):
@@ -52,6 +92,9 @@ class EmployeeOut(BaseModel):
     role: str
     department: Optional[str] = None
     designation: Optional[str] = None
+    shift: Optional[str] = None
+    shift_start_time: Optional[str] = None
+    shift_end_time: Optional[str] = None
     profile_image: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
