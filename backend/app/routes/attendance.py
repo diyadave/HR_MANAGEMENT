@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import extract, or_
+from sqlalchemy import extract, or_, inspect, text
 from datetime import datetime, timezone
 from fastapi import Query
 from datetime import date as date_cls
@@ -45,6 +45,15 @@ def _holiday_dates_for_month(db: Session, month: int, year: int) -> set[date_cls
 
 
 def _approved_leave_statuses_for_month(db: Session, user_id: int, month: int, year: int) -> dict[date_cls, str]:
+    inspector = inspect(db.bind)
+    leave_cols = {c["name"] for c in inspector.get_columns("leaves")}
+    if "leave_hours" not in leave_cols:
+        try:
+            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.commit()
+        except Exception:
+            db.rollback()
+
     first_day = date_cls(year, month, 1)
     last_day = date_cls(year, month, monthrange(year, month)[1])
     leaves = db.query(Leave).filter(
@@ -61,6 +70,11 @@ def _approved_leave_statuses_for_month(db: Session, user_id: int, month: int, ye
         while current <= end:
             if leave.duration_type in {"first_half", "second_half"}:
                 out[current] = "halfday"
+            elif (
+                leave.duration_type == "duration"
+                and leave.start_date == leave.end_date
+            ):
+                out[current] = "hourly_leave"
             else:
                 out[current] = "leave"
             current = current.fromordinal(current.toordinal() + 1)
@@ -249,7 +263,7 @@ def attendance_history(
         if current_date in holiday_dates:
             status = "holiday"
         elif leave_status:
-            status = leave_status
+            status = "hourly_leave" if leave_status == "hourly_leave" and meta["status"] == "late" else leave_status
         else:
             status = meta["status"]
 
@@ -257,6 +271,9 @@ def attendance_history(
         if status in {"present", "in_progress"}:
             present_days += 1
         elif status == "late":
+            late_days += 1
+            present_days += 1
+        elif status == "hourly_leave":
             late_days += 1
             present_days += 1
         elif status == "halfday":

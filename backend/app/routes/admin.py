@@ -2,7 +2,7 @@ import secrets
 import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, extract, or_
+from sqlalchemy import and_, extract, or_, inspect, text
 from typing import List, Optional
 from datetime import date, datetime, time, timezone
 from calendar import monthrange
@@ -376,6 +376,14 @@ def get_holiday_dates_for_month(db: Session, month: int, year: int) -> set[date]
 
 
 def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int, year: int) -> dict[date, str]:
+    leave_cols = {c["name"] for c in inspect(db.bind).get_columns("leaves")}
+    if "leave_hours" not in leave_cols:
+        try:
+            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.commit()
+        except Exception:
+            db.rollback()
+
     first_day = date(year, month, 1)
     last_day = date(year, month, monthrange(year, month)[1])
     leaves = db.query(Leave).filter(
@@ -391,12 +399,28 @@ def get_approved_leave_statuses_for_month(db: Session, user_id: int, month: int,
         end = min(leave.end_date, last_day)
         current = start
         while current <= end:
-            leave_dates[current] = "halfday" if leave.duration_type in {"first_half", "second_half"} else "leave"
+            if leave.duration_type in {"first_half", "second_half"}:
+                leave_dates[current] = "halfday"
+            elif (
+                leave.duration_type == "duration"
+                and leave.start_date == leave.end_date
+            ):
+                leave_dates[current] = "hourly_leave"
+            else:
+                leave_dates[current] = "leave"
             current = current.fromordinal(current.toordinal() + 1)
     return leave_dates
 
 
 def get_leave_status_for_date(db: Session, user_id: int, target_date: date) -> Optional[str]:
+    leave_cols = {c["name"] for c in inspect(db.bind).get_columns("leaves")}
+    if "leave_hours" not in leave_cols:
+        try:
+            db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+            db.commit()
+        except Exception:
+            db.rollback()
+
     leave = db.query(Leave).filter(
         Leave.user_id == user_id,
         Leave.status == "approved",
@@ -405,7 +429,14 @@ def get_leave_status_for_date(db: Session, user_id: int, target_date: date) -> O
     ).order_by(Leave.id.desc()).first()
     if not leave:
         return None
-    return "halfday" if leave.duration_type in {"first_half", "second_half"} else "leave"
+    if leave.duration_type in {"first_half", "second_half"}:
+        return "halfday"
+    if (
+        leave.duration_type == "duration"
+        and leave.start_date == leave.end_date
+    ):
+        return "hourly_leave"
+    return "leave"
 
 
 def normalize_status_value(raw_status: Optional[str]) -> Optional[str]:
@@ -417,6 +448,7 @@ def normalize_status_value(raw_status: Optional[str]) -> Optional[str]:
         "halfday_second": "halfday",
         "first_half": "halfday",
         "second_half": "halfday",
+        "hourly_leave": "hourly_leave",
         "on_leave": "leave",
     }
     return mapping.get(value, value)
@@ -496,7 +528,11 @@ def get_effective_day_status(
     elif current_date in holiday_dates:
         status = "holiday"
     else:
-        status = leave_statuses.get(current_date) or meta["status"]
+        leave_status = leave_statuses.get(current_date)
+        if leave_status == "hourly_leave":
+            status = "hourly_leave" if meta["status"] in {"late", "in_progress"} else meta["status"]
+        else:
+            status = leave_status or meta["status"]
 
     return status, meta
 
@@ -603,6 +639,9 @@ def get_monthly_attendance(
                 total_days += 1
                 if status == "late":
                     late_days += 1
+            elif status == "hourly_leave":
+                total_days += 1
+                late_days += 1
             elif status == "halfday":
                 total_days += 0.5
 
@@ -738,7 +777,7 @@ def mark_attendance(
     reason = payload.get("reason")
     raw_status = normalize_status_value(payload.get("status"))
     status = raw_status or "absent"
-    if status not in {"present", "late", "absent", "leave", "halfday", "holiday"}:
+    if status not in {"present", "late", "absent", "leave", "halfday", "holiday", "hourly_leave"}:
         raise HTTPException(status_code=400, detail="Invalid status")
 
     employee = db.query(User).filter(User.id == user_id, User.role == "employee").first()
@@ -855,7 +894,7 @@ def mark_attendance(
             else:
                 attendance.half_day_type = "first_half"
         attendance.is_late = False
-    elif selected_status == "late":
+    elif selected_status in {"late", "hourly_leave"}:
         attendance.half_day_type = None
         attendance.is_late = True
     else:

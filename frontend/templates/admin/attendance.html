@@ -282,6 +282,10 @@
             color: var(--c-late); 
             font-family: 'Inter', 'Segoe UI', sans-serif;
         }
+        .icon-hourly-leave {
+            color: var(--c-late);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
         .icon-holiday { 
             color: var(--c-holiday); 
             font-family: 'Inter', 'Segoe UI', sans-serif;
@@ -497,6 +501,10 @@
         }
         .status-late { 
             color: var(--c-late); 
+            font-weight: 600;
+        }
+        .status-hourly-leave {
+            color: var(--c-late);
             font-weight: 600;
         }
         .status-absent { 
@@ -917,6 +925,7 @@
                 <div class="legend-item"><span class="icon icon-present" style="font-weight:700;">✓+</span> Overtime</div>
                 <div class="legend-item"><span class="icon icon-halfday">★</span> Half Day</div>
                 <div class="legend-item"><span class="icon icon-late">⏰</span> Late</div>
+                <div class="legend-item"><span class="icon icon-hourly-leave">⏳</span> Hourly Leave</div>
                 <div class="legend-item"><span class="icon icon-absent">✕</span> Absent</div>
                 <div class="legend-item"><span class="icon icon-leave">○</span> On Leave</div>
             </div>
@@ -990,6 +999,7 @@
                         <select id="attStatus">
                             <option value="present">Present</option>
                             <option value="late">Late</option>
+                            <option value="hourly_leave">Hourly Leave</option>
                             <option value="halfday">Half Day</option>
                             <option value="first_half">First Half</option>
                             <option value="second_half">Second Half</option>
@@ -1079,6 +1089,7 @@
                         <select id="bulkStatus" class="form-ctrl">
                             <option value="present">Present</option>
                             <option value="late">Late</option>
+                            <option value="hourly_leave">Hourly Leave</option>
                             <option value="halfday">Half Day</option>
                             <option value="first_half">First Half</option>
                             <option value="second_half">Second Half</option>
@@ -1223,6 +1234,7 @@
             const normalized = normalizeStatus(status);
             if (normalized === "present") return detail.is_overtime ? "✓+" : "✓";
             if (normalized === "late") return detail.is_overtime ? "⏰+" : "⏰";
+            if (normalized === "hourly_leave") return "⏳";
             if (normalized === "halfday") return "✦";
             if (normalized === "holiday") return "★";
             if (normalized === "leave") return "○";
@@ -1235,6 +1247,7 @@
             return {
                 present: "status-present",
                 late: "status-late",
+                hourly_leave: "status-hourly-leave",
                 absent: "status-absent",
                 halfday: "status-halfday",
                 holiday: "status-holiday",
@@ -1252,6 +1265,7 @@
             return {
                 holiday: "Holiday",
                 leave: "On Leave",
+                hourly_leave: "Hourly Leave",
                 present: detail.is_overtime ? "Present + Overtime" : "Present",
                 late: detail.is_overtime ? "Late + Overtime" : "Late",
                 absent: "Absent",
@@ -1532,6 +1546,7 @@
             let statusValue = "absent";
             if (data.status === "present") statusValue = "present";
             if (data.status === "late") statusValue = "late";
+            if (data.status === "hourly_leave") statusValue = "hourly_leave";
             if (data.status === "halfday") statusValue = "halfday";
             if (data.status === "first_half") statusValue = "first_half";
             if (data.status === "second_half") statusValue = "second_half";

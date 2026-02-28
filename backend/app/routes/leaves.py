@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect, text
 from datetime import datetime, timezone
 
 from app.database.session import get_db
@@ -12,6 +13,18 @@ from app.services.notification_service import push_notification, notify_all_admi
 router = APIRouter(prefix="/leaves", tags=["Leaves"])
 
 
+def ensure_leave_schema(db: Session) -> None:
+    inspector = inspect(db.bind)
+    existing_cols = {c["name"] for c in inspector.get_columns("leaves")}
+    if "leave_hours" in existing_cols:
+        return
+    try:
+        db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
 # ======================================
 # EMPLOYEE APPLY LEAVE
 # ======================================
@@ -21,8 +34,12 @@ def apply_leave(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    ensure_leave_schema(db)
     if payload.duration_type == "duration":
-        total_days = float((payload.end_date - payload.start_date).days + 1)
+        if payload.leave_hours is not None and payload.start_date == payload.end_date:
+            total_days = round(float(payload.leave_hours) / 8.0, 2)
+        else:
+            total_days = float((payload.end_date - payload.start_date).days + 1)
     elif payload.duration_type in {"first_half", "second_half"}:
         total_days = 0.5
     else:
@@ -35,6 +52,7 @@ def apply_leave(
         start_date=payload.start_date,
         end_date=payload.end_date,
         total_days=total_days,
+        leave_hours=payload.leave_hours,
         reason=payload.reason,
         status="pending"
     )
@@ -64,6 +82,7 @@ def get_my_leaves(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    ensure_leave_schema(db)
     return db.query(Leave).filter(
         Leave.user_id == current_user.id
     ).order_by(Leave.created_at.desc()).all()
@@ -78,6 +97,7 @@ def get_all_leaves(
     db: Session = Depends(get_db),
     admin=Depends(get_current_admin)
 ):
+    ensure_leave_schema(db)
     query = db.query(Leave)
     if status:
         query = query.filter(Leave.status == status)
@@ -93,6 +113,7 @@ def approve_leave(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
+    ensure_leave_schema(db)
     leave = db.query(Leave).filter(Leave.id == leave_id).first()
 
     if not leave:
@@ -128,6 +149,7 @@ def reject_leave(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
+    ensure_leave_schema(db)
     leave = db.query(Leave).filter(Leave.id == leave_id).first()
 
     if not leave:

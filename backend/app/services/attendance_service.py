@@ -69,6 +69,18 @@ def ensure_attendance_schema(db) -> None:
             db.rollback()
 
 
+def _ensure_leave_schema(db) -> None:
+    inspector = inspect(db.bind)
+    existing_cols = {c["name"] for c in inspector.get_columns("leaves")}
+    if "leave_hours" in existing_cols:
+        return
+    try:
+        db.execute(text("ALTER TABLE leaves ADD COLUMN leave_hours DOUBLE PRECISION"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
 def _notify_attendance_state_change(user_id: int) -> None:
     attendance_ws_manager.notify_attendance_change_threadsafe(user_id)
 
@@ -125,6 +137,7 @@ def _is_holiday_for_user(db, user, target_date: date) -> bool:
 
 
 def _leave_status_for_date(db, user_id: int, target_date: date) -> str | None:
+    _ensure_leave_schema(db)
     leave = db.query(Leave).filter(
         Leave.user_id == user_id,
         Leave.start_date <= target_date,
@@ -132,8 +145,16 @@ def _leave_status_for_date(db, user_id: int, target_date: date) -> str | None:
     ).order_by(Leave.created_at.desc()).first()
     if not leave:
         return None
+
+    is_hourly = (
+        leave.duration_type == "duration"
+        and leave.start_date == leave.end_date
+    )
     if leave.status == "approved":
-        return "leave"
+        return "hourly_leave" if is_hourly else "leave"
+    if is_hourly:
+        # Unapproved hourly leave should not block clock-in; user will be marked late by time.
+        return None
     return "absent"
 
 
@@ -446,7 +467,7 @@ def clock_in(current_user, db):
         raise HTTPException(status_code=400, detail="Today is a holiday. Clock-in is disabled.")
 
     leave_status = _leave_status_for_date(db, current_user.id, today)
-    if leave_status:
+    if leave_status in {"leave", "absent"}:
         _upsert_non_working_attendance(current_user.id, today, leave_status, db)
         db.commit()
         _notify_attendance_state_change(current_user.id)
@@ -544,6 +565,8 @@ def get_clock_in_lock_reason(current_user, db, now: datetime | None = None) -> s
         return "leave"
     if leave_status == "absent":
         return "unapproved_leave"
+    if leave_status == "hourly_leave":
+        return None
 
     if BREAK_START_HOUR <= current.astimezone(IST).hour < BREAK_END_HOUR:
         return "break"

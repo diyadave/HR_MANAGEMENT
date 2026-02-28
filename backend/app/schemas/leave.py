@@ -11,6 +11,7 @@ class LeaveCreate(BaseModel):
     start_date: date
     end_date: date
     reason: str
+    leave_hours: Optional[float] = None
 
     @field_validator("reason")
     @classmethod
@@ -29,6 +30,13 @@ class LeaveCreate(BaseModel):
             raise ValueError("Start date cannot be after end date")
         if self.duration_type in {"full_day", "first_half", "second_half"} and self.start_date != self.end_date:
             raise ValueError("For full day or half day leave, start and end date must be the same")
+        if self.leave_hours is not None:
+            if self.leave_hours <= 0:
+                raise ValueError("leave_hours must be greater than 0")
+            if self.leave_hours > 8:
+                raise ValueError("leave_hours cannot exceed 8")
+        if self.duration_type == "duration" and self.leave_hours is not None and self.start_date != self.end_date:
+            raise ValueError("Hourly leave can only be applied for a single date")
         return self
 
 
@@ -40,6 +48,7 @@ class LeaveOut(BaseModel):
     start_date: date
     end_date: date
     total_days: float
+    leave_hours: Optional[float] = None
     reason: str
     status: str
     created_at: datetime

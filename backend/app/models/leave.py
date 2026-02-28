@@ -18,6 +18,7 @@ class Leave(Base):
     end_date = Column(Date, nullable=False)
 
     total_days = Column(Float, nullable=False)
+    leave_hours = Column(Float, nullable=True)
 
     reason = Column(Text, nullable=False)
 

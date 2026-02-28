@@ -467,6 +467,7 @@
         in_progress: { css: "status-progress", icon: "\u2315", label: "In Progress" },
         present: { css: "status-present", icon: "\u2705", label: "Present" },
         late: { css: "status-late", icon: "\u23F0", label: "Late" },
+        hourly_leave: { css: "status-late", icon: "\u23F3", label: "Hourly Leave" },
         absent: { css: "status-absent", icon: "\u274C", label: "Absent" },
         halfday: { css: "status-halfday", icon: "\u2B50", label: "Half Day" },
         holiday: { css: "status-halfday", icon: "\u2B50", label: "Holiday" },
@@ -495,6 +496,10 @@
         const halfIcon = r.half_day_type === "second_half" ? "\u2605" : "\u2606";
         const halfLabel = r.half_day_type === "second_half" ? "Half Day (Second Half)" : "Half Day (First Half)";
         return `<span class="status-indicator status-halfday"><span class="status-dot"></span>${halfIcon} ${halfLabel}</span>`;
+      }
+
+      if (status === "hourly_leave") {
+        return `<span class="status-indicator status-late"><span class="status-dot"></span>\u23F3 Hourly Leave</span>`;
       }
 
       return statusBadge(status);
