@@ -93,7 +93,7 @@ def set_task_in_progress(task: Task, db: Session) -> None:
 
 def set_task_paused(task: Task, db: Session) -> None:
     ensure_task_schema(db)
-    task.status = "paused"
+    task.status = "pending"
     db.add(task)
 
 
@@ -121,3 +121,4 @@ def apply_overtime_status_if_needed(task: Task, db: Session) -> None:
     if task.is_overtime and (task.status or "").lower() != "completed":
         task.status = "overdue"
     db.add(task)
+
