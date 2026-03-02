@@ -389,6 +389,10 @@
             font-size: 13px;
             color: #1e293b;
             font-weight: 500;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .progress-percent {
@@ -449,11 +453,17 @@
             font-weight: 500;
             color: #0f172a;
             margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .task-project {
             font-size: 11px;
             color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .task-due {
@@ -500,6 +510,10 @@
             font-size: 13px;
             font-weight: 600;
             color: #0f172a;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 8px;
         }
 
         .department-count {
@@ -899,7 +913,7 @@ async function loadAdminDashboard() {
     if (deptStatsEl) {
       const deptRows = Object.entries(deptMap)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 6)
+        .slice(0, 5)
         .map(([dept, count]) => `
           <div class="department-item">
             <div class="department-name">${escapeHtml(dept)}</div>
@@ -911,7 +925,10 @@ async function loadAdminDashboard() {
 
     const projectProgressEl = document.getElementById("projectProgressList");
     if (projectProgressEl) {
-      const progressRows = projList.slice(0, 5).map(p => {
+      const workingProjects = projList
+        .filter((p) => String(p?.status || "").toLowerCase() !== "completed")
+        .slice(0, 5);
+      const progressRows = workingProjects.map(p => {
         const items = taskList.filter(t => Number(t.project_id) === Number(p.id));
         const total = items.length;
         const done = items.filter(t => t.status === "completed").length;
@@ -926,12 +943,15 @@ async function loadAdminDashboard() {
           </div>
         `;
       }).join("");
-      projectProgressEl.innerHTML = progressRows || `<div class="activity-description">No projects yet</div>`;
+      projectProgressEl.innerHTML = progressRows || `<div class="activity-description">No working projects</div>`;
     }
 
     const recentTasksEl = document.getElementById("recentTasksList");
     if (recentTasksEl) {
-      const rows = taskList.slice(0, 6).map(t => `
+      const recentTasks = [...taskList]
+        .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0))
+        .slice(0, 5);
+      const rows = recentTasks.map(t => `
         <div class="task-item">
           <div class="task-info">
             <div class="task-name">${escapeHtml(t.title || "Untitled Task")}</div>

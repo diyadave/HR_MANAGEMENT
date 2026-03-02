@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leave Approval | Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -342,12 +343,13 @@
 
         /* Action Buttons */
         .action-buttons {
-            display: flex;
-            gap: 6px;
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-action {
-            padding: 5px 12px;
             border-radius: 6px;
             font-size: 12px;
             font-weight: 500;
@@ -357,10 +359,33 @@
             white-space: nowrap;
         }
 
+        .btn-action.action-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            padding: 0;
+        }
+
+        .btn-action.action-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-action.action-view:hover {
+            color: #073379;
+            border-color: #073379;
+        }
+
         .btn-approve {
             background: #d1fae5;
             color: #059669;
             border-color: #a7f3d0;
+            padding: 5px 10px;
         }
 
         .btn-approve:hover {
@@ -372,6 +397,7 @@
             background: #fee2e2;
             color: #dc2626;
             border-color: #fecaca;
+            padding: 5px 10px;
         }
 
         .btn-reject:hover {
@@ -396,10 +422,12 @@
         .reason-modal-content {
             background: white;
             border-radius: 8px;
-            width: 400px;
+            width: 560px;
             max-width: 90%;
             max-height: 80vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .reason-modal-header {
@@ -437,6 +465,45 @@
             color: #475569;
             line-height: 1.6;
             white-space: pre-line;
+        }
+
+        .leave-detail-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 10px 14px;
+            font-size: 13px;
+            color: #334155;
+            margin-bottom: 16px;
+        }
+
+        .leave-detail-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .leave-detail-value {
+            color: #1e293b;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 12px 20px 16px;
+            border-top: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .btn-neutral {
+            background: #fff;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        .btn-neutral:hover {
+            background: #f8fafc;
         }
 
         /* Toast Notification */
@@ -583,13 +650,43 @@
         <div class="reason-modal" id="reasonModal">
             <div class="reason-modal-content">
                 <div class="reason-modal-header">
-                    <div class="reason-modal-title">Leave Reason</div>
+                    <div class="reason-modal-title">Leave Request Details</div>
                     <button class="reason-modal-close" onclick="closeReasonModal()">×</button>
                 </div>
                 <div class="reason-modal-body">
+                    <div class="leave-detail-grid">
+                        <div class="leave-detail-label">Employee</div>
+                        <div class="leave-detail-value" id="detailEmployee">-</div>
+
+                        <div class="leave-detail-label">Leave Type</div>
+                        <div class="leave-detail-value" id="detailType">-</div>
+
+                        <div class="leave-detail-label">Duration Type</div>
+                        <div class="leave-detail-value" id="detailDurationType">-</div>
+
+                        <div class="leave-detail-label">From Date</div>
+                        <div class="leave-detail-value" id="detailFromDate">-</div>
+
+                        <div class="leave-detail-label">To Date</div>
+                        <div class="leave-detail-value" id="detailToDate">-</div>
+
+                        <div class="leave-detail-label">Time Window</div>
+                        <div class="leave-detail-value" id="detailTimeWindow">-</div>
+
+                        <div class="leave-detail-label">Total Days</div>
+                        <div class="leave-detail-value" id="detailTotalDays">-</div>
+
+                        <div class="leave-detail-label">Status</div>
+                        <div class="leave-detail-value" id="detailStatus">-</div>
+                    </div>
                     <div class="reason-full" id="fullReasonText">
                         <!-- Full reason will be inserted here -->
                     </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-action btn-neutral" onclick="closeReasonModal()">Close</button>
+                    <button class="btn-action btn-approve" id="modalApproveBtn" onclick="approveSelectedLeave()">Approve</button>
+                    <button class="btn-action btn-reject" id="modalRejectBtn" onclick="rejectSelectedLeave()">Reject</button>
                 </div>
             </div>
         </div>
@@ -604,28 +701,81 @@
             })
             .catch(error => console.error('Error loading sidebar:', error));
 
-        // Sample data for full reasons
-        const leaveReasons = {
-            1: "Family wedding out of state. Travel required for 2 days plus ceremony.\n\nAll urgent work has been completed and handed over to the team lead. Project timelines have been adjusted accordingly. Will be available for emergencies via phone during the leave period.\n\nAll necessary documentation has been uploaded to the system.",
-            2: "Sudden fever and flu symptoms. Doctor's note provided.\n\nClient meetings scheduled for Feb 22 have been rescheduled to next week. Team has been briefed about ongoing deals.\n\nWill check emails periodically but will be mostly resting as per doctor's advice.",
-            3: "Family emergency requiring immediate attention.\n\nUrgent tasks have been delegated to team members. Will provide proper documentation upon return.\n\nAvailable for critical decisions via phone if absolutely necessary.",
-            4: "Mental health break. Need to recharge and reset.\n\nAll design files are updated and shared with the team. Current projects are at a stable point.\n\nWill be completely offline during this period to ensure proper rest.",
-            5: "Dental surgery scheduled. Doctor's note attached.\n\nAll HR tasks for the day have been delegated. Will be available for urgent calls only.\n\nRecovery time expected: 1-2 days as per dentist's advice."
-        };
+        const leaveById = {};
+        let selectedLeaveId = null;
+
+        function formatLeaveType(type) {
+            const map = {
+                annual: "Annual Leave",
+                casual: "Casual Leave",
+                sick: "Sick Leave",
+                unpaid: "Unpaid Leave"
+            };
+            return map[String(type || "").toLowerCase()] || "-";
+        }
+
+        function formatDurationType(type) {
+            const map = {
+                full_day: "Full Day",
+                first_half: "First Half",
+                second_half: "Second Half",
+                duration: "Hourly / Duration"
+            };
+            return map[String(type || "").toLowerCase()] || "-";
+        }
+
+        function formatTimeValue(value) {
+            if (!value) return "";
+            const text = String(value);
+            return text.length >= 5 ? text.slice(0, 5) : text;
+        }
 
         // Modal functions
         function viewFullReason(leaveId) {
-            document.getElementById('fullReasonText').textContent = leaveReasons[leaveId] || 'No reason provided.';
+            const leave = leaveById[String(leaveId)];
+            if (!leave) return;
+            selectedLeaveId = Number(leave.id);
+
+            document.getElementById('detailEmployee').textContent = leave.employee?.name || "-";
+            document.getElementById('detailType').textContent = formatLeaveType(leave.leave_type);
+            document.getElementById('detailDurationType').textContent = formatDurationType(leave.duration_type);
+            document.getElementById('detailFromDate').textContent = leave.start_date || "-";
+            document.getElementById('detailToDate').textContent = leave.end_date || "-";
+            document.getElementById('detailTotalDays').textContent = String(leave.total_days ?? "-");
+            document.getElementById('detailStatus').textContent = String(leave.status || "-");
+            document.getElementById('fullReasonText').textContent = leave.reason || "No reason provided.";
+
+            const hourlyStart = formatTimeValue(leave.hourly_start_time);
+            const hourlyEnd = formatTimeValue(leave.hourly_end_time);
+            document.getElementById('detailTimeWindow').textContent = (hourlyStart && hourlyEnd)
+                ? `${hourlyStart} - ${hourlyEnd}`
+                : "-";
+
+            const isPending = String(leave.status || "").toLowerCase() === "pending";
+            document.getElementById("modalApproveBtn").style.display = isPending ? "inline-flex" : "none";
+            document.getElementById("modalRejectBtn").style.display = isPending ? "inline-flex" : "none";
             document.getElementById('reasonModal').style.display = 'flex';
         }
 
         function closeReasonModal() {
             document.getElementById('reasonModal').style.display = 'none';
+            selectedLeaveId = null;
+        }
+
+        async function approveSelectedLeave() {
+            if (!selectedLeaveId) return;
+            await approveLeave(selectedLeaveId);
+        }
+
+        async function rejectSelectedLeave() {
+            if (!selectedLeaveId) return;
+            await rejectLeave(selectedLeaveId);
         }
 
         async function approveLeave(id) {
             try {
                 await API.approveLeave(id);
+                closeReasonModal();
                 loadAllLeaves();
             } catch (err) {
                 showToast(err.message || "Request failed");
@@ -635,6 +785,7 @@
         async function rejectLeave(id) {
             try {
                 await API.rejectLeave(id);
+                closeReasonModal();
                 loadAllLeaves();
             } catch (err) {
                 showToast(err.message || "Request failed");
@@ -703,8 +854,10 @@
             const data = await API.getLeaves("pending");
             const tbody = document.getElementById("leaveTableBody");
             tbody.innerHTML = "";
+            Object.keys(leaveById).forEach((key) => delete leaveById[key]);
 
             data.forEach(leave => {
+                leaveById[String(leave.id)] = leave;
                 const empName = leave.employee?.name || "-";
                 const initials = empName.split(" ").map(p => p[0] || "").join("").slice(0, 2).toUpperCase() || "?";
                 const photoUrl = getProfileImageUrl(leave.employee?.profile_image);
@@ -724,22 +877,16 @@
         </td>
         <td>${leave.start_date} - ${leave.end_date}</td>
         <td>${leave.total_days}</td>
-        <td>${leave.reason}</td>
+        <td title="${escapeHtml(leave.reason || "")}">${escapeHtml(leave.reason || "-")}</td>
         <td>
           <span class="status-badge status-${leave.status}">
             ${leave.status}
           </span>
         </td>
         <td>
-          ${leave.status === "pending"
-                        ? `
-                <div class="action-buttons">
-                  <button class="btn-action btn-approve" onclick="approveLeave(${leave.id})">Approve</button>
-                  <button class="btn-action btn-reject" onclick="rejectLeave(${leave.id})">Reject</button>
-                </div>
-              `
-                        : "-"
-                    }
+          <div class="action-buttons">
+            <button class="btn-action action-btn action-view" onclick="viewFullReason(${leave.id})" title="View Leave Details" aria-label="View Leave Details"><i class="fas fa-eye"></i></button>
+          </div>
         </td>
       </tr>
     `;

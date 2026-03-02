@@ -1,4 +1,6 @@
 
+import re
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from app.database.session import engine
 from app.database.base import Base
@@ -50,6 +52,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+_LOCAL_DEV_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
+
+
+@app.middleware("http")
+async def ensure_local_dev_cors(request: Request, call_next):
+    origin = (request.headers.get("origin") or "").strip()
+    is_local_dev_origin = bool(origin and _LOCAL_DEV_ORIGIN_RE.match(origin))
+
+    if request.method.upper() == "OPTIONS" and is_local_dev_origin:
+        response = JSONResponse(status_code=200, content={"ok": True})
+    else:
+        response = await call_next(request)
+
+    if is_local_dev_origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
+        response.headers["Access-Control-Allow-Headers"] = (
+            request.headers.get("access-control-request-headers") or "*"
+        )
+
+    return response
 
 @app.on_event("startup")
 def create_tables():

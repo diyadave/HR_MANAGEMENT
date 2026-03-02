@@ -180,6 +180,8 @@ def create_task(
     admin: User = Depends(get_current_admin)
 ):
     ensure_employees_available(db)
+    if not (task.description or "").strip():
+        raise HTTPException(status_code=400, detail="Task description is required.")
     if not task.assigned_to or int(task.assigned_to) <= 0:
         raise HTTPException(status_code=400, detail="Please select at least one employee.")
 

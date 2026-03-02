@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
-from datetime import datetime
+from pydantic import BaseModel, EmailStr, field_validator, model_validator, field_serializer
+from datetime import datetime, time
 from typing import Optional
 from datetime import date
 import re
@@ -93,8 +93,8 @@ class EmployeeOut(BaseModel):
     department: Optional[str] = None
     designation: Optional[str] = None
     shift: Optional[str] = None
-    shift_start_time: Optional[str] = None
-    shift_end_time: Optional[str] = None
+    shift_start_time: Optional[str | time] = None
+    shift_end_time: Optional[str | time] = None
     profile_image: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
@@ -102,6 +102,12 @@ class EmployeeOut(BaseModel):
     model_config = {
     "from_attributes": True
 }
+
+    @field_serializer("shift_start_time", "shift_end_time")
+    def serialize_shift_time(self, value: Optional[str | time]):
+        if isinstance(value, time):
+            return value.strftime("%H:%M")
+        return value
 
 
 

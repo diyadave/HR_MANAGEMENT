@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -127,6 +128,7 @@
             align-items: center;
             gap: 8px;
         }
+
         .add-employee-btn:hover {
             background: #052962;
         }
@@ -336,6 +338,7 @@
             font-size: 13px;
             flex-shrink: 0;
         }
+
         .employee-avatar img {
             width: 100%;
             height: 100%;
@@ -343,6 +346,7 @@
             border-radius: 8px;
             display: block;
         }
+
         .employee-avatar-btn {
             border: none;
             background: transparent;
@@ -350,6 +354,7 @@
             cursor: pointer;
             border-radius: 8px;
         }
+
         .employee-avatar-btn:focus-visible {
             outline: 2px solid var(--primary-blue);
             outline-offset: 2px;
@@ -471,7 +476,7 @@
             justify-content: center;
         }
 
-        .checkbox-container input:checked ~ .checkmark {
+        .checkbox-container input:checked~.checkmark {
             background-color: var(--primary-blue);
             border-color: var(--primary-blue);
         }
@@ -489,7 +494,7 @@
             transform: rotate(45deg);
         }
 
-        .checkbox-container input:checked ~ .checkmark:after {
+        .checkbox-container input:checked~.checkmark:after {
             display: block;
         }
 
@@ -534,6 +539,7 @@
             align-items: center;
             gap: 8px;
         }
+
         .status-toggle {
             position: relative;
             width: 46px;
@@ -544,6 +550,7 @@
             background: #cbd5e1;
             transition: background 0.2s;
         }
+
         .status-toggle::after {
             content: "";
             position: absolute;
@@ -554,18 +561,22 @@
             border-radius: 50%;
             background: white;
             transition: transform 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
+
         .status-toggle.active {
             background: #059669;
         }
+
         .status-toggle.active::after {
             transform: translateX(22px);
         }
+
         .status-toggle:disabled {
             opacity: 0.55;
             cursor: not-allowed;
         }
+
         .account-toggle-label {
             font-size: 12px;
             font-weight: 600;
@@ -592,9 +603,11 @@
             z-index: 1000;
             padding: 16px;
         }
+
         .employee-modal-overlay.show {
             display: flex;
         }
+
         .employee-modal {
             width: min(760px, 100%);
             max-height: 90vh;
@@ -603,6 +616,7 @@
             border-radius: 12px;
             border: 1px solid var(--gray-200);
         }
+
         .employee-modal-head {
             display: flex;
             justify-content: space-between;
@@ -610,15 +624,18 @@
             padding: 16px 18px;
             border-bottom: 1px solid var(--gray-200);
         }
+
         .employee-modal-body {
             padding: 18px;
             display: grid;
             grid-template-columns: 220px 1fr;
             gap: 18px;
         }
+
         .profile-photo-wrap {
             text-align: center;
         }
+
         .profile-photo {
             width: 120px;
             height: 120px;
@@ -629,6 +646,7 @@
             border: 1px solid var(--gray-200);
             background: var(--gray-100);
         }
+
         .profile-fallback {
             width: 120px;
             height: 120px;
@@ -642,18 +660,21 @@
             font-size: 30px;
             font-weight: 700;
         }
+
         .employee-metrics {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
             margin-bottom: 14px;
         }
+
         .metric {
             border: 1px solid var(--gray-200);
             border-radius: 8px;
             padding: 10px;
             background: var(--gray-50);
         }
+
         .metric h4 {
             font-size: 11px;
             color: var(--gray-500);
@@ -662,22 +683,26 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
+
         .metric p {
             font-size: 18px;
             font-weight: 700;
             color: var(--gray-900);
         }
+
         .employee-list-mini {
             border: 1px solid var(--gray-200);
             border-radius: 8px;
             padding: 10px;
             margin-top: 10px;
         }
+
         .employee-list-mini h5 {
             font-size: 12px;
             color: var(--gray-600);
             margin-bottom: 8px;
         }
+
         .employee-list-mini ul {
             list-style: none;
             display: flex;
@@ -686,6 +711,7 @@
             font-size: 13px;
             color: var(--gray-700);
         }
+
         .employee-modal-close {
             border: none;
             background: transparent;
@@ -694,10 +720,12 @@
             font-size: 20px;
             line-height: 1;
         }
+
         @media (max-width: 768px) {
             .employee-modal-body {
                 grid-template-columns: 1fr;
             }
+
             .employee-metrics {
                 grid-template-columns: 1fr;
             }
@@ -751,7 +779,7 @@
                 width: 0;
                 transform: translateX(-100%);
             }
-            
+
             .main-content {
                 margin-left: 0;
             }
@@ -766,28 +794,28 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .filters-bar {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .search-box {
                 min-width: 100%;
             }
-            
+
             .filter-group {
                 width: 100%;
             }
-            
+
             .filter-select {
                 flex: 1;
             }
-            
+
             .table-container {
                 overflow-x: auto;
             }
-            
+
             .employee-table {
                 min-width: 800px;
             }
@@ -797,17 +825,18 @@
             .stats-section {
                 grid-template-columns: 1fr;
             }
-            
+
             .permission-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Sidebar -->
     <div id="sidebar-container"></div>
-    
+
     <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
@@ -829,8 +858,8 @@
                 </div>
             </div>
         </div>
-        
-        
+
+
         <!-- Content Area -->
         <div class="content-area">
             <!-- Filters Bar -->
@@ -839,7 +868,7 @@
                     <i class="fas fa-search"></i>
                     <input type="text" class="search-input" placeholder="Search employees by name, email, or ID...">
                 </div>
-                
+
                 <div class="filter-group">
                     <select class="filter-select" id="departmentFilter">
                         <option value="">All Departments</option>
@@ -850,7 +879,7 @@
                         <option value="hr">HR & Admin</option>
                         <option value="operations">Operations</option>
                     </select>
-                    
+
                     <select class="filter-select" id="statusFilter">
                         <option value="">All Status</option>
                         <option value="active">Active</option>
@@ -858,7 +887,7 @@
                     </select>
                 </div>
             </div>
-            
+
             <!-- Stats Cards -->
             <div class="stats-section">
                 <div class="stat-card">
@@ -872,7 +901,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-content">
                         <div class="stat-info">
@@ -884,7 +913,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-content">
                         <div class="stat-info">
@@ -897,14 +926,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Employee Table -->
             <div class="table-container">
                 <div class="table-header">
                     <h2>Employee Directory</h2>
                     <div class="pagination-info" id="tableShowingInfo">Showing 0 of 0 employees</div>
                 </div>
-                
+
                 <table class="employee-table">
                     <thead>
                         <tr>
@@ -917,10 +946,10 @@
                     </thead>
                     <tbody id="employeesBody">
                         <!-- Employee 1 -->
-                        
+
                     </tbody>
                 </table>
-                
+
                 <!-- Footer -->
                 <div class="table-footer">
                     <div class="pagination-info" id="footerRangeInfo">0-0 of 0 employees</div>
@@ -931,119 +960,132 @@
     </div>
 
     <div id="employeeDetailModal" class="employee-modal-overlay">
-      <div class="employee-modal">
-        <div class="employee-modal-head">
-          <h3 id="employeeModalTitle" style="font-size:16px;">Employee Details</h3>
-          <button type="button" class="employee-modal-close" id="closeEmployeeModalBtn">&times;</button>
+        <div class="employee-modal">
+            <div class="employee-modal-head">
+                <h3 id="employeeModalTitle" style="font-size:16px;">Employee Details</h3>
+                <button type="button" class="employee-modal-close" id="closeEmployeeModalBtn">&times;</button>
+            </div>
+            <div class="employee-modal-body">
+                <div class="profile-photo-wrap" id="profilePhotoWrap"></div>
+                <div>
+                    <div style="font-size:13px;color:var(--gray-600);margin-bottom:8px;" id="employeeMetaTop"></div>
+                    <div class="employee-metrics">
+                        <div class="metric">
+                            <h4>Attendance</h4>
+                            <p id="metricAttendance">0%</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Tasks</h4>
+                            <p id="metricTasks">0</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Projects</h4>
+                            <p id="metricProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="employee-list-mini">
+                        <h5>Project Details</h5>
+                        <ul id="projectDetailsList"></ul>
+                    </div>
+                    <div class="employee-list-mini">
+                        <h5>Task Details</h5>
+                        <ul id="taskDetailsList"></ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="employee-modal-body">
-          <div class="profile-photo-wrap" id="profilePhotoWrap"></div>
-          <div>
-            <div style="font-size:13px;color:var(--gray-600);margin-bottom:8px;" id="employeeMetaTop"></div>
-            <div class="employee-metrics">
-              <div class="metric"><h4>Attendance</h4><p id="metricAttendance">0%</p></div>
-              <div class="metric"><h4>Tasks</h4><p id="metricTasks">0</p></div>
-              <div class="metric"><h4>Projects</h4><p id="metricProjects">0</p></div>
-            </div>
-            <div class="employee-list-mini">
-              <h5>Project Details</h5>
-              <ul id="projectDetailsList"></ul>
-            </div>
-            <div class="employee-list-mini">
-              <h5>Task Details</h5>
-              <ul id="taskDetailsList"></ul>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+    <script src="../../static/js/api.js"></script>
+    <script>
 
-   <script>
-const API_BASE = "http://127.0.0.1:8000"; // adjust if needed
 
-let allEmployees = [];
-let filteredEmployees = [];
-let allTasks = [];
-let allProjects = [];
-let attendanceByEmployee = {};
-let currentPage = 1;
-const pageSize = 8;
+        let allEmployees = [];
+        let filteredEmployees = [];
+        let allTasks = [];
+        let allProjects = [];
+        let attendanceByEmployee = {};
+        let currentPage = 1;
+        const pageSize = 8;
 
-// 🔹 Load employees on page load
-document.addEventListener("DOMContentLoaded", () => {
-  loadEmployees();
+        // 🔹 Load employees on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            loadEmployees();
 
-  document.querySelector(".search-input")
-    .addEventListener("input", applyFilters);
+            document.querySelector(".search-input")
+                .addEventListener("input", applyFilters);
 
-  document.getElementById("departmentFilter")
-    .addEventListener("change", applyFilters);
+            document.getElementById("departmentFilter")
+                .addEventListener("change", applyFilters);
 
-  document.getElementById("statusFilter")
-    .addEventListener("change", applyFilters);
+            document.getElementById("statusFilter")
+                .addEventListener("change", applyFilters);
 
-  const addEmployeeBtn = document.getElementById("addEmployeeBtn");
-  if (addEmployeeBtn) {
-    addEmployeeBtn.addEventListener("click", () => {
-      window.location.href = "create_employee.html";
-    });
-  }
-});
+            const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+            if (addEmployeeBtn) {
+                addEmployeeBtn.addEventListener("click", () => {
+                    window.location.href = "create_employee.html";
+                });
+            }
+        });
 
-async function loadEmployees() {
-  try {
-    const authHeaders = {
-      "Authorization": "Bearer " + localStorage.getItem("access_token")
-    };
-    const now = new Date();
-    const [employeesRes, tasksRes, projectsRes, attendanceRes] = await Promise.all([
-      fetch(`${API_BASE}/admin/employees`, { headers: authHeaders }),
-      fetch(`${API_BASE}/admin/tasks`, { headers: authHeaders }),
-      fetch(`${API_BASE}/admin/projects/`, { headers: authHeaders }),
-      fetch(`${API_BASE}/admin/attendance?month=${now.getMonth() + 1}&year=${now.getFullYear()}`, { headers: authHeaders })
-    ]);
+        async function loadEmployees() {
+            try {
+                if (!window.API || typeof window.API.request !== "function") {
+                    throw new Error("API client is not available");
+                }
+                const now = new Date();
+                const [employeesRes, tasksRes, projectsRes, attendanceRes] = await Promise.allSettled([
+                    API.request("/admin/employees"),
+                    API.getAdminTasks(),
+                    API.getAdminProjects(),
+                    API.request(`/admin/attendance?month=${now.getMonth() + 1}&year=${now.getFullYear()}`)
+                ]);
 
-    allEmployees = await employeesRes.json();
-    allTasks = tasksRes.ok ? await tasksRes.json() : [];
-    allProjects = projectsRes.ok ? await projectsRes.json() : [];
-    const attendance = attendanceRes.ok ? await attendanceRes.json() : [];
-    attendanceByEmployee = Object.fromEntries((attendance || []).map(a => [a.employee_id, a]));
+                if (employeesRes.status !== "fulfilled") {
+                    throw new Error(employeesRes.reason?.message || "Failed to load employees");
+                }
 
-    filteredEmployees = [...allEmployees];
-    updateStats();
-    renderCurrentPage();
+                allEmployees = Array.isArray(employeesRes.value) ? employeesRes.value : [];
+                allTasks = tasksRes.status === "fulfilled" && Array.isArray(tasksRes.value) ? tasksRes.value : [];
+                allProjects = projectsRes.status === "fulfilled" && Array.isArray(projectsRes.value) ? projectsRes.value : [];
+                const attendance = attendanceRes.status === "fulfilled" && Array.isArray(attendanceRes.value) ? attendanceRes.value : [];
+                attendanceByEmployee = Object.fromEntries((attendance || []).map(a => [a.employee_id, a]));
 
-  } catch (err) {
-    console.error("Failed to load employees", err);
-  }
-}
+                filteredEmployees = [...allEmployees];
+                updateStats();
+                renderCurrentPage();
 
-function renderEmployees(employees) {
-  const tbody = document.getElementById("employeesBody");
-  tbody.innerHTML = "";
+            } catch (err) {
+                console.error("Failed to load employees", err);
+            }
+        }
 
-  if (!employees.length) {
-    tbody.innerHTML = `
+        function renderEmployees(employees) {
+            const tbody = document.getElementById("employeesBody");
+            tbody.innerHTML = "";
+
+            if (!employees.length) {
+                tbody.innerHTML = `
       <tr>
         <td colspan="5" style="text-align:center;padding:30px;color:#64748b">
           No employees found
         </td>
       </tr>`;
-    return;
-  }
+                return;
+            }
 
-  employees.forEach(emp => {
-    const photoUrl = getProfileImageUrl(emp.profile_image);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+            employees.forEach(emp => {
+                const photoUrl = getProfileImageUrl(emp.profile_image);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
       <td>
         <div class="employee-cell">
           <button class="employee-avatar-btn" title="View employee details" data-emp-id="${emp.id}">
             <div class="employee-avatar">
               ${photoUrl
-                ? `<img src="${photoUrl}" alt="${escapeHtml(emp.name)}" onerror="this.parentElement.innerHTML='${escapeHtml(emp.name.slice(0,2).toUpperCase())}'">`
-                : `${emp.name.slice(0,2).toUpperCase()}`
-              }
+                        ? `<img src="${photoUrl}" alt="${escapeHtml(emp.name)}" onerror="this.parentElement.innerHTML='${escapeHtml(emp.name.slice(0, 2).toUpperCase())}'">`
+                        : `${emp.name.slice(0, 2).toUpperCase()}`
+                    }
             </div>
           </button>
           <div class="employee-info">
@@ -1055,9 +1097,8 @@ function renderEmployees(employees) {
       <td>${emp.department || "-"}</td>
       <td>${emp.designation || "-"}</td>
       <td>
-        <span class="status-badge ${
-          emp.is_active ? "status-active" : "status-inactive"
-        }">
+        <span class="status-badge ${emp.is_active ? "status-active" : "status-inactive"
+                    }">
           ${emp.is_active ? "Active" : "Inactive"}
         </span>
       </td>
@@ -1074,247 +1115,231 @@ function renderEmployees(employees) {
         </div>
       </td>
     `;
-    tbody.appendChild(tr);
-  });
+                tbody.appendChild(tr);
+            });
 
-  tbody.querySelectorAll(".employee-avatar-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = parseInt(btn.dataset.empId, 10);
-      openEmployeeDetail(id);
-    });
-  });
+            tbody.querySelectorAll(".employee-avatar-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const id = parseInt(btn.dataset.empId, 10);
+                    openEmployeeDetail(id);
+                });
+            });
 
-  tbody.querySelectorAll(".status-toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.empId || 0);
-      if (!id) return;
-      toggleEmployeeStatus(id, btn);
-    });
-  });
-}
+            tbody.querySelectorAll(".status-toggle").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const id = Number(btn.dataset.empId || 0);
+                    if (!id) return;
+                    toggleEmployeeStatus(id, btn);
+                });
+            });
+        }
 
-function applyFilters() {
-  const search = document.querySelector(".search-input").value.toLowerCase();
-  const dept = document.getElementById("departmentFilter").value.toLowerCase();
-  const status = document.getElementById("statusFilter").value.toLowerCase();
+        function applyFilters() {
+            const search = document.querySelector(".search-input").value.toLowerCase();
+            const dept = document.getElementById("departmentFilter").value.toLowerCase();
+            const status = document.getElementById("statusFilter").value.toLowerCase();
 
-  filteredEmployees = allEmployees.filter(emp => {
-    const matchSearch =
-      emp.name.toLowerCase().includes(search) ||
-      emp.email.toLowerCase().includes(search) ||
-      (emp.employee_id || "").toLowerCase().includes(search);
+            filteredEmployees = allEmployees.filter(emp => {
+                const matchSearch =
+                    emp.name.toLowerCase().includes(search) ||
+                    emp.email.toLowerCase().includes(search) ||
+                    (emp.employee_id || "").toLowerCase().includes(search);
 
-    const matchDept =
-      !dept || (emp.department || "").toLowerCase().includes(dept);
+                const matchDept =
+                    !dept || (emp.department || "").toLowerCase().includes(dept);
 
-    const matchStatus =
-      !status ||
-      (status === "active" && emp.is_active) ||
-      (status === "inactive" && !emp.is_active);
+                const matchStatus =
+                    !status ||
+                    (status === "active" && emp.is_active) ||
+                    (status === "inactive" && !emp.is_active);
 
-    return matchSearch && matchDept && matchStatus;
-  });
+                return matchSearch && matchDept && matchStatus;
+            });
 
-  currentPage = 1;
-  renderCurrentPage();
-  updateStats();
-}
+            currentPage = 1;
+            renderCurrentPage();
+            updateStats();
+        }
 
-function updateStats() {
-  const total = filteredEmployees.length;
-  const active = filteredEmployees.filter(e => e.is_active).length;
-  const inactive = total - active;
+        function updateStats() {
+            const total = filteredEmployees.length;
+            const active = filteredEmployees.filter(e => e.is_active).length;
+            const inactive = total - active;
 
-  document.getElementById("statTotalEmployees").textContent = total.toLocaleString();
-  document.getElementById("statActiveEmployees").textContent = active.toLocaleString();
-  document.getElementById("statInactiveEmployees").textContent = inactive.toLocaleString();
-}
+            document.getElementById("statTotalEmployees").textContent = total.toLocaleString();
+            document.getElementById("statActiveEmployees").textContent = active.toLocaleString();
+            document.getElementById("statInactiveEmployees").textContent = inactive.toLocaleString();
+        }
 
-function escapeHtml(value) {
-  if (value === null || value === undefined) return "";
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return "";
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
-function getProfileImageUrl(path) {
-  if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
-  return `${API_BASE}/${normalized}`;
-}
+        function getProfileImageUrl(path) {
+            if (!path) return "";
+            if (path.startsWith("http://") || path.startsWith("https://")) return path;
+            const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
+            return `${API_BASE}/${normalized}`;
+        }
 
-function getAttendancePercent(employeeId) {
-  const now = new Date();
-  const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const att = attendanceByEmployee[employeeId];
-  if (!att || !days) return 0;
-  return Math.round(((att.total_present_days || 0) / days) * 100);
-}
+        function getAttendancePercent(employeeId) {
+            const now = new Date();
+            const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const att = attendanceByEmployee[employeeId];
+            if (!att || !days) return 0;
+            return Math.round(((att.total_present_days || 0) / days) * 100);
+        }
 
-async function toggleEmployeeStatus(employeeId, toggleEl) {
-  const previous = toggleEl.dataset.isActive === "1";
-  toggleEl.disabled = true;
+        async function toggleEmployeeStatus(employeeId, toggleEl) {
+            const previous = toggleEl.dataset.isActive === "1";
+            toggleEl.disabled = true;
 
-  try {
-    const res = await fetch(`${API_BASE}/admin/employees/${employeeId}/toggle-status`, {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("access_token")
-      }
-    });
+            try {
+                const data = await API.request(`/admin/employees/${employeeId}/toggle-status`, "POST");
+                const isActive = Boolean(data.is_active);
 
-    if (!res.ok) {
-      let detail = "Failed to update employee status";
-      try {
-        const data = await res.json();
-        detail = data.detail || detail;
-      } catch {}
-      throw new Error(detail);
-    }
+                allEmployees = allEmployees.map((emp) =>
+                    Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
+                );
+                filteredEmployees = filteredEmployees.map((emp) =>
+                    Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
+                );
 
-    const data = await res.json();
-    const isActive = Boolean(data.is_active);
+                updateStats();
+                renderCurrentPage();
+            } catch (err) {
+                console.error("Toggle employee status failed:", err);
+                alert(err.message || "Failed to update status");
+                toggleEl.dataset.isActive = previous ? "1" : "0";
+                toggleEl.classList.toggle("active", previous);
+            } finally {
+                toggleEl.disabled = false;
+            }
+        }
 
-    allEmployees = allEmployees.map((emp) =>
-      Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
-    );
-    filteredEmployees = filteredEmployees.map((emp) =>
-      Number(emp.id) === Number(employeeId) ? { ...emp, is_active: isActive } : emp
-    );
+        function renderCurrentPage() {
+            const total = filteredEmployees.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageEmployees = filteredEmployees.slice(startIdx, startIdx + pageSize);
+            renderEmployees(pageEmployees);
+            updateTableMeta(total, startIdx, pageEmployees.length, totalPages);
+            renderPagination(totalPages);
+        }
 
-    updateStats();
-    renderCurrentPage();
-  } catch (err) {
-    console.error("Toggle employee status failed:", err);
-    alert(err.message || "Failed to update status");
-    toggleEl.dataset.isActive = previous ? "1" : "0";
-    toggleEl.classList.toggle("active", previous);
-  } finally {
-    toggleEl.disabled = false;
-  }
-}
+        function updateTableMeta(total, startIdx, pageCount) {
+            const start = total ? startIdx + 1 : 0;
+            const end = total ? startIdx + pageCount : 0;
+            document.getElementById("tableShowingInfo").textContent = `Showing ${pageCount} of ${total.toLocaleString()} employees`;
+            document.getElementById("footerRangeInfo").textContent = `${start}-${end} of ${total.toLocaleString()} employees`;
+        }
 
-function renderCurrentPage() {
-  const total = filteredEmployees.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
-  const startIdx = (currentPage - 1) * pageSize;
-  const pageEmployees = filteredEmployees.slice(startIdx, startIdx + pageSize);
-  renderEmployees(pageEmployees);
-  updateTableMeta(total, startIdx, pageEmployees.length, totalPages);
-  renderPagination(totalPages);
-}
+        function renderPagination(totalPages) {
+            const controls = document.getElementById("paginationControls");
+            controls.innerHTML = "";
 
-function updateTableMeta(total, startIdx, pageCount) {
-  const start = total ? startIdx + 1 : 0;
-  const end = total ? startIdx + pageCount : 0;
-  document.getElementById("tableShowingInfo").textContent = `Showing ${pageCount} of ${total.toLocaleString()} employees`;
-  document.getElementById("footerRangeInfo").textContent = `${start}-${end} of ${total.toLocaleString()} employees`;
-}
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "page-btn";
+            prevBtn.disabled = currentPage <= 1;
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.addEventListener("click", () => {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    renderCurrentPage();
+                }
+            });
+            controls.appendChild(prevBtn);
 
-function renderPagination(totalPages) {
-  const controls = document.getElementById("paginationControls");
-  controls.innerHTML = "";
+            const pagesToShow = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+            const ordered = [...pagesToShow].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
 
-  const prevBtn = document.createElement("button");
-  prevBtn.className = "page-btn";
-  prevBtn.disabled = currentPage <= 1;
-  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-  prevBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage -= 1;
-      renderCurrentPage();
-    }
-  });
-  controls.appendChild(prevBtn);
+            let lastPage = 0;
+            ordered.forEach((page) => {
+                if (page - lastPage > 1) {
+                    const dots = document.createElement("span");
+                    dots.style.padding = "0 4px";
+                    dots.style.color = "var(--gray-400)";
+                    dots.style.alignSelf = "center";
+                    dots.textContent = "...";
+                    controls.appendChild(dots);
+                }
+                const btn = document.createElement("button");
+                btn.className = `page-btn${page === currentPage ? " active" : ""}`;
+                btn.textContent = String(page);
+                btn.addEventListener("click", () => {
+                    currentPage = page;
+                    renderCurrentPage();
+                });
+                controls.appendChild(btn);
+                lastPage = page;
+            });
 
-  const pagesToShow = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
-  const ordered = [...pagesToShow].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "page-btn";
+            nextBtn.disabled = currentPage >= totalPages;
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.addEventListener("click", () => {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    renderCurrentPage();
+                }
+            });
+            controls.appendChild(nextBtn);
+        }
 
-  let lastPage = 0;
-  ordered.forEach((page) => {
-    if (page - lastPage > 1) {
-      const dots = document.createElement("span");
-      dots.style.padding = "0 4px";
-      dots.style.color = "var(--gray-400)";
-      dots.style.alignSelf = "center";
-      dots.textContent = "...";
-      controls.appendChild(dots);
-    }
-    const btn = document.createElement("button");
-    btn.className = `page-btn${page === currentPage ? " active" : ""}`;
-    btn.textContent = String(page);
-    btn.addEventListener("click", () => {
-      currentPage = page;
-      renderCurrentPage();
-    });
-    controls.appendChild(btn);
-    lastPage = page;
-  });
+        function openEmployeeDetail(employeeId) {
+            const emp = allEmployees.find(e => e.id === employeeId);
+            if (!emp) return;
 
-  const nextBtn = document.createElement("button");
-  nextBtn.className = "page-btn";
-  nextBtn.disabled = currentPage >= totalPages;
-  nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-  nextBtn.addEventListener("click", () => {
-    if (currentPage < totalPages) {
-      currentPage += 1;
-      renderCurrentPage();
-    }
-  });
-  controls.appendChild(nextBtn);
-}
+            const tasks = allTasks.filter(t => Number(t.assigned_to) === Number(employeeId));
+            const projects = allProjects.filter(p => {
+                const ownerMatch = Number(p.owner_id) === Number(employeeId);
+                const teamMatch = Array.isArray(p.team_members) && p.team_members.some(m => Number(m.id) === Number(employeeId));
+                return ownerMatch || teamMatch;
+            });
+            const attendancePercent = getAttendancePercent(employeeId);
 
-function openEmployeeDetail(employeeId) {
-  const emp = allEmployees.find(e => e.id === employeeId);
-  if (!emp) return;
+            document.getElementById("employeeModalTitle").textContent = emp.name;
+            document.getElementById("employeeMetaTop").textContent = `${emp.employee_id || "EMP-" + emp.id} | ${emp.department || "-"} | ${emp.designation || "-"}`;
+            document.getElementById("metricAttendance").textContent = `${attendancePercent}%`;
+            document.getElementById("metricTasks").textContent = String(tasks.length);
+            document.getElementById("metricProjects").textContent = String(projects.length);
 
-  const tasks = allTasks.filter(t => Number(t.assigned_to) === Number(employeeId));
-  const projects = allProjects.filter(p => {
-    const ownerMatch = Number(p.owner_id) === Number(employeeId);
-    const teamMatch = Array.isArray(p.team_members) && p.team_members.some(m => Number(m.id) === Number(employeeId));
-    return ownerMatch || teamMatch;
-  });
-  const attendancePercent = getAttendancePercent(employeeId);
+            const photoWrap = document.getElementById("profilePhotoWrap");
+            const photoUrl = getProfileImageUrl(emp.profile_image);
+            photoWrap.innerHTML = photoUrl
+                ? `<img class="profile-photo" src="${photoUrl}" alt="${escapeHtml(emp.name)}" onerror="this.remove(); this.parentElement.innerHTML='<div class=&quot;profile-fallback&quot;>${escapeHtml(emp.name.slice(0, 2).toUpperCase())}</div>'">`
+                : `<div class="profile-fallback">${escapeHtml(emp.name.slice(0, 2).toUpperCase())}</div>`;
 
-  document.getElementById("employeeModalTitle").textContent = emp.name;
-  document.getElementById("employeeMetaTop").textContent = `${emp.employee_id || "EMP-" + emp.id} | ${emp.department || "-"} | ${emp.designation || "-"}`;
-  document.getElementById("metricAttendance").textContent = `${attendancePercent}%`;
-  document.getElementById("metricTasks").textContent = String(tasks.length);
-  document.getElementById("metricProjects").textContent = String(projects.length);
+            const projectList = document.getElementById("projectDetailsList");
+            projectList.innerHTML = projects.length
+                ? projects.slice(0, 6).map(p => `<li>${escapeHtml(p.name || "Untitled Project")}</li>`).join("")
+                : "<li>No projects assigned</li>";
 
-  const photoWrap = document.getElementById("profilePhotoWrap");
-  const photoUrl = getProfileImageUrl(emp.profile_image);
-  photoWrap.innerHTML = photoUrl
-    ? `<img class="profile-photo" src="${photoUrl}" alt="${escapeHtml(emp.name)}" onerror="this.remove(); this.parentElement.innerHTML='<div class=&quot;profile-fallback&quot;>${escapeHtml(emp.name.slice(0,2).toUpperCase())}</div>'">`
-    : `<div class="profile-fallback">${escapeHtml(emp.name.slice(0,2).toUpperCase())}</div>`;
+            const taskList = document.getElementById("taskDetailsList");
+            taskList.innerHTML = tasks.length
+                ? tasks.slice(0, 6).map(t => `<li>${escapeHtml(t.title || "Untitled Task")} (${escapeHtml(t.status || "pending")})</li>`).join("")
+                : "<li>No tasks assigned</li>";
 
-  const projectList = document.getElementById("projectDetailsList");
-  projectList.innerHTML = projects.length
-    ? projects.slice(0, 6).map(p => `<li>${escapeHtml(p.name || "Untitled Project")}</li>`).join("")
-    : "<li>No projects assigned</li>";
+            document.getElementById("employeeDetailModal").classList.add("show");
+        }
 
-  const taskList = document.getElementById("taskDetailsList");
-  taskList.innerHTML = tasks.length
-    ? tasks.slice(0, 6).map(t => `<li>${escapeHtml(t.title || "Untitled Task")} (${escapeHtml(t.status || "pending")})</li>`).join("")
-    : "<li>No tasks assigned</li>";
-
-  document.getElementById("employeeDetailModal").classList.add("show");
-}
-
-document.getElementById("closeEmployeeModalBtn").addEventListener("click", () => {
-  document.getElementById("employeeDetailModal").classList.remove("show");
-});
-document.getElementById("employeeDetailModal").addEventListener("click", (e) => {
-  if (e.target.id === "employeeDetailModal") {
-    document.getElementById("employeeDetailModal").classList.remove("show");
-  }
-});
-</script>
+        document.getElementById("closeEmployeeModalBtn").addEventListener("click", () => {
+            document.getElementById("employeeDetailModal").classList.remove("show");
+        });
+        document.getElementById("employeeDetailModal").addEventListener("click", (e) => {
+            if (e.target.id === "employeeDetailModal") {
+                document.getElementById("employeeDetailModal").classList.remove("show");
+            }
+        });
+    </script>
 
     <script>
         if (typeof window.toggleSidebar !== "function") {
@@ -1361,11 +1386,8 @@ document.getElementById("employeeDetailModal").addEventListener("click", (e) => 
                 });
             });
     </script>
-<script src="../../static/js/admin_header_profile.js"></script>
+    <script src="../../static/js/admin_header_profile.js"></script>
 
 </body>
+
 </html>
-
-
-
-

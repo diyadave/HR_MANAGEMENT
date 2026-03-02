@@ -324,11 +324,17 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
     start_ist = effective_clock_in.astimezone(IST)
     start_t = start_ist.time()
     current = _ensure_aware_utc(now or datetime.now(timezone.utc))
-    reference_out = _ensure_aware_utc(attendance.clock_out_time) if attendance.clock_out_time else None
-    if attendance.clock_in_time and not attendance.clock_out_time and attendance.date == get_ist_date(current):
-        reference_out = current
     user_shift = ((getattr(getattr(attendance, "user", None), "shift", None) or "full_day").strip().lower())
     shift_late_threshold = _late_threshold_for_shift(user_shift)
+    is_running_today = bool(
+        attendance.clock_in_time
+        and not attendance.clock_out_time
+        and attendance.date == get_ist_date(current)
+    )
+    reference_out = _ensure_aware_utc(attendance.clock_out_time) if attendance.clock_out_time else None
+    if is_running_today:
+        # Active session should be visible immediately on admin side.
+        return "late" if start_t > shift_late_threshold else "present"
     if not reference_out:
         return "late" if start_t > shift_late_threshold else "present"
 
