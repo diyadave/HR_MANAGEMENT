@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -313,13 +313,14 @@
 
         /* Progress Bar */
         .progress-cell {
-            min-width: 120px;
+            min-width: 220px;
         }
 
         .progress-container {
             display: flex;
             align-items: center;
             gap: 12px;
+            width: 100%;
         }
 
         .progress-bar {
@@ -341,7 +342,7 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--gray-700);
-            min-width: 40px;
+            min-width: 52px;
             text-align: right;
         }
 
@@ -350,6 +351,8 @@
             display: flex;
             gap: 8px;
             min-width: 100px;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         .action-btn {
@@ -678,5 +681,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+
+<script src='../../static/js/employee_profile_header.js'></script>
 </body>
 </html>
+

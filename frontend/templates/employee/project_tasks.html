@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1174,7 +1174,7 @@
                     estimated_hours: parseFloat(document.getElementById("editHours").value) || null,
                     due_date: dueDate
                 });
-                closeEditModal();    // ✅ CLOSE MODAL AFTER SAVE
+                closeEditModal();    // âœ… CLOSE MODAL AFTER SAVE
                 await loadProjectData(); // reload table
             } catch (err) {
                 console.error(err);
@@ -1244,7 +1244,7 @@
                     estimated_hours: document.getElementById("taskEstimatedHours").value ? Number(document.getElementById("taskEstimatedHours").value) : null
                 };
                 await apiRequest("/tasks/", "POST", payload);
-                closeCreateModal();   // ✅ CLOSE MODAL AFTER CREATE
+                closeCreateModal();   // âœ… CLOSE MODAL AFTER CREATE
                 await loadProjectData();
             } catch (err) {
                 console.error(err);
@@ -1283,5 +1283,8 @@
     <script src="../../static/js/api.js"></script>
 <script src="../../static/js/tracker.js"></script>
 <script src="../../static/js/loadTracker.js"></script>
+
+<script src='../../static/js/employee_profile_header.js'></script>
 </body>
 </html>
+

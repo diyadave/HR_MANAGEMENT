@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -658,10 +658,10 @@
             </div>
             <div class="header-actions">
                 <!-- <button class="btn-secondary" id="refreshTasksBtn">
-                    🔄 Refresh
+                    ðŸ”„ Refresh
                 </button> -->
                 <button class="btn-primary" id="viewHistoryBtn">
-                    📋 View History
+                    ðŸ“‹ View History
                 </button>
             </div>
         </div>
@@ -883,7 +883,7 @@
                     <tr>
                         <td colspan="6">
                             <div class="empty-state">
-                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-icon">ðŸ“‹</div>
                                 <div class="empty-state-title">No active tasks</div>
                                 <div class="empty-state-text">Check your history for completed tasks</div>
                             </div>
@@ -1184,7 +1184,7 @@
             if (!history || history.length === 0) {
                 modalBody.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📜</div>
+                        <div class="empty-state-icon">ðŸ“œ</div>
                         <div class="empty-state-title">No history yet</div>
                         <div class="empty-state-text">Completed tasks will appear here</div>
                     </div>
@@ -1202,7 +1202,7 @@
                         ${item.logs.map(log => `
                             <div class="log-item">
                                 <span class="log-time">
-                                    ${formatDateTime(log.start_time)} → ${log.end_time ? formatDateTime(log.end_time) : 'running'}
+                                    ${formatDateTime(log.start_time)} â†’ ${log.end_time ? formatDateTime(log.end_time) : 'running'}
                                 </span>
                                 <span class="log-duration">${log.duration_seconds ? (log.duration_seconds / 3600).toFixed(2) + 'h' : '-'}</span>
                             </div>
@@ -1315,7 +1315,7 @@
                 <tr>
                     <td colspan="6">
                         <div class="error-message">
-                            ⚠️ ${message}
+                            âš ï¸ ${message}
                         </div>
                     </td>
                 </tr>
@@ -1345,6 +1345,9 @@
         window.handleComplete = handleComplete;
         window.openTaskDetails = openTaskDetails;
     </script>
+
+<script src='../../static/js/employee_profile_header.js'></script>
 </body>
 
 </html>
+

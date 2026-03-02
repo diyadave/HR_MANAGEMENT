@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -393,8 +393,18 @@
         }
 
         .action-icon {
-            font-size: 18px;
+            width: 20px;
+            height: 20px;
             color: #073379;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
         }
 
         /* Responsive Design */
@@ -554,17 +564,6 @@
                 </div>
             </div>
 
-            <div class="card compact">
-                <div class="card-header">
-                    <h2 class="card-title">Recent Notifications</h2>
-                </div>
-                <div class="notification-list" id="notificationList">
-                    <div class="notification-item">
-                        <div class="notification-title">Loading notifications...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Quick Actions -->
         <div class="card">
@@ -573,19 +572,42 @@
             </div>
             <div class="quick-actions">
                 <a href="tasks.html" class="action-btn">
-                    <span class="action-icon">📋</span>
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 3h6"></path>
+                            <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+                            <path d="M9 12h6"></path>
+                            <path d="M9 16h6"></path>
+                        </svg>
+                    </span>
                     View Tasks
                 </a>
                 <a href="attendance.html" class="action-btn">
-                    <span class="action-icon">⏰</span>
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="13" r="8"></circle>
+                            <path d="M12 9v4l2.5 1.5"></path>
+                            <path d="M9 3h6"></path>
+                        </svg>
+                    </span>
                     Mark Attendance
                 </a>
                 <a href="leaves.html" class="action-btn">
-                    <span class="action-icon">🌴</span>
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 12c0-5 4-8 10-8 0 6-3 10-8 10"></path>
+                            <path d="M8 14c0 3 2 6 6 6 0-4-3-6-6-6z"></path>
+                        </svg>
+                    </span>
                     Apply Leave
                 </a>
                 <a href="profile.html" class="action-btn">
-                    <span class="action-icon">👤</span>
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M4 20c1.5-3.5 4.2-5 8-5s6.5 1.5 8 5"></path>
+                        </svg>
+                    </span>
                     My Profile
                 </a>
             </div>
@@ -858,5 +880,8 @@
                 .catch(err => console.error("Failed to load chat component:", err));
         });
     </script>
+
+<script src='../../static/js/employee_profile_header.js'></script>
 </body>
 </html>
+

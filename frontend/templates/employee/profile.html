@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile · Employee Panel</title>
+    <title>My Profile - Employee Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -69,6 +69,7 @@
             grid-template-columns: 320px 1fr;
             gap: 24px;
             margin-bottom: 24px;
+            align-items: start;
         }
 
         /* left card */
@@ -252,9 +253,15 @@
             gap: 20px 28px;
         }
 
+        .contact-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 16px 20px;
+        }
+
         .info-item {
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         .info-label {
@@ -297,6 +304,26 @@
             background-color: white;
         }
 
+        .phone-input-group {
+            display: grid;
+            grid-template-columns: 84px minmax(0, 1fr);
+            gap: 8px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .phone-country-select {
+            width: 84px;
+            min-width: 84px;
+            flex: 0 0 84px;
+        }
+
+        .phone-local-input {
+            flex: 1 1 auto;
+            min-width: 0;
+            width: auto;
+        }
+
         .readonly-badge {
             background: #f1f4f9;
             color: #334155;
@@ -322,9 +349,27 @@
             .profile-grid { grid-template-columns: 1fr; }
             .bank-grid { grid-template-columns: 1fr; }
         }
+        @media (max-width: 1280px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         @media (max-width: 768px) {
             .main-content { margin-left: 0; padding: 16px; }
             .info-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 576px) {
+            .phone-input-group {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .phone-country-select,
+            .phone-local-input {
+                width: 100%;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
         }
     </style>
     <!-- Load API.js first -->
@@ -347,9 +392,7 @@
                 <div class="profile-photo-wrapper">
                     <img id="profileImage" class="profile-photo" style="display:none; object-fit:cover;" alt="profile">
                     <div id="profileInitials" class="profile-photo">--</div>
-                    <label for="profileImageInput" class="upload-btn">
-                        <span>📷</span> Change photo
-                    </label>
+                    <label for="profileImageInput" class="upload-btn">Change photo</label>
                     <input type="file" id="profileImageInput" accept="image/*">
                 </div>
                 <div class="profile-name" id="displayName">-</div>
@@ -371,11 +414,11 @@
                 <div class="section-header">
                     <div class="section-title">Contact & emergency</div>
                     <div class="edit-controls">
-                        <button id="editBtn" class="btn-edit">✎ Edit profile</button>
-                        <button id="saveBtn" class="btn-save" style="display:none;">✓ Save changes</button>
+                        <button id="editBtn" class="btn-edit">Edit profile</button>
+                        <button id="saveBtn" class="btn-save" style="display:none;">Save changes</button>
                     </div>
                 </div>
-                <div id="contactView" class="info-grid">
+                <div id="contactView" class="info-grid contact-grid">
                     <!-- static view mode for contact (populated later) -->
                     <div class="info-item"><span class="info-label">Email</span><span class="info-value" id="viewEmail">-</span></div>
                     <div class="info-item"><span class="info-label">Phone</span><span class="info-value" id="viewPhone">-</span></div>
@@ -384,17 +427,43 @@
                     <div class="info-item full-width"><span class="info-label">Address</span><span class="info-value" id="viewAddress">-</span></div>
                 </div>
                 <!-- edit mode contact form (hidden initially) -->
-                <div id="contactEdit" style="display:none;" class="info-grid">
+                <div id="contactEdit" style="display:none;" class="info-grid contact-grid">
                     <div class="info-item"><span class="info-label">Email (read only)</span><input class="editable-input" id="editEmail" readonly disabled></div>
-                    <div class="info-item"><span class="info-label">Phone</span><input type="text" class="editable-input" id="editPhone" placeholder="Phone"></div>
+                    <div class="info-item">
+                        <span class="info-label">Phone</span>
+                        <div class="phone-input-group">
+                            <select id="editPhoneCountry" class="editable-input phone-country-select">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+61">+61</option>
+                                <option value="+65">+65</option>
+                                <option value="+971">+971</option>
+                            </select>
+                            <input type="text" class="editable-input phone-local-input" id="editPhoneLocal" placeholder="Phone number">
+                        </div>
+                    </div>
                     <div class="info-item"><span class="info-label">Emergency name</span><input class="editable-input" id="editEmergencyName"></div>
-                    <div class="info-item"><span class="info-label">Emergency phone</span><input class="editable-input" id="editEmergencyPhone"></div>
+                    <div class="info-item">
+                        <span class="info-label">Emergency phone</span>
+                        <div class="phone-input-group">
+                            <select id="editEmergencyPhoneCountry" class="editable-input phone-country-select">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+61">+61</option>
+                                <option value="+65">+65</option>
+                                <option value="+971">+971</option>
+                            </select>
+                            <input type="text" class="editable-input phone-local-input" id="editEmergencyPhoneLocal" placeholder="Emergency phone number">
+                        </div>
+                    </div>
                     <div class="info-item full-width"><span class="info-label">Address</span><input class="editable-input" id="editAddress"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Employment details – read only -->
+        <!-- Employment details - read only -->
         <div class="info-section">
             <div class="section-title">Employment details</div>
             <div class="info-grid">
@@ -405,7 +474,7 @@
             </div>
         </div>
 
-        <!-- Personal info – editable -->
+        <!-- Personal info - editable -->
         <div class="info-section" id="personalSection">
             <div class="section-title">Personal details</div>
             <div id="personalView" class="info-grid">
@@ -445,7 +514,7 @@
             </div>
         </div>
 
-        <!-- Bank details – editable -->
+        <!-- Bank details - editable -->
         <div class="info-section">
             <div class="section-title">Bank account</div>
             <div id="bankView" class="bank-grid">
@@ -499,8 +568,22 @@
             const personalEdit = document.getElementById('personalEdit');
             const bankView = document.getElementById('bankView');
             const bankEdit = document.getElementById('bankEdit');
+            const DEFAULT_PHONE_CODE = '+91';
+            const PHONE_CODES = ['+971', '+91', '+65', '+61', '+44', '+1'];
 
             let currentProfile = {};
+
+            function parsePhoneParts(phoneValue) {
+                const raw = String(phoneValue || '').trim();
+                if (!raw) return { code: DEFAULT_PHONE_CODE, local: '' };
+
+                const digits = raw.replace(/[^\d+]/g, '');
+                if (!digits.startsWith('+')) return { code: DEFAULT_PHONE_CODE, local: digits.replace(/\D/g, '') };
+
+                const matchedCode = PHONE_CODES.find((code) => digits.startsWith(code)) || DEFAULT_PHONE_CODE;
+                const local = digits.slice(matchedCode.length).replace(/\D/g, '');
+                return { code: matchedCode, local };
+            }
 
             // ---------- load profile ----------
             async function loadProfile() {
@@ -514,9 +597,9 @@
                     currentProfile = data;
 
                     // --- left card ---
-                    document.getElementById('displayName').innerText = data.name || '—';
-                    document.getElementById('displayDesignation').innerText = data.designation || '—';
-                    document.getElementById('displayEmployeeId').innerText = data.employee_id || '—';
+                    document.getElementById('displayName').innerText = data.name || '-';
+                    document.getElementById('displayDesignation').innerText = data.designation || '-';
+                    document.getElementById('displayEmployeeId').innerText = data.employee_id || '-';
                     document.getElementById('displayStatus').innerText = data.is_active ? 'active' : 'inactive';
 
                     // initials
@@ -565,9 +648,13 @@
 
                     // prefill edit fields with current values
                     document.getElementById('editEmail').value = data.email || '';
-                    document.getElementById('editPhone').value = data.phone || '';
+                    const phoneParts = parsePhoneParts(data.phone || '');
+                    const emergencyPhoneParts = parsePhoneParts(data.emergency_contact_phone || '');
+                    document.getElementById('editPhoneCountry').value = phoneParts.code;
+                    document.getElementById('editPhoneLocal').value = phoneParts.local;
                     document.getElementById('editEmergencyName').value = data.emergency_contact_name || '';
-                    document.getElementById('editEmergencyPhone').value = data.emergency_contact_phone || '';
+                    document.getElementById('editEmergencyPhoneCountry').value = emergencyPhoneParts.code;
+                    document.getElementById('editEmergencyPhoneLocal').value = emergencyPhoneParts.local;
                     document.getElementById('editAddress').value = data.address || '';
                     document.getElementById('editDob').value = data.date_of_birth || '';
                     document.getElementById('editGender').value = data.gender || 'Male';
@@ -601,14 +688,22 @@
             saveBtn.addEventListener('click', async () => {
                 // build payload with only editable fields
                 const payload = {
-                    phone: document.getElementById('editPhone').value || null,
+                    phone: (() => {
+                        const code = (document.getElementById('editPhoneCountry')?.value || DEFAULT_PHONE_CODE).trim();
+                        const local = (document.getElementById('editPhoneLocal')?.value || '').replace(/\D/g, '');
+                        return local ? `${code}${local}` : null;
+                    })(),
                     address: document.getElementById('editAddress').value || null,
                     date_of_birth: document.getElementById('editDob').value || null,
                     gender: document.getElementById('editGender').value || null,
                     marital_status: document.getElementById('editMarital').value || null,
                     blood_group: document.getElementById('editBlood').value || null,
                     emergency_contact_name: document.getElementById('editEmergencyName').value || null,
-                    emergency_contact_phone: document.getElementById('editEmergencyPhone').value || null,
+                    emergency_contact_phone: (() => {
+                        const code = (document.getElementById('editEmergencyPhoneCountry')?.value || DEFAULT_PHONE_CODE).trim();
+                        const local = (document.getElementById('editEmergencyPhoneLocal')?.value || '').replace(/\D/g, '');
+                        return local ? `${code}${local}` : null;
+                    })(),
                     bank_name: document.getElementById('editBankName').value || null,
                     account_number: document.getElementById('editAccount').value || null,
                     ifsc_code: document.getElementById('editIfsc').value || null,
@@ -698,3 +793,4 @@
 <script src="../../static/js/loadTracker.js"></script>
 </body>
 </html>
+

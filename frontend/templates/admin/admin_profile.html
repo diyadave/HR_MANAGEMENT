@@ -228,6 +228,24 @@
             font-family: 'Inter', sans-serif;
         }
 
+        .phone-input-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+        }
+
+        .phone-country-select {
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .phone-help {
+            display: block;
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
         .form-input:focus {
             outline: none;
             border-color: #073379;
@@ -615,7 +633,18 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Phone</label>
-                            <input type="text" id="editPhone" class="form-input">
+                            <div class="phone-input-group">
+                                <select id="editPhoneCountry" class="form-input phone-country-select">
+                                    <option value="+91">🇮🇳 India (+91)</option>
+                                    <option value="+1">🇺🇸 United States (+1)</option>
+                                    <option value="+44">🇬🇧 United Kingdom (+44)</option>
+                                    <option value="+61">🇦🇺 Australia (+61)</option>
+                                    <option value="+65">🇸🇬 Singapore (+65)</option>
+                                    <option value="+971">🇦🇪 UAE (+971)</option>
+                                </select>
+                                <input type="text" id="editPhoneLocal" class="form-input" placeholder="Phone number">
+                            </div>
+                            <small class="phone-help">Select country code, then enter number only.</small>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Department</label>
@@ -760,6 +789,8 @@
         // Global variables
         let currentAdmin = null;
         let editMode = false;
+        const DEFAULT_PHONE_CODE = '+91';
+        const PHONE_CODES = ['+971', '+91', '+65', '+61', '+44', '+1'];
 
         // Helper functions
         function showAlert(message, type = 'success') {
@@ -819,11 +850,27 @@
             }
         }
 
+        function parsePhoneParts(phoneValue) {
+            const raw = String(phoneValue || '').trim();
+            if (!raw) return { code: DEFAULT_PHONE_CODE, local: '' };
+
+            const digits = raw.replace(/[^\d+]/g, '');
+            if (!digits.startsWith('+')) return { code: DEFAULT_PHONE_CODE, local: digits.replace(/\D/g, '') };
+
+            const matchedCode = PHONE_CODES.find((code) => digits.startsWith(code)) || DEFAULT_PHONE_CODE;
+            const local = digits.slice(matchedCode.length).replace(/\D/g, '');
+            return { code: matchedCode, local };
+        }
+
         function populateEditForm() {
             if (!currentAdmin) return;
             document.getElementById('editName').value = currentAdmin.name || '';
             document.getElementById('editEmail').value = currentAdmin.email || '';
-            document.getElementById('editPhone').value = currentAdmin.phone || '';
+            const phoneParts = parsePhoneParts(currentAdmin.phone || '');
+            const countryEl = document.getElementById('editPhoneCountry');
+            const localEl = document.getElementById('editPhoneLocal');
+            if (countryEl) countryEl.value = phoneParts.code;
+            if (localEl) localEl.value = phoneParts.local;
             document.getElementById('editDepartment').value = currentAdmin.department || '';
             document.getElementById('editDesignation').value = currentAdmin.designation || '';
             
@@ -983,7 +1030,13 @@
             const formData = new FormData();
             formData.append('name', document.getElementById('editName').value);
             formData.append('email', document.getElementById('editEmail').value);
-            formData.append('phone', document.getElementById('editPhone').value);
+            const countryCode = (document.getElementById('editPhoneCountry')?.value || DEFAULT_PHONE_CODE).trim();
+            const localPhone = (document.getElementById('editPhoneLocal')?.value || '').replace(/\D/g, '');
+            if (localPhone) {
+                formData.append('phone', `${countryCode}${localPhone}`);
+            } else {
+                formData.append('phone', '');
+            }
             formData.append('department', document.getElementById('editDepartment').value);
             formData.append('designation', document.getElementById('editDesignation').value);
             

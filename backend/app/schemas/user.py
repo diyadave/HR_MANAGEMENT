@@ -134,6 +134,7 @@ class AdminCreate(BaseModel):
     password: str
 
 INDIA_PHONE_REGEX = re.compile(r"^\+91\d{10}$")
+INTERNATIONAL_PHONE_REGEX = re.compile(r"^\+[1-9]\d{7,14}$")
 BANK_NAME_REGEX = re.compile(r"^[A-Za-z][A-Za-z .,&'-]{1,99}$")
 ACCOUNT_NUMBER_REGEX = re.compile(r"^\d{9,18}$")
 
@@ -158,8 +159,8 @@ class AdminProfileUpdateSchema(BaseModel):
     def validate_phone(cls, value: Optional[str]):
         if value is None:
             return value
-        if not INDIA_PHONE_REGEX.fullmatch(value):
-            raise ValueError("Phone must be in +91XXXXXXXXXX format")
+        if not INTERNATIONAL_PHONE_REGEX.fullmatch(value):
+            raise ValueError("Phone must be in international format like +919876543210")
         return value
 
 
@@ -192,8 +193,8 @@ class ProfileUpdateSchema(BaseModel):
     def validate_indian_phone(cls, value: Optional[str]):
         if value is None:
             return value
-        if not INDIA_PHONE_REGEX.fullmatch(value):
-            raise ValueError("Phone must be in +91XXXXXXXXXX format")
+        if not INTERNATIONAL_PHONE_REGEX.fullmatch(value):
+            raise ValueError("Phone must be in international format like +919876543210")
         return value
 
     @field_validator("bank_name")
