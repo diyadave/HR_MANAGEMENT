@@ -6,11 +6,23 @@
   const style = document.createElement('style');
   style.id = 'employeeTopProfileChipStyle';
   style.textContent = `
+    .employee-top-header-normalized {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 16px !important;
+      flex-wrap: wrap;
+    }
+
+    .employee-top-profile-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
     .employee-top-profile-chip {
-      position: fixed;
-      top: 18px;
-      right: 24px;
-      z-index: 1200;
       display: inline-flex;
       align-items: center;
       gap: 10px;
@@ -39,6 +51,7 @@
       flex: 0 0 36px;
       border: 1px solid #dbe3ee;
       object-fit: cover;
+      overflow: hidden;
     }
 
     .employee-top-profile-initials {
@@ -75,30 +88,20 @@
       text-overflow: ellipsis;
     }
 
-    .employee-top-profile-chevron {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1;
-      margin-left: 2px;
-      flex: 0 0 auto;
-    }
-
-    @media (max-width: 992px) {
+    @media (max-width: 768px) {
+      .employee-top-header-normalized {
+        align-items: flex-start !important;
+      }
+      .employee-top-profile-actions {
+        width: 100%;
+        margin-left: 0;
+      }
       .employee-top-profile-chip {
         display: none;
       }
     }
   `;
   document.head.appendChild(style);
-
-  function parseUser() {
-    try {
-      const raw = localStorage.getItem('user');
-      return raw ? JSON.parse(raw) : {};
-    } catch (_) {
-      return {};
-    }
-  }
 
   function escapeHtml(value) {
     return String(value || '')
@@ -109,57 +112,100 @@
       .replace(/'/g, '&#39;');
   }
 
-  const user = parseUser();
-  const displayName = String(user?.name || 'Employee');
-  const displayRole = String(user?.role || 'employee');
-  const safeName = escapeHtml(displayName);
-  const safeRole = escapeHtml(displayRole);
+  function parseUser() {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      return {};
+    }
+  }
 
-  const chip = document.createElement('a');
-  chip.id = 'employeeTopProfileChip';
-  chip.className = 'employee-top-profile-chip';
-  chip.href = '../employee/profile.html';
-  chip.setAttribute('aria-label', 'Open profile');
+  function getImageUrl(pathOrUrl) {
+    const value = String(pathOrUrl || '').trim();
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value)) return value;
+    return `http://127.0.0.1:8000/${value.replace(/^\/+/, '')}`;
+  }
 
-  const profileImage = typeof user?.profile_image === 'string' ? user.profile_image.trim() : '';
-  let avatarHtml = '';
-  if (profileImage) {
-    const imageUrl = profileImage.startsWith('http') ? profileImage : `http://127.0.0.1:8000/${profileImage.replace(/^\/+/, '')}`;
-    avatarHtml = `<img class="employee-top-profile-avatar" src="${imageUrl}" alt="Profile">`;
+  function createChip(name, role, profileImage) {
+    const chip = document.createElement('a');
+    chip.id = 'employeeTopProfileChip';
+    chip.className = 'employee-top-profile-chip';
+    chip.href = '../employee/profile.html';
+    chip.setAttribute('aria-label', 'Open profile');
+
+    const safeName = escapeHtml(name || 'Employee');
+    const safeRole = escapeHtml(role || 'employee');
+    const imageUrl = getImageUrl(profileImage);
+
+    let avatarHtml = '';
+    if (imageUrl) {
+      avatarHtml = `<img class="employee-top-profile-avatar" src="${imageUrl}" alt="Profile">`;
+    } else {
+      const initials = String(name || 'Employee')
+        .split(' ')
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase() || 'E';
+      avatarHtml = `<span class="employee-top-profile-initials">${escapeHtml(initials)}</span>`;
+    }
+
+    chip.innerHTML = `${avatarHtml}<span class="employee-top-profile-meta"><span class="employee-top-profile-name">${safeName}</span><span class="employee-top-profile-role">${safeRole}</span></span>`;
+    return chip;
+  }
+
+  async function resolveProfileData() {
+    const user = parseUser();
+    let name = user?.name || 'Employee';
+    let role = user?.role || 'employee';
+    let profileImage = user?.profile_image || '';
+
+    if (window.API && typeof window.API.getProfile === 'function') {
+      try {
+        const profile = await window.API.getProfile();
+        if (profile && typeof profile === 'object') {
+          name = profile.name || name;
+          role = profile.role || role;
+          profileImage = profile.profile_image || profileImage;
+        }
+      } catch (_) {
+        // Keep local fallback data
+      }
+    }
+
+    return { name, role, profileImage };
+  }
+
+  async function init() {
+    const profile = await resolveProfileData();
+    const chip = createChip(profile.name, profile.role, profile.profileImage);
+    const header = document.querySelector(
+      '.main-content .page-header, .main-container .page-header, .main-wrapper .page-header, .main-content .header, .main-wrapper .header'
+    );
+
+    if (header) {
+      header.classList.add('employee-top-header-normalized');
+      let actions = header.querySelector('.header-actions');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'header-actions employee-top-profile-actions';
+        header.appendChild(actions);
+      } else {
+        actions.classList.add('employee-top-profile-actions');
+      }
+      actions.appendChild(chip);
+      return;
+    }
+
+    document.body.appendChild(chip);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    const initials = displayName
-      .split(' ')
-      .map((p) => p[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || 'E';
-    avatarHtml = `<span class="employee-top-profile-initials">${escapeHtml(initials)}</span>`;
+    init();
   }
-
-  chip.innerHTML = `${avatarHtml}<span class="employee-top-profile-meta"><span class="employee-top-profile-name">${safeName}</span><span class="employee-top-profile-role">${safeRole}</span></span><span class="employee-top-profile-chevron">v</span>`;
-  document.body.appendChild(chip);
-
-  function updatePosition() {
-    const tracker = document.getElementById('tracker-container');
-    if (!tracker) {
-      chip.style.right = '24px';
-      return;
-    }
-
-    const trackerStyle = window.getComputedStyle(tracker);
-    const hidden = trackerStyle.display === 'none' || trackerStyle.visibility === 'hidden';
-    if (hidden) {
-      chip.style.right = '24px';
-      return;
-    }
-
-    const width = Math.round(tracker.getBoundingClientRect().width || parseFloat(trackerStyle.width) || 0);
-    chip.style.right = width > 0 ? `${width + 16}px` : '24px';
-  }
-
-  updatePosition();
-  window.addEventListener('resize', updatePosition);
-  setTimeout(updatePosition, 250);
-  setTimeout(updatePosition, 1000);
 })();

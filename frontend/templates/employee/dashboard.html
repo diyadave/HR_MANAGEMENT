@@ -39,14 +39,42 @@
         }
 
         .page-header {
-            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 22px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .header-left {
+            min-width: 0;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .breadcrumb a {
+            color: #073379;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
         }
 
         .page-title {
             font-size: 24px;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -0.025em;
         }
 
@@ -441,6 +469,10 @@
                 padding: 16px;
             }
 
+            .page-header {
+                padding: 14px;
+            }
+
             #sidebar-container {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
@@ -482,8 +514,12 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 class="page-title">My Dashboard</h1>
-            <div class="welcome-message" id="welcomeMessage">Welcome back, <strong>Employee</strong></div>
+            <div class="header-left">
+                <div class="breadcrumb"><a href="dashboard.html">Home</a> / Dashboard</div>
+                <h1 class="page-title">My Dashboard</h1>
+                <div class="welcome-message" id="welcomeMessage">Welcome back, <strong>Employee</strong></div>
+            </div>
+            <div class="header-actions"></div>
         </div>
 
         <!-- KPI Cards -->
