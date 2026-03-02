@@ -250,12 +250,7 @@
         <p class="page-subtitle">Your attendance records</p>
       </div>
       <div class="filter-bar">
-        <select class="filter-select" id="monthFilter">
-          <option value="2026-2">February 2026</option>
-          <option value="2026-1">January 2026</option>
-          <option value="2025-12">December 2025</option>
-          <option value="2025-11">November 2025</option>
-        </select>
+        <select class="filter-select" id="monthFilter"></select>
         <button class="refresh-btn" id="refreshBtn">Refresh</button>
       </div>
     </div>  
@@ -388,6 +383,32 @@
         month: Number.isFinite(month) ? month : new Date().getMonth() + 1,
         year: Number.isFinite(year) ? year : new Date().getFullYear()
       };
+    }
+
+    function initializeMonthFilter() {
+      const monthFilter = document.getElementById("monthFilter");
+      if (!monthFilter) return;
+
+      const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+
+      monthFilter.innerHTML = "";
+      for (let i = 0; i < 12; i += 1) {
+        const d = new Date(currentYear, currentMonth - 1 - i, 1);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const option = document.createElement("option");
+        option.value = `${y}-${m}`;
+        option.textContent = `${monthNames[m - 1]} ${y}`;
+        monthFilter.appendChild(option);
+      }
+
+      monthFilter.value = `${currentYear}-${currentMonth}`;
     }
 
     let lastLiveRefreshAt = 0;
@@ -571,6 +592,7 @@
     // Initialize page
     async function init() {
       await loadComponent('../shared/sidebar_employee.html', 'sidebar-container');
+      initializeMonthFilter();
 
       // Load tracker
       if (typeof loadGlobalTracker === 'function') {

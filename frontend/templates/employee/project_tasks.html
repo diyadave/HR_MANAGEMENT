@@ -172,6 +172,78 @@
             font-size: 16px;
             font-weight: 600;
         }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--gray-100);
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--success-green));
+            transition: width 0.3s ease;
+        }
+        .project-extra-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .detail-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            background: var(--gray-50);
+            padding: 14px;
+        }
+        .detail-title {
+            font-size: 12px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .detail-text {
+            font-size: 13px;
+            color: var(--gray-800);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .team-members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .team-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--gray-200);
+            border-radius: 999px;
+            background: white;
+            color: var(--gray-700);
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .team-chip.owner {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
 
         /* Action Bar */
         .action-bar {
@@ -381,6 +453,10 @@
         .status-completed {
             background-color: #d1fae5;
             color: var(--success-green);
+        }
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #b91c1c;
         }
 
         .priority-badge {
@@ -602,6 +678,7 @@
             .search-box { min-width: 100%; max-width: 100%; }
             .action-buttons { width: 100%; justify-content: space-between; }
             .project-meta-grid { grid-template-columns: 1fr; gap: 16px; }
+            .project-extra-grid { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
         }
 
@@ -653,6 +730,34 @@
                     <div class="meta-item">
                         <div class="meta-label">Total Tasks</div>
                         <div class="meta-value meta-value-large" id="totalTasksCount">0</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Completed Tasks</div>
+                        <div class="meta-value meta-value-large" id="completedTasksCount">0</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Project Status</div>
+                        <div class="meta-value meta-value-large" id="projectStatusDisplay">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Progress</div>
+                        <div class="progress-meta">
+                            <span id="projectProgressText">0%</span>
+                            <span id="projectProgressMeta">0/0</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="projectProgressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-extra-grid">
+                    <div class="detail-card">
+                        <div class="detail-title">Project Details</div>
+                        <div class="detail-text" id="projectDetailsDisplay">-</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-title">Project Members</div>
+                        <div class="team-members-list" id="teamMembersList"></div>
                     </div>
                 </div>
             </div>
@@ -860,13 +965,32 @@
             try {
                 if (!ensureAuth()) return;
                 const project = await apiRequest(`/projects/my/${projectId}`);
+                const tasks = project.tasks || [];
+                const totalTasks = Number(project.task_count ?? tasks.length ?? 0);
+                const completedTasks = tasks.filter((t) => String(t.status || "").toLowerCase() === "completed").length;
+                const computedProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                const progress = Number.isFinite(Number(project.project_progress))
+                    ? Number(project.project_progress)
+                    : computedProgress;
                 // Update meta info using ids
                 document.getElementById("projectOwnerDisplay").innerHTML = renderUserWithAvatar(
                     project.owner?.name || "-",
                     project.owner?.profile_image
                 );
                 document.getElementById("teamMembersCount").innerText = `${project.team_members?.length || 0} Members`;
-                document.getElementById("totalTasksCount").innerText = (project.tasks || []).length;
+                document.getElementById("totalTasksCount").innerText = String(totalTasks);
+                document.getElementById("completedTasksCount").innerText = String(completedTasks);
+                document.getElementById("projectStatusDisplay").innerText = project.status || "-";
+                document.getElementById("projectProgressText").innerText = `${progress}%`;
+                document.getElementById("projectProgressMeta").innerText = `${completedTasks}/${totalTasks}`;
+                document.getElementById("projectProgressFill").style.width = `${Math.max(0, Math.min(100, progress))}%`;
+                document.getElementById("projectDetailsDisplay").innerText = [
+                    `Description: ${project.description || "-"}`,
+                    `Start Date: ${formatDate(project.start_date)}`,
+                    `End Date: ${formatDate(project.end_date)}`,
+                    `Total Logged Hours: ${Number(project.total_hours || 0).toFixed(1)}h`
+                ].join("\n");
+                renderTeamMembers(project);
                 document.getElementById("projectName").innerText = project.name;
                 currentProjectName = project.name || "project";
 
@@ -880,7 +1004,7 @@
                 // Populate assignees for create modal
                 populateAssignees(project);
                 // Render tasks
-                renderTasks(project.tasks || []);
+                renderTasks(tasks);
             } catch (err) {
                 console.error(err);
                 alert("Failed to load project data");
@@ -918,6 +1042,7 @@
                 let statusClass = 'status-pending';
                 if (task.status === 'in_progress' || task.status === 'inprogress') statusClass = 'status-in_progress';
                 else if (task.status === 'completed') statusClass = 'status-completed';
+                else if (task.status === 'overdue') statusClass = 'status-overdue';
                 else if (task.status === 'pending') statusClass = 'status-pending';
                 
                 // Priority badge
@@ -940,9 +1065,14 @@
                     <td>
                         ${
                             canManageTasks
-                                ? `<button class="action-btn action-edit" onclick="openEditModal(${task.id})" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                   </button>`
+                                ? `<div class="actions-cell">
+                                    <button class="action-btn action-edit" onclick="openEditModal(${task.id})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn action-delete" onclick="deleteTask(${task.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                   </div>`
                                 : `<span style="color:var(--gray-400);font-size:12px;">-</span>`
                         }
                     </td>
@@ -972,6 +1102,35 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function renderTeamMembers(project) {
+            const container = document.getElementById("teamMembersList");
+            if (!container) return;
+            const members = project.team_members || [];
+            const ownerId = Number(project.owner?.id || project.owner_id || 0);
+
+            if (!members.length) {
+                container.innerHTML = `<span class="team-chip">No members found</span>`;
+                return;
+            }
+
+            container.innerHTML = members.map((member) => {
+                const isOwner = Number(member.id) === ownerId;
+                const cls = isOwner ? "team-chip owner" : "team-chip";
+                const suffix = isOwner ? " (Leader)" : "";
+                return `<span class="${cls}">${escapeHtml(member.name || "Member")}${suffix}</span>`;
+            }).join("");
+        }
+
+        function formatDate(value) {
+            if (!value) return "-";
+            try {
+                const d = new Date(value);
+                return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+            } catch (_) {
+                return String(value);
+            }
         }
 
         // ========== EDIT MODAL CONTROLS (FIXED) ==========
@@ -1020,6 +1179,21 @@
             } catch (err) {
                 console.error(err);
                 alert("Failed to update task");
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (!canManageTasks) return;
+            const task = currentTasks.find(t => Number(t.id) === Number(taskId));
+            const taskTitle = task?.title || "this task";
+            if (!confirm(`Delete "${taskTitle}"? This cannot be undone.`)) return;
+
+            try {
+                await apiRequest(`/tasks/${taskId}`, "DELETE");
+                await loadProjectData();
+            } catch (err) {
+                console.error(err);
+                alert(err.message || "Failed to delete task");
             }
         }
 
@@ -1083,6 +1257,7 @@
         window.closeEditModal = closeEditModal;
         window.openCreateTaskModal = openCreateTaskModal;
         window.openEditModal = openEditModal;
+        window.deleteTask = deleteTask;
         window.createTask = createTask;
         window.saveTask = saveTask;
         window.closeModal = closeModal; // for any generic close

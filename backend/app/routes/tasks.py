@@ -291,6 +291,7 @@ def start_task(
 
     # Task becomes active whenever timer starts.
     set_task_in_progress(task, db)
+    apply_overtime_status_if_needed(task, db)
 
     db.add(log)
     db.commit()
@@ -388,6 +389,31 @@ def complete_task(
         "task_title": task.title,
         "completed_at": task.completed_at
     }
+
+
+# =====================================
+# DELETE TASK (Project Owner Only)
+# =====================================
+@router.delete("/{task_id}")
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    project = db.query(Project).filter(Project.id == task.project_id).first()
+    if not project or project.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only project owner can delete tasks"
+        )
+
+    db.delete(task)
+    db.commit()
+    return {"message": "Task deleted successfully"}
 
 
 # =====================================

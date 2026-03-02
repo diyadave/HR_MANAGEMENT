@@ -118,4 +118,6 @@ def apply_overtime_status_if_needed(task: Task, db: Session) -> None:
         return
     total_logged_seconds = _task_total_logged_seconds(task.id, db)
     task.is_overtime = bool(total_logged_seconds > estimated_seconds)
+    if task.is_overtime and (task.status or "").lower() != "completed":
+        task.status = "overdue"
     db.add(task)

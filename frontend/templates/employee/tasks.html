@@ -43,7 +43,7 @@
         .main-content {
             margin-left: 240px;
             margin-right: 260px;
-            padding: 20px;
+            padding: 28px 30px;
             min-height: 100vh;
         }
 
@@ -52,7 +52,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             gap: 20px;
         }
 
@@ -123,7 +123,7 @@
         .filters-bar {
             display: flex;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             flex-wrap: wrap;
         }
 
@@ -145,15 +145,17 @@
         /* Table Container */
         .table-section {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
-            overflow: hidden;
-            margin-bottom: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            margin-bottom: 24px;
         }
 
         .tasks-table {
             width: 100%;
+            min-width: 930px;
             border-collapse: collapse;
         }
 
@@ -164,19 +166,28 @@
 
         .tasks-table th {
             text-align: left;
-            padding: 12px 16px;
-            font-size: 11px;
+            padding: 15px 18px;
+            font-size: 12px;
             font-weight: 600;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            vertical-align: middle;
         }
 
         .tasks-table td {
-            padding: 14px 16px;
+            padding: 17px 18px;
             font-size: 13px;
             border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
         }
+
+        .tasks-table th:nth-child(1) { width: 38%; }
+        .tasks-table th:nth-child(2) { width: 12%; }
+        .tasks-table th:nth-child(3) { width: 12%; }
+        .tasks-table th:nth-child(4) { width: 14%; }
+        .tasks-table th:nth-child(5) { width: 10%; }
+        .tasks-table th:nth-child(6) { width: 14%; }
 
         .tasks-table tr:last-child td {
             border-bottom: none;
@@ -196,9 +207,10 @@
         }
 
         .task-name {
-            font-weight: 500;
+            font-weight: 600;
             color: #0f172a;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            line-height: 1.35;
         }
 
         .task-public-id {
@@ -213,6 +225,7 @@
         .task-project {
             font-size: 12px;
             color: #64748b;
+            margin-top: 2px;
         }
 
         .task-description {
@@ -279,22 +292,34 @@
             color: #065f46;
         }
 
+        .status-badge.overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         /* Action Buttons Container */
         .action-buttons {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            flex-wrap: nowrap;
+            align-items: center;
         }
 
         .task-action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 0;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            min-width: 60px;
+            min-width: 34px;
+            width: 34px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
 
         .task-action-btn.start {
@@ -324,6 +349,33 @@
             background: #047857;
         }
 
+        .task-action-btn.view {
+            background: #eef4ff;
+            color: #073379;
+            border-color: #c7d7ff;
+            min-width: 34px;
+            width: 34px;
+            padding: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .task-action-btn.view:hover:not(:disabled) {
+            background: #dbe8ff;
+            border-color: #9bb7ff;
+        }
+
+        .task-action-btn.view .eye-icon {
+            line-height: 1;
+            transform: translateY(-1px);
+        }
+
+        .task-action-btn .btn-icon {
+            line-height: 1;
+            font-size: 14px;
+            transform: translateY(-1px);
+        }
+
         .task-action-btn:disabled {
             background: #cbd5e1;
             cursor: not-allowed;
@@ -348,11 +400,80 @@
         .due-date {
             font-size: 13px;
             color: #64748b;
+            white-space: nowrap;
+            font-weight: 500;
+            line-height: 1.35;
+            display: inline-block;
         }
 
         .due-date.overdue {
             color: #ef4444;
-            font-weight: 500;
+            font-weight: 600;
+        }
+
+        .due-date-cell,
+        .hours-cell {
+            white-space: nowrap;
+        }
+
+        .actions-cell {
+            min-width: 154px;
+        }
+
+        .table-section::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-section::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .task-details-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px 16px;
+            font-size: 12px;
+            color: #334155;
+        }
+
+        .task-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .task-detail-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .task-detail-value {
+            color: #0f172a;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .task-detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .task-detail-value.description {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .task-detail-modal-content {
+            max-width: 680px;
         }
 
         /* Modal */
@@ -508,7 +629,13 @@
             }
 
             .action-buttons {
-                flex-direction: column;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .actions-cell {
+                min-width: 140px;
             }
 
             .tasks-table th,
@@ -592,6 +719,18 @@
         </div>
     </div>
 
+    <div class="modal" id="taskDetailsModal">
+        <div class="modal-content task-detail-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Task Details</h2>
+                <button class="modal-close" id="closeTaskDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="task-details-panel" id="taskDetailsBody"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="../../static/js/api.js"></script>
     <script src="../../static/js/tracker.js"></script>
     <script src="../../static/js/loadTracker.js"></script>
@@ -655,9 +794,10 @@
         function setupEventListeners() {
             document.getElementById('filterProject').addEventListener('change', applyFilters);
             document.getElementById('filterPriority').addEventListener('change', applyFilters);
-            document.getElementById('refreshTasksBtn').addEventListener('click', () => loadTasks());
+            document.getElementById('refreshTasksBtn')?.addEventListener('click', () => loadTasks());
             document.getElementById('viewHistoryBtn').addEventListener('click', openHistoryModal);
             document.getElementById('closeHistoryModal').addEventListener('click', closeHistoryModal);
+            document.getElementById('closeTaskDetailsModal').addEventListener('click', closeTaskDetailsModal);
             document.getElementById('showAllLink')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 openHistoryModal();
@@ -666,8 +806,12 @@
             // Close modal when clicking outside
             window.addEventListener('click', (e) => {
                 const modal = document.getElementById('historyModal');
+                const detailsModal = document.getElementById('taskDetailsModal');
                 if (e.target === modal) {
                     closeHistoryModal();
+                }
+                if (e.target === detailsModal) {
+                    closeTaskDetailsModal();
                 }
             });
 
@@ -773,18 +917,13 @@
                 // Get project name safely
                 const projectName = task.project?.name || task.project_name || 'No Project';
                 const displayTaskId = displayIdMap[Number(task.id)] || `task-${task.id}`;
-
-                // Status class mapping
-                const statusClass = task.status === 'in_progress' ? 'in-progress' :
-                    task.status === 'completed' ? 'completed' : 'pending';
-
+                const statusMeta = getTaskStatusMeta(task, Number(hoursDisplay));
                 return `
                     <tr data-task-id="${task.id}" class="${rowClass}">
                         <td>
                             <div class="task-public-id">${escapeHtml(displayTaskId)}</div>
                             <div class="task-name">${escapeHtml(task.title)}</div>
                             <div class="task-project">${escapeHtml(projectName)}</div>
-                            <div class="task-description">${escapeHtml(task.description || 'No description')}</div>
                         </td>
                         <td>
                             <div class="priority-indicator">
@@ -793,42 +932,49 @@
                             </div>
                         </td>
                         <td>
-                            <span class="status-badge ${statusClass}">
-                                ${formatStatus(task.status || 'pending')}
+                            <span class="status-badge ${statusMeta.css}">
+                                ${statusMeta.label}
                             </span>
                         </td>
-                        <td>
+                        <td class="due-date-cell">
                             <span class="due-date ${isOverdue(task.due_date) && task.status !== 'completed' ? 'overdue' : ''}">
                                 ${formatDate(task.due_date) || '-'}
                             </span>
                         </td>
-                        <td>
+                        <td class="hours-cell">
                             <span class="hours-logged ${isActive ? 'running' : ''}">
                                 ${hoursDisplay}h
                                 ${isActive ? '<span class="task-timer">(running)</span>' : ''}
                             </span>
                         </td>
-                        <td>
+                        <td class="actions-cell">
                            <div class="action-buttons">
+                                <button class="task-action-btn view"
+                                    onclick="openTaskDetails(${task.id})"
+                                    title="View task details">
+                                    <span class="eye-icon" aria-hidden="true">&#128065;</span>
+                                </button>
                             ${canShowStart ? `
                                 <button class="task-action-btn start"
                                     onclick="handleStart(${task.id}, '${escapeHtml(task.title)}')"
+                                    title="Start"
                                     ${canStart ? '' : 'disabled'}>
-                                    Start
+                                    <span class="btn-icon" aria-hidden="true">&#9654;</span>
                                 </button>
                             ` : ''}
 
-                            ${canPause ? `
                                 <button class="task-action-btn stop"
-                                    onclick="handleStop(${task.id})">
-                                    Pause
+                                    onclick="handleStop(${task.id})"
+                                    title="Pause"
+                                    ${canPause ? '' : 'disabled'}>
+                                    <span class="btn-icon" aria-hidden="true">&#10074;&#10074;</span>
                                 </button>
-                            ` : ''}
 
                             ${canComplete ? `
                                 <button class="task-action-btn complete"
-                                    onclick="handleComplete(${task.id})">
-                                    Complete
+                                    onclick="handleComplete(${task.id})"
+                                    title="Complete">
+                                    <span class="btn-icon" aria-hidden="true">&#10003;</span>
                                 </button>
                             ` : ''}
                             </div>
@@ -979,6 +1125,59 @@
             document.getElementById('historyModal').classList.remove('active');
         }
 
+        function openTaskDetails(taskId) {
+            const task = allTasks.find((t) => Number(t.id) === Number(taskId));
+            if (!task) return;
+            renderTaskDetails(task);
+            document.getElementById('taskDetailsModal').classList.add('active');
+        }
+
+        function closeTaskDetailsModal() {
+            document.getElementById('taskDetailsModal').classList.remove('active');
+        }
+
+        function renderTaskDetails(task) {
+            const body = document.getElementById('taskDetailsBody');
+            const projectName = task.project?.name || task.project_name || 'No Project';
+            const assigneeName = task.assignee_name || getCurrentUserName() || 'You';
+            const statusMeta = getTaskStatusMeta(task, Number(task.total_time_spent || 0));
+
+            body.innerHTML = `
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Title</span>
+                    <span class="task-detail-value">${escapeHtml(task.title || '-')}</span>
+                </div>
+                <div class="task-detail-item full-width">
+                    <span class="task-detail-label">Description</span>
+                    <span class="task-detail-value description">${escapeHtml(task.description || 'No description')}</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Status</span>
+                    <span class="task-detail-value">${escapeHtml(statusMeta.label)}</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Due Date</span>
+                    <span class="task-detail-value">${escapeHtml(formatDate(task.due_date) || '-')}</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Project</span>
+                    <span class="task-detail-value">${escapeHtml(projectName)} (ID: ${Number(task.project_id) || '-'})</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Assigned Employee</span>
+                    <span class="task-detail-value">${escapeHtml(assigneeName)}</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Estimated Time</span>
+                    <span class="task-detail-value">${escapeHtml(formatEstimatedHours(task.estimated_hours))}</span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">Time Spent</span>
+                    <span class="task-detail-value">${escapeHtml(`${Number(task.total_time_spent || 0).toFixed(1)}h`)}</span>
+                </div>
+            `;
+        }
+
         function renderHistory(history) {
             const modalBody = document.getElementById('historyModalBody');
 
@@ -1036,6 +1235,42 @@
 
         function formatStatus(status) {
             return status.split('_').map(word => capitalize(word)).join(' ');
+        }
+
+        function getTaskStatusMeta(task, hoursSpent = null) {
+            const status = String(task?.status || 'pending').toLowerCase();
+            const estimatedHours = Number(task?.estimated_hours || 0);
+            const spentHours = Number(hoursSpent ?? task?.total_time_spent ?? 0);
+            const timeOverdue = estimatedHours > 0 && spentHours > estimatedHours;
+            const isOverdue = (status !== 'completed') && (Boolean(task?.is_overtime) || timeOverdue || status === 'overdue');
+
+            if (isOverdue) {
+                return { css: 'overdue', label: 'Overdue' };
+            }
+            if (status === 'in_progress' || status === 'progress') {
+                return { css: 'in-progress', label: 'In Progress' };
+            }
+            if (status === 'completed') {
+                return { css: 'completed', label: 'Completed' };
+            }
+            return { css: 'pending', label: formatStatus(status || 'pending') };
+        }
+
+        function formatEstimatedHours(hours) {
+            const value = Number(hours);
+            if (!Number.isFinite(value) || value <= 0) return 'Not set';
+            return `${value.toFixed(1)}h`;
+        }
+
+        function getCurrentUserName() {
+            try {
+                const raw = localStorage.getItem('user');
+                if (!raw) return '';
+                const parsed = JSON.parse(raw);
+                return String(parsed?.name || '').trim();
+            } catch {
+                return '';
+            }
         }
 
         function formatDate(dateStr) {
@@ -1108,6 +1343,7 @@
         window.handleStart = handleStart;
         window.handleStop = handleStop;
         window.handleComplete = handleComplete;
+        window.openTaskDetails = openTaskDetails;
     </script>
 </body>
 

@@ -351,6 +351,8 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
             return "late"
         if worked_seconds >= HALF_DAY_MIN_SECONDS:
             return "late" if start_t > shift_late_threshold else "present"
+        if worked_seconds > 0:
+            return "late" if start_t > shift_late_threshold else "present"
         return "absent"
 
     if user_shift == "second_half":
@@ -359,6 +361,8 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
         if start_t > shift_late_threshold and end_t >= SHIFT_END and worked_seconds >= HALF_DAY_MIN_SECONDS:
             return "late"
         if worked_seconds >= HALF_DAY_MIN_SECONDS:
+            return "late" if start_t > shift_late_threshold else "present"
+        if worked_seconds > 0:
             return "late" if start_t > shift_late_threshold else "present"
         return "absent"
 
@@ -385,6 +389,9 @@ def determine_attendance_status(attendance: Attendance | None, seconds: int, now
         if not attendance.half_day_type:
             attendance.half_day_type = "second_half" if start_t >= SECOND_HALF_START else "first_half"
         return "halfday"
+
+    if worked_seconds > 0:
+        return "late" if start_t > shift_late_threshold else "present"
 
     return "absent"
 
