@@ -347,9 +347,14 @@
 
         /* Actions */
         .actions-cell {
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .actions-wrap {
             display: flex;
-            gap: 8px;
-            min-width: 100px;
+            justify-content: center;
+            align-items: center;
         }
 
         .action-btn {
@@ -366,6 +371,7 @@
             font-size: 13px;
             font-weight: 500;
             gap: 6px;
+            min-width: 124px;
         }
 
         .action-btn:hover {
@@ -479,7 +485,7 @@
         }
 
         @media (max-width: 480px) {
-            .actions-cell {
+            .actions-wrap {
                 flex-direction: column;
             }
             
@@ -651,17 +657,19 @@ async function loadMyProjects() {
         </td>
 
         <td class="actions-cell">
-          ${
-            isOwner
-              ? `<button class="action-btn action-manage"
-                  onclick="viewProjectTasks(${p.id})">
-                  Manage Tasks
-                </button>`
-              : `<button class="action-btn"
-                  onclick="viewProjectTasks(${p.id})">
-                  View Details
-                </button>`
-          }
+          <div class="actions-wrap">
+            ${
+              isOwner
+                ? `<button class="action-btn action-manage"
+                    onclick="viewProjectTasks(${p.id})">
+                    Manage Tasks
+                  </button>`
+                : `<button class="action-btn"
+                    onclick="viewProjectTasks(${p.id})">
+                    View Details
+                  </button>`
+            }
+          </div>
         </td>
       `;
 
