@@ -41,17 +41,22 @@
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             gap: 16px;
             margin-bottom: 22px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 16px 18px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
         }
 
         .header-left {
             min-width: 0;
+        }
+
+        .header-actions {
+            min-width: 1px;
+            min-height: 1px;
         }
 
         .breadcrumb {
@@ -886,6 +891,7 @@
     <script src="../../static/js/api.js"></script>
     <script src="../../static/js/tracker.js"></script>
     <script src="../../static/js/loadTracker.js"></script>
+    <script src='../../static/js/employee_profile_header.js'></script>
     
     <!-- Load Chat Component exactly like admin side -->
     <script>
@@ -916,8 +922,6 @@
                 .catch(err => console.error("Failed to load chat component:", err));
         });
     </script>
-
-<script src='../../static/js/employee_profile_header.js'></script>
 </body>
 </html>
 

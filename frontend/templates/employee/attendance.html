@@ -253,7 +253,7 @@
         <select class="filter-select" id="monthFilter"></select>
         <button class="refresh-btn" id="refreshBtn">Refresh</button>
       </div>
-    </div>  
+    </div>
 
     <div class="stats-grid">
       <div class="stat-item">
@@ -540,11 +540,11 @@
       if (!silent) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;">Loading attendance records...</td></tr>`;
       }
-      
+
       try {
         const { month, year } = parseMonthYear();
         console.log(`Loading history for month: ${month}, year: ${year}`);
-        
+
         const data = await API.request(`/attendance/history?month=${month}&year=${year}&_=${Date.now()}`);
         const records = data.records || [];
 
@@ -605,7 +605,7 @@
         loadHistory()
       ]);
       connectAttendanceSocket();
-      
+
       // Refresh summary every 30 seconds
       setInterval(() => {
         if (!document.hidden) {
@@ -632,9 +632,7 @@
   <script src="../../static/js/tracker.js"></script>
   <script src="../../static/js/loadTracker.js"></script>
 
-<script src='../../static/js/employee_profile_header.js'></script>
+  <script src='../../static/js/employee_profile_header.js'></script>
 </body>
 
 </html>
-
-

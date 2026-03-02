@@ -34,15 +34,15 @@
   position: relative;
 }
 
-.sidebar-user {
-  margin-top: 12px;
+.sidebar-brand-left {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
 }
 
 .sidebar-top-actions {
   display: flex;
+  align-items: center;
+  gap: 8px;
   justify-content: flex-end;
   position: relative;
 }
@@ -319,7 +319,9 @@
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-brand-row">
-      <h1 class="sidebar-title">DooOn</h1>
+      <div class="sidebar-brand-left">
+        <h1 class="sidebar-title">DooOn</h1>
+      </div>
       <div class="sidebar-top-actions">
         <button id="employeeNotificationBell" class="sidebar-notif-btn" type="button" aria-label="Notifications">
           <i class="bi bi-bell"></i>
@@ -334,9 +336,6 @@
           <div id="employeeNotificationEmpty" class="employee-notif-empty">No notifications</div>
         </div>
       </div>
-    </div>
-    <div class="sidebar-user">
-
     </div>
   </div>
   
