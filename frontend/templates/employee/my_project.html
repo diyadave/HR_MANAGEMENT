@@ -614,6 +614,23 @@ function apiRequest(url, method = "GET", body = null) {
   return window.API.request(url, method, body);
 }
 
+function clampProgress(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  return Math.max(0, Math.min(100, Math.round(num)));
+}
+
+function getProjectProgress(project) {
+  if (project && project.project_progress !== undefined && project.project_progress !== null) {
+    return clampProgress(project.project_progress);
+  }
+  const tasks = Array.isArray(project?.tasks) ? project.tasks : [];
+  const total = Number(project?.task_count ?? tasks.length);
+  if (!total) return 0;
+  const completed = tasks.filter((t) => String(t?.status || "").toLowerCase() === "completed").length;
+  return clampProgress((completed / total) * 100);
+}
+
 async function loadMyProjects() {
   try {
     if (!ensureAuth()) return;
@@ -621,6 +638,11 @@ async function loadMyProjects() {
 
     const tbody = document.getElementById("myProjectsTableBody");
     tbody.innerHTML = "";
+
+    const projectCount = Array.isArray(projects) ? projects.length : 0;
+    document.querySelectorAll(".pagination-info").forEach((el) => {
+      el.textContent = `Showing ${projectCount} of ${projectCount} projects`;
+    });
 
     if (!projects || projects.length === 0) {
       tbody.innerHTML = `
@@ -637,6 +659,7 @@ async function loadMyProjects() {
 
     projects.forEach(p => {
       const isOwner = p.owner && p.owner.id === currentUser.id;
+      const progress = getProjectProgress(p);
 
       const tr = document.createElement("tr");
 
@@ -654,9 +677,9 @@ async function loadMyProjects() {
         <td class="progress-cell">
           <div class="progress-container">
             <div class="progress-bar">
-              <div class="progress-fill" style="width: 0%"></div>
+              <div class="progress-fill" style="width: ${progress}%"></div>
             </div>
-            <span class="progress-text">-</span>
+            <span class="progress-text">${progress}%</span>
           </div>
         </td>
 
