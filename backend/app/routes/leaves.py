@@ -97,6 +97,28 @@ def get_my_leaves(
     ).order_by(Leave.created_at.desc()).all()
 
 
+@router.delete("/my/{leave_id}")
+def delete_my_pending_leave(
+    leave_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    ensure_leave_schema(db)
+    leave = db.query(Leave).filter(
+        Leave.id == leave_id,
+        Leave.user_id == current_user.id
+    ).first()
+
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+    if leave.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending leave requests can be deleted")
+
+    db.delete(leave)
+    db.commit()
+    return {"message": "Leave request deleted"}
+
+
 # ======================================
 # ADMIN VIEW ALL LEAVES
 # ======================================

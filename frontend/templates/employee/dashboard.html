@@ -33,7 +33,7 @@
 
         .main-content {
             margin-left: 260px;
-            margin-right: 200px;
+            margin-right: 256px;
             padding: 24px;
             min-height: 100vh;
         }
@@ -186,11 +186,17 @@
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .task-project {
             font-size: 11px;
             color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .task-deadline {
@@ -218,6 +224,9 @@
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .notice-date {
@@ -248,12 +257,18 @@
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .notification-message {
             font-size: 12px;
             color: #475569;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .notification-time {
@@ -321,6 +336,10 @@
             font-size: 13px;
             color: #1e293b;
             font-weight: 500;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .progress-percent {
@@ -642,7 +661,7 @@
                 return;
             }
 
-            notificationsEl.innerHTML = notifications.slice(0, 8).map(n => `
+            notificationsEl.innerHTML = notifications.slice(0, 5).map(n => `
                 <div class="notification-item ${n.is_read ? "" : "unread"}">
                     <div class="notification-title">${escapeHtml(n.title || "Notification")}</div>
                     <div class="notification-message">${escapeHtml(n.message || "")}</div>
@@ -654,7 +673,7 @@
         async function loadNotifications() {
             if (!window.API || typeof API.getMyNotifications !== "function") return;
             try {
-                const notifications = await API.getMyNotifications(8, false);
+                const notifications = await API.getMyNotifications(5, false);
                 renderNotifications(notifications || []);
             } catch (err) {
                 console.error("Failed to load notifications:", err);
@@ -680,7 +699,7 @@
 
                 // Fetch all required data
                 const [tasks, projects, leaves, notices] = await Promise.all([
-                    API.getMyTasks(10, false),
+                    API.getMyTasks(5, false),
                     API.getMyProjects(),
                     API.getMyLeaves(),
                     API.getNotices()
@@ -735,7 +754,7 @@
                     if (projectList.length === 0) {
                         projectProgressEl.innerHTML = '<div class="progress-item"><div class="progress-label">No projects assigned</div></div>';
                     } else {
-                        projectProgressEl.innerHTML = projectList.slice(0, 4).map(p => {
+                        projectProgressEl.innerHTML = projectList.slice(0, 5).map(p => {
                             const projectTasks = taskList.filter(t => Number(t.project_id) === Number(p.id));
                             const total = projectTasks.length;
                             const done = projectTasks.filter(t => t.status === "completed").length;
@@ -776,7 +795,7 @@
                     if (noticeList.length === 0) {
                         noticesEl.innerHTML = '<div class="notice-item">No notices available</div>';
                     } else {
-                        noticesEl.innerHTML = noticeList.slice(0, 4).map(n => `
+                        noticesEl.innerHTML = noticeList.slice(0, 3).map(n => `
                             <div class="notice-item">
                                 <div class="notice-title">${escapeHtml(n.title || "Notice")}</div>
                                 <div class="notice-date">Posted ${formatDate(n.created_at)}</div>

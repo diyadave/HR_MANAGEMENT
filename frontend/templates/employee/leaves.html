@@ -143,6 +143,18 @@
       min-height: 80px;
     }
 
+    .input-error {
+      border-color: #DC2626 !important;
+      background: #FEF2F2;
+    }
+
+    .field-error {
+      min-height: 16px;
+      font-size: 11px;
+      color: #DC2626;
+      line-height: 1.35;
+    }
+
     .btn {
       padding: 8px 16px;
       font-size: 12px;
@@ -247,6 +259,22 @@
       color: #6B7280;
     }
 
+    .btn-delete-leave {
+      border: 1px solid #FECACA;
+      background: #FEF2F2;
+      color: #B91C1C;
+      border-radius: 4px;
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn-delete-leave:hover {
+      background: #FEE2E2;
+      border-color: #FCA5A5;
+    }
+
     @media (max-width: 1024px) {
       .main-container {
         padding-right: 24px;
@@ -314,6 +342,7 @@
               <option value="annual">Annual Leave</option>
               <option value="unpaid">Unpaid Leave</option>
             </select>
+            <div class="field-error" id="leaveTypeError"></div>
           </div>
           <div class="form-group">
             <label class="form-label">Duration</label>
@@ -325,18 +354,22 @@
               <option value="duration_range">Duration (From-To)</option>
               <option value="hourly_leave">Hourly Leave</option>
             </select>
+            <div class="field-error" id="durationTypeError"></div>
           </div>
           <div class="form-group" id="singleDateGroup">
             <label class="form-label">Date</label>
-            <input id="singleDate" type="date" class="form-input" required>
+            <input id="singleDate" type="date" class="form-input" required max="9999-12-31">
+            <div class="field-error" id="singleDateError"></div>
           </div>
           <div class="form-group" id="fromDateGroup" style="display:none;">
             <label class="form-label">From Date</label>
-            <input id="fromDate" type="date" class="form-input">
+            <input id="fromDate" type="date" class="form-input" max="9999-12-31">
+            <div class="field-error" id="fromDateError"></div>
           </div>
           <div class="form-group" id="toDateGroup" style="display:none;">
             <label class="form-label">To Date</label>
-            <input id="toDate" type="date" class="form-input">
+            <input id="toDate" type="date" class="form-input" max="9999-12-31">
+            <div class="field-error" id="toDateError"></div>
           </div>
           <div class="form-group full-width" id="hourlyTimeGroup" style="display:none;">
             <label class="form-label">Hourly Leave Time</label>
@@ -344,10 +377,12 @@
               <input id="hourlyStartTime" type="time" class="form-input">
               <input id="hourlyEndTime" type="time" class="form-input">
             </div>
+            <div class="field-error" id="hourlyStartTimeError"></div>
           </div>
           <div class="form-group full-width">
             <label class="form-label">Reason</label>
             <textarea id="leaveReason" class="form-textarea" placeholder="Please provide a reason for your leave" required></textarea>
+            <div class="field-error" id="leaveReasonError"></div>
           </div>
         </div>
         <div class="form-actions">
@@ -372,6 +407,7 @@
               <th>Reason</th>
               <th>Status</th>
               <th>Applied On</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="leaveHistoryBody"></tbody>
@@ -417,6 +453,81 @@
       }
     }
 
+    function setFieldError(fieldId, message) {
+      const field = document.getElementById(fieldId);
+      const err = document.getElementById(`${fieldId}Error`);
+      if (field) field.classList.add("input-error");
+      if (err) err.textContent = message;
+    }
+
+    function clearFieldError(fieldId) {
+      const field = document.getElementById(fieldId);
+      const err = document.getElementById(`${fieldId}Error`);
+      if (field) field.classList.remove("input-error");
+      if (err) err.textContent = "";
+    }
+
+    function clearAllFieldErrors() {
+      [
+        "leaveType",
+        "durationType",
+        "singleDate",
+        "fromDate",
+        "toDate",
+        "hourlyStartTime",
+        "leaveReason"
+      ].forEach(clearFieldError);
+    }
+
+    function parseIsoDateStrict(raw) {
+      const value = String(raw || "").trim();
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (!match) return null;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const parsed = new Date(Date.UTC(year, month - 1, day));
+      if (
+        parsed.getUTCFullYear() !== year ||
+        parsed.getUTCMonth() !== month - 1 ||
+        parsed.getUTCDate() !== day
+      ) {
+        return null;
+      }
+      return { year, iso: value };
+    }
+
+    function validateDateField(fieldId, label, options = {}) {
+      const required = options.required !== false;
+      const input = document.getElementById(fieldId);
+      const parsed = parseIsoDateStrict(input?.value);
+      const today = todayISO();
+      const currentYear = new Date().getFullYear();
+
+      if (!input?.value) {
+        if (!required) {
+          clearFieldError(fieldId);
+          return null;
+        }
+        setFieldError(fieldId, `${label} is required.`);
+        return null;
+      }
+      if (!parsed) {
+        setFieldError(fieldId, "Enter a valid date in YYYY-MM-DD format.");
+        return null;
+      }
+      if (parsed.year < currentYear) {
+        setFieldError(fieldId, "Previous years are not allowed.");
+        return null;
+      }
+      if (parsed.iso < today) {
+        setFieldError(fieldId, "Previous dates are not allowed.");
+        return null;
+      }
+      clearFieldError(fieldId);
+      return parsed;
+    }
+
     function updateDateFields() {
       const mode = durationTypeEl.value;
       const singleDateGroup = document.getElementById("singleDateGroup");
@@ -448,6 +559,10 @@
         hourlyStartTimeEl.value = "";
         hourlyEndTimeEl.value = "";
       }
+      clearFieldError("singleDate");
+      clearFieldError("fromDate");
+      clearFieldError("toDate");
+      clearFieldError("hourlyStartTime");
     }
 
     function setDateMinimums() {
@@ -455,6 +570,30 @@
       singleDateEl.min = minDate;
       fromDateEl.min = minDate;
       toDateEl.min = minDate;
+      singleDateEl.max = "9999-12-31";
+      fromDateEl.max = "9999-12-31";
+      toDateEl.max = "9999-12-31";
+    }
+
+    function enforceYearLimitOnInput(fieldId) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+
+      input.addEventListener("input", () => {
+        const value = String(input.value || "");
+        if (!value) return;
+
+        const parts = value.split("-");
+        if (parts.length !== 3) return;
+
+        const [year, month, day] = parts;
+        if (year.length > 4) {
+          input.value = `${year.slice(0, 4)}-${month || ""}-${day || ""}`;
+          setFieldError(fieldId, "Year must be exactly 4 digits.");
+          return;
+        }
+        clearFieldError(fieldId);
+      });
     }
 
     function resetForm() {
@@ -462,21 +601,7 @@
       form.reset();
       setDateMinimums();
       updateDateFields();
-    }
-
-    function validateLeaveDates(durationType, startDate, endDate) {
-      const today = todayISO();
-
-      if (startDate < today || endDate < today) {
-        return "Past dates are not allowed. Please choose today or upcoming dates.";
-      }
-      if (startDate > endDate) {
-        return "Start date cannot be after end date.";
-      }
-      if (durationType !== "duration_range" && startDate !== endDate) {
-        return "Full day / first half / second half must use a single date.";
-      }
-      return "";
+      clearAllFieldErrors();
     }
 
     function calcHourlyLeaveHours(startTime, endTime) {
@@ -523,7 +648,7 @@
         if (!Array.isArray(data) || data.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="7" style="text-align:center; color:#64748B;">No leave history found.</td>
+              <td colspan="8" style="text-align:center; color:#64748B;">No leave history found.</td>
             </tr>
           `;
           updateBalance([]);
@@ -546,6 +671,11 @@
                 </span>
               </td>
               <td>${leave.created_at ? new Date(leave.created_at).toLocaleDateString() : "-"}</td>
+              <td>
+                ${(leave.status || "").toLowerCase() === "pending"
+                  ? `<button class="btn-delete-leave" onclick="deleteMyLeaveRequest(${leave.id})">Delete</button>`
+                  : "-"}
+              </td>
             </tr>
           `;
           tbody.innerHTML += row;
@@ -558,6 +688,7 @@
 
     document.getElementById("leaveForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+      clearAllFieldErrors();
 
       const durationType = durationTypeEl.value;
       const backendDurationType = (durationType === "duration_range" || durationType === "hourly_leave")
@@ -581,31 +712,52 @@
         hourly_end_time: durationType === "hourly_leave" ? (hourlyEndTimeEl.value || null) : null
       };
 
-      if (!leaveData.leave_type || !leaveData.duration_type || !leaveData.start_date || !leaveData.end_date || !leaveData.reason) {
-        showMessage("Please fill all required fields.", "warning");
-        return;
+      let hasError = false;
+      if (!leaveData.leave_type) {
+        setFieldError("leaveType", "Please select leave type.");
+        hasError = true;
+      }
+      if (!durationType) {
+        setFieldError("durationType", "Please select duration.");
+        hasError = true;
+      }
+      if (!reason) {
+        setFieldError("leaveReason", "Please enter leave reason.");
+        hasError = true;
       }
 
-      const dateError = validateLeaveDates(durationType, startDate, endDate);
-      if (dateError) {
-        showMessage(dateError, "warning");
-        return;
+      let parsedStart = null;
+      let parsedEnd = null;
+      if (durationType === "duration_range") {
+        parsedStart = validateDateField("fromDate", "From Date");
+        parsedEnd = validateDateField("toDate", "To Date");
+      } else {
+        const parsedSingle = validateDateField("singleDate", "Date");
+        parsedStart = parsedSingle;
+        parsedEnd = parsedSingle;
+      }
+      if (!parsedStart || !parsedEnd) hasError = true;
+
+      if (parsedStart && parsedEnd && parsedStart.iso > parsedEnd.iso) {
+        setFieldError("toDate", "To Date cannot be before From Date.");
+        hasError = true;
       }
 
       if (durationType === "hourly_leave") {
         if (!hourlyStartTimeEl.value || !hourlyEndTimeEl.value) {
-          showMessage("Please select start and end time for hourly leave.", "warning");
-          return;
+          setFieldError("hourlyStartTime", "Please select start and end time for hourly leave.");
+          hasError = true;
         }
         if (leaveHours <= 0) {
-          showMessage("Hourly leave end time must be later than start time.", "warning");
-          return;
+          setFieldError("hourlyStartTime", "End time must be later than start time.");
+          hasError = true;
         }
         if (leaveHours > 8) {
-          showMessage("Hourly leave cannot exceed 8 hours.", "warning");
-          return;
+          setFieldError("hourlyStartTime", "Hourly leave cannot exceed 8 hours.");
+          hasError = true;
         }
       }
+      if (hasError) return;
 
       try {
         await API.request("/leaves", "POST", leaveData);
@@ -618,6 +770,25 @@
     });
 
     durationTypeEl.addEventListener("change", updateDateFields);
+    durationTypeEl.addEventListener("change", () => clearFieldError("durationType"));
+    leaveTypeEl.addEventListener("change", () => clearFieldError("leaveType"));
+    reasonEl.addEventListener("input", () => {
+      if (reasonEl.value.trim()) clearFieldError("leaveReason");
+    });
+    singleDateEl.addEventListener("input", () => validateDateField("singleDate", "Date", { required: false }));
+    singleDateEl.addEventListener("change", () => validateDateField("singleDate", "Date", { required: false }));
+    singleDateEl.addEventListener("blur", () => validateDateField("singleDate", "Date", { required: false }));
+    fromDateEl.addEventListener("change", () => {
+      validateDateField("fromDate", "From Date", { required: false });
+      if (toDateEl.value) validateDateField("toDate", "To Date", { required: false });
+    });
+    fromDateEl.addEventListener("input", () => validateDateField("fromDate", "From Date", { required: false }));
+    fromDateEl.addEventListener("blur", () => validateDateField("fromDate", "From Date", { required: false }));
+    toDateEl.addEventListener("input", () => validateDateField("toDate", "To Date", { required: false }));
+    toDateEl.addEventListener("change", () => validateDateField("toDate", "To Date", { required: false }));
+    toDateEl.addEventListener("blur", () => validateDateField("toDate", "To Date", { required: false }));
+    hourlyStartTimeEl.addEventListener("change", () => clearFieldError("hourlyStartTime"));
+    hourlyEndTimeEl.addEventListener("change", () => clearFieldError("hourlyStartTime"));
     fromDateEl.addEventListener("change", () => {
       toDateEl.min = fromDateEl.value || todayISO();
       if (toDateEl.value && fromDateEl.value && toDateEl.value < fromDateEl.value) {
@@ -625,8 +796,24 @@
       }
     });
 
+    async function deleteMyLeaveRequest(leaveId) {
+      if (!leaveId) return;
+      if (!confirm("Delete this pending leave request?")) return;
+      try {
+        await API.deleteMyLeave(leaveId);
+        showMessage("Leave request deleted.", "success");
+        await loadMyLeaves();
+      } catch (err) {
+        showMessage(err.message || "Failed to delete leave request.", "error");
+      }
+    }
+    window.deleteMyLeaveRequest = deleteMyLeaveRequest;
+
     async function init() {
       setDateMinimums();
+      enforceYearLimitOnInput("singleDate");
+      enforceYearLimitOnInput("fromDate");
+      enforceYearLimitOnInput("toDate");
       updateDateFields();
       await loadComponent("../shared/sidebar_employee.html", "sidebar-container");
       loadGlobalTracker();

@@ -157,6 +157,19 @@ function redirectToLogin() {
     window.location.href = "../auth/login.html";
 }
 
+function redirectToRoleHome() {
+    const role = (localStorage.getItem("user_role") || "").toLowerCase();
+    if (role === "admin") {
+        window.location.href = "../admin/dashboard.html";
+        return;
+    }
+    if (role === "employee") {
+        window.location.href = "../employee/dashboard.html";
+        return;
+    }
+    redirectToLogin();
+}
+
 function extractErrorDetail(err) {
     if (!err) return "";
     if (typeof err.detail === "string") return err.detail;
@@ -177,6 +190,20 @@ function isInactiveAccountError(status, err) {
     if (status !== 401 && status !== 403) return false;
     const msg = extractErrorDetail(err).toLowerCase();
     return msg.includes("inactive") || msg.includes("not available");
+}
+
+function isRoleAccessError(status, err) {
+    if (status !== 403) return false;
+    const msg = extractErrorDetail(err).toLowerCase();
+    return msg.includes("admin access required") || msg.includes("employee access required");
+}
+
+function handleRoleAccessError(errMessage) {
+    const key = "role_access_redirected";
+    if (sessionStorage.getItem(key) === "1") return;
+    sessionStorage.setItem(key, "1");
+    showUIPopup(errMessage || "Access denied for this page.", "warning", 2200);
+    setTimeout(() => redirectToRoleHome(), 250);
 }
 
 function buildHeaders(token, isJson = true) {
@@ -248,6 +275,10 @@ async function apiRequest(endpoint, method = "GET", body = null, options = {}) {
             clearAuthState();
             redirectToLogin();
             throw new Error("Account is inactive");
+        }
+        if (isRoleAccessError(response.status, err)) {
+            handleRoleAccessError(extractErrorDetail(err) || "Access denied");
+            throw new Error(extractErrorDetail(err) || "Access denied");
         }
         if (Array.isArray(err.errors) && err.errors.length) {
             throw new Error(err.errors[0]);
@@ -460,6 +491,7 @@ window.API = {
 
     // Leaves
     getMyLeaves: () => apiRequest("/leaves/my"),
+    deleteMyLeave: (leaveId) => apiRequest(`/leaves/my/${leaveId}`, "DELETE"),
     getLeaves: (status = null) => apiRequest(status ? `/leaves?status=${encodeURIComponent(status)}` : "/leaves"),
     approveLeave: (leaveId) => apiRequest(`/leaves/${leaveId}/approve`, "PUT"),
     rejectLeave: (leaveId) => apiRequest(`/leaves/${leaveId}/reject`, "PUT"),
