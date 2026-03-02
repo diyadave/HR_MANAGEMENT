@@ -505,7 +505,7 @@
       return rawStatus;
     }
 
-    function renderStatus(r) {
+    function renderStatus(r) {  
       const status = resolveDisplayStatus(r);
       if (status === "in_progress") {
         const label = r.is_late_entry ? "In Progress (Late Entry)" : "In Progress";

@@ -72,6 +72,14 @@ function initTrackerElements() {
     return totalMinutes >= (13 * 60) && totalMinutes < (14 * 60);
   }
 
+  function isIstSunday() {
+    const weekday = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "long"
+    }).format(new Date());
+    return weekday === "Sunday";
+  }
+
   function stopAllIntervals() {
     if (taskInterval) {
       clearInterval(taskInterval);
@@ -183,6 +191,7 @@ function initTrackerElements() {
   // ==================== UPDATE UI ====================
   function updateUI() {
     const breakTime = isIstBreakNow();
+    const sunday = isIstSunday();
 
     // Update attendance UI
     if (isClockedIn) {
@@ -214,11 +223,16 @@ function initTrackerElements() {
       elements.status.textContent = "Break Time (IST)";
       elements.taskBtn.disabled = true;
     }
+
+    if (sunday && !activeTask) {
+      elements.taskBtn.disabled = true;
+    }
     updateClockButtonState();
   }
 
   function updateClockButtonState() {
     const { hour } = getIstHourMinute();
+    const sunday = isIstSunday();
 
     if (!isClockedIn && clockInLocked) {
       elements.clockBtn.disabled = true;
@@ -230,6 +244,12 @@ function initTrackerElements() {
         break: "Break Time"
       }[clockInLockReason] || "Clock Disabled";
       elements.clockBtn.textContent = lockText;
+      return;
+    }
+
+    if (!isClockedIn && sunday) {
+      elements.clockBtn.disabled = true;
+      elements.clockBtn.textContent = "Sunday Off";
       return;
     }
 
@@ -336,6 +356,10 @@ function initTrackerElements() {
         elements.attendanceTimer.textContent = formatTime(0);
         
       } else {
+        if (isIstSunday()) {
+          alert("Clock in is disabled on Sunday.");
+          return;
+        }
         // CLOCK IN
         await API.clockIn();
       }
@@ -365,6 +389,10 @@ function initTrackerElements() {
         activeTask = null;
         
       } else {
+        if (isIstSunday()) {
+          alert("Task timer is disabled on Sunday.");
+          return;
+        }
         if (!isClockedIn) {
           alert("Clock in first to start task timer.");
           return;

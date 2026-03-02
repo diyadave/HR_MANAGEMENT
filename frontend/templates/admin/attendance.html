@@ -567,6 +567,12 @@
             font-size: 18px;
         }
 
+        .status-future {
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 16px;
+        }
+
         /* Half Day — Split star for first/second half */
         .day-cell.half-left .attendance-icon,
         .day-cell.half-right .attendance-icon {
@@ -1337,6 +1343,13 @@
             return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
         }
 
+        function isFutureAttendanceDate(year, month, day) {
+            const cellDate = new Date(year, month - 1, day);
+            const nowIst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+            const todayIst = new Date(nowIst.getFullYear(), nowIst.getMonth(), nowIst.getDate());
+            return cellDate > todayIst;
+        }
+
         function normalizeStatus(status) {
             const value = String(status || "").toLowerCase();
             if (value === "halfday_first" || value === "halfday_second") return "halfday";
@@ -1435,9 +1448,10 @@
                 for (let d = 1; d <= days; d++) {
                     const detail = emp.day_details?.[d] || {};
                     const status = normalizeStatus(detail.status || emp.days?.[d] || "absent");
+                    const isFuture = isFutureAttendanceDate(currentYear, currentMonth, d);
                     let halfClass = "";
 
-                    if (status === "halfday") {
+                    if (!isFuture && status === "halfday") {
                         // First priority → backend half_day_type
                         if (detail.half_day_type === "first_half") {
                             halfClass = "half-left";  // First half -> first (left) side filled
@@ -1461,10 +1475,14 @@
                             }
                         }
                     }
+                    const cellTitle = isFuture ? "Future date" : getStatusLabel(status, detail);
+                    const iconClass = isFuture ? "status-future" : getStatusClass(status, detail);
+                    const iconText = isFuture ? "-" : getStatusIcon(status, detail);
+
                     row += `
                         <td class="date-cell">
-                            <div class="day-cell ${halfClass}" data-user-id="${emp.employee_id}" data-date="${isoDate(currentYear, currentMonth, d)}" title="${esc(getStatusLabel(status, detail))}" onclick="openAttendanceDetails(this)">
-                                <span class="attendance-icon ${getStatusClass(status, detail)}">${getStatusIcon(status, detail)}</span>
+                            <div class="day-cell ${halfClass}" data-user-id="${emp.employee_id}" data-date="${isoDate(currentYear, currentMonth, d)}" title="${esc(cellTitle)}" onclick="openAttendanceDetails(this)">
+                                <span class="attendance-icon ${iconClass}">${iconText}</span>
                             </div>
                         </td>
                     `;
