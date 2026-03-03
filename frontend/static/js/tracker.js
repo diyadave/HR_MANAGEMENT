@@ -371,7 +371,7 @@ function initTrackerElements() {
       console.error("Clock action failed:", error);
       alert(error.message || "Failed to clock in/out. Please try again.");
     } finally {
-      elements.clockBtn.disabled = false;
+      updateClockButtonState();
     }
   }
 

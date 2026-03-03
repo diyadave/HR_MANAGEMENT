@@ -523,11 +523,11 @@
             <div class="action-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="search-input" placeholder="Search my projects...">
+                    <input type="text" id="projectSearchInput" class="search-input" placeholder="Search my projects...">
                 </div>
                 
                 <div class="action-buttons">
-                    <select class="table-filter" style="padding: 10px 12px;">
+                    <select id="projectStatusFilter" class="table-filter" style="padding: 10px 12px;">
                         <option value="">All Projects</option>
                         <option value="active">Active</option>
                         <option value="completed">Completed</option>
@@ -564,11 +564,11 @@
                 <div class="table-footer">
                     <div class="pagination-info">Showing 5 of 5 projects</div>
                     <div class="pagination-controls">
-                        <button class="page-btn" disabled>
+                        <button id="projectsPrevPageBtn" class="page-btn" disabled>
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn" disabled>
+                        <button id="projectsPageIndicatorBtn" class="page-btn active">1</button>
+                        <button id="projectsNextPageBtn" class="page-btn" disabled>
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
@@ -627,77 +627,179 @@ function getProjectProgress(project) {
   return clampProgress((completed / total) * 100);
 }
 
+const projectsState = {
+  allProjects: [],
+  filteredProjects: [],
+  currentPage: 1,
+  pageSize: 5,
+  searchTerm: "",
+  statusFilter: ""
+};
+
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isProjectCompleted(project) {
+  const status = normalizeText(project?.status);
+  if (status === "completed") return true;
+  return getProjectProgress(project) >= 100;
+}
+
+function applyProjectFilters() {
+  const searchTerm = normalizeText(projectsState.searchTerm);
+  const statusFilter = normalizeText(projectsState.statusFilter);
+
+  projectsState.filteredProjects = projectsState.allProjects.filter((p) => {
+    const name = normalizeText(p?.name);
+    const description = normalizeText(p?.description);
+    const matchesSearch = !searchTerm || name.includes(searchTerm) || description.includes(searchTerm);
+
+    let matchesStatus = true;
+    if (statusFilter === "completed") matchesStatus = isProjectCompleted(p);
+    if (statusFilter === "active") matchesStatus = !isProjectCompleted(p);
+
+    return matchesSearch && matchesStatus;
+  });
+}
+
+function updateProjectCounts(total, shown) {
+  document.querySelectorAll(".pagination-info").forEach((el) => {
+    el.textContent = `Showing ${shown} of ${total} projects`;
+  });
+}
+
+function updatePaginationControls() {
+  const totalPages = Math.max(1, Math.ceil(projectsState.filteredProjects.length / projectsState.pageSize));
+  const prevBtn = document.getElementById("projectsPrevPageBtn");
+  const nextBtn = document.getElementById("projectsNextPageBtn");
+  const pageIndicatorBtn = document.getElementById("projectsPageIndicatorBtn");
+
+  if (projectsState.currentPage > totalPages) projectsState.currentPage = totalPages;
+  if (projectsState.currentPage < 1) projectsState.currentPage = 1;
+
+  if (pageIndicatorBtn) pageIndicatorBtn.textContent = String(projectsState.currentPage);
+  if (prevBtn) prevBtn.disabled = projectsState.currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = projectsState.currentPage >= totalPages;
+}
+
+function renderProjectsTable() {
+  const tbody = document.getElementById("myProjectsTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  const totalFiltered = projectsState.filteredProjects.length;
+  const startIndex = (projectsState.currentPage - 1) * projectsState.pageSize;
+  const pageItems = projectsState.filteredProjects.slice(startIndex, startIndex + projectsState.pageSize);
+
+  updateProjectCounts(projectsState.allProjects.length, totalFiltered);
+  updatePaginationControls();
+
+  if (totalFiltered === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align:center;">
+          No matching projects found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  pageItems.forEach((p) => {
+    const isOwner = p.owner && p.owner.id === currentUser.id;
+    const progress = getProjectProgress(p);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="project-name-cell">
+        <div class="project-name">${p.name}</div>
+        <div class="project-description">${p.description || ""}</div>
+      </td>
+      <td class="stats-cell">
+        ${p.team_members ? p.team_members.length : 0}
+        <span class="stats-label">Members</span>
+      </td>
+      <td class="progress-cell">
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progress}%"></div>
+          </div>
+          <span class="progress-text">${progress}%</span>
+        </div>
+      </td>
+      <td class="actions-cell">
+        <div class="actions-wrap">
+          ${
+            isOwner
+              ? `<button class="action-btn action-manage"
+                  onclick="viewProjectTasks(${p.id})">
+                  Manage Tasks
+                </button>`
+              : `<button class="action-btn"
+                  onclick="viewProjectTasks(${p.id})">
+                  View Details
+                </button>`
+          }
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function initializeProjectsControls() {
+  const searchInput = document.getElementById("projectSearchInput");
+  const statusFilter = document.getElementById("projectStatusFilter");
+  const prevBtn = document.getElementById("projectsPrevPageBtn");
+  const nextBtn = document.getElementById("projectsNextPageBtn");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      projectsState.searchTerm = e.target.value || "";
+      projectsState.currentPage = 1;
+      applyProjectFilters();
+      renderProjectsTable();
+    });
+  }
+
+  if (statusFilter) {
+    statusFilter.addEventListener("change", (e) => {
+      projectsState.statusFilter = e.target.value || "";
+      projectsState.currentPage = 1;
+      applyProjectFilters();
+      renderProjectsTable();
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      if (projectsState.currentPage <= 1) return;
+      projectsState.currentPage -= 1;
+      renderProjectsTable();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      const totalPages = Math.max(1, Math.ceil(projectsState.filteredProjects.length / projectsState.pageSize));
+      if (projectsState.currentPage >= totalPages) return;
+      projectsState.currentPage += 1;
+      renderProjectsTable();
+    });
+  }
+}
+
 async function loadMyProjects() {
   try {
     if (!ensureAuth()) return;
     const projects = await apiRequest("/projects/my");
-
-    const tbody = document.getElementById("myProjectsTableBody");
-    tbody.innerHTML = "";
-
-    const projectCount = Array.isArray(projects) ? projects.length : 0;
-    document.querySelectorAll(".pagination-info").forEach((el) => {
-      el.textContent = `Showing ${projectCount} of ${projectCount} projects`;
-    });
-
-    if (!projects || projects.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="4" style="text-align:center;">
-            No projects assigned
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-
-    projects.forEach(p => {
-      const isOwner = p.owner && p.owner.id === currentUser.id;
-      const progress = getProjectProgress(p);
-
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td class="project-name-cell">
-          <div class="project-name">${p.name}</div>
-          <div class="project-description">${p.description || ""}</div>
-        </td>
-
-        <td class="stats-cell">
-          ${p.team_members ? p.team_members.length : 0}
-          <span class="stats-label">Members</span>
-        </td>
-
-        <td class="progress-cell">
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${progress}%"></div>
-            </div>
-            <span class="progress-text">${progress}%</span>
-          </div>
-        </td>
-
-        <td class="actions-cell">
-          <div class="actions-wrap">
-            ${
-              isOwner
-                ? `<button class="action-btn action-manage"
-                    onclick="viewProjectTasks(${p.id})">
-                    Manage Tasks
-                  </button>`
-                : `<button class="action-btn"
-                    onclick="viewProjectTasks(${p.id})">
-                    View Details
-                  </button>`
-            }
-          </div>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
+    projectsState.allProjects = Array.isArray(projects) ? projects : [];
+    projectsState.currentPage = 1;
+    applyProjectFilters();
+    renderProjectsTable();
 
   } catch (err) {
     console.error(err);
@@ -705,6 +807,7 @@ async function loadMyProjects() {
   }
 }
 document.addEventListener("DOMContentLoaded", () => {
+    initializeProjectsControls();
     loadMyProjects();
 });
 
