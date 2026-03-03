@@ -300,8 +300,24 @@
             border-color: #073379;
             box-shadow: 0 0 0 3px rgba(7,51,121,0.12);
         }
+        .editable-input.input-error {
+            border-color: #cc1f1f;
+            box-shadow: 0 0 0 3px rgba(204, 31, 31, 0.12);
+        }
         select.editable-input {
             background-color: white;
+        }
+
+        .field-error {
+            display: none;
+            color: #cc1f1f;
+            margin-top: 6px;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .field-error.show {
+            display: block;
         }
 
         .phone-input-group {
@@ -459,6 +475,9 @@
                         </div>
                     </div>
                     <div class="info-item full-width"><span class="info-label">Address</span><input class="editable-input" id="editAddress"></div>
+                    <div class="info-item"><span class="info-label">Current Password</span><input type="password" class="editable-input" id="editCurrentPassword"><div class="field-error" id="editCurrentPasswordError"></div></div>
+                    <div class="info-item"><span class="info-label">New Password</span><input type="password" class="editable-input" id="editNewPassword"><div class="field-error" id="editPasswordValidation"></div></div>
+                    <div class="info-item"><span class="info-label">Confirm New Password</span><input type="password" class="editable-input" id="editConfirmPassword"></div>
                 </div>
             </div>
         </div>
@@ -585,6 +604,55 @@
                 return { code: matchedCode, local };
             }
 
+            function setEmployeeCurrentPasswordError(message) {
+                const currentPasswordEl = document.getElementById('editCurrentPassword');
+                const errorEl = document.getElementById('editCurrentPasswordError');
+                if (!currentPasswordEl || !errorEl) return;
+                errorEl.textContent = message || '';
+                errorEl.classList.toggle('show', Boolean(message));
+                currentPasswordEl.classList.toggle('input-error', Boolean(message));
+            }
+
+            function setEmployeePasswordValidation(message) {
+                const el = document.getElementById('editPasswordValidation');
+                if (!el) return;
+                el.textContent = message || '';
+                el.classList.toggle('show', Boolean(message));
+            }
+
+            function validateEmployeePasswords(showMessage = false) {
+                const newPassword = document.getElementById('editNewPassword')?.value || '';
+                const confirmPassword = document.getElementById('editConfirmPassword')?.value || '';
+
+                if (!newPassword && !confirmPassword) {
+                    if (showMessage) setEmployeePasswordValidation('');
+                    return true;
+                }
+
+                if (newPassword.length < 6) {
+                    if (showMessage) setEmployeePasswordValidation('Password must be at least 6 characters.');
+                    return false;
+                }
+
+                if (!/[A-Z]/.test(newPassword)) {
+                    if (showMessage) setEmployeePasswordValidation('Password must include at least one uppercase letter.');
+                    return false;
+                }
+
+                if (!/[^A-Za-z0-9]/.test(newPassword)) {
+                    if (showMessage) setEmployeePasswordValidation('Password must include at least one special character.');
+                    return false;
+                }
+
+                if (confirmPassword && newPassword !== confirmPassword) {
+                    if (showMessage) setEmployeePasswordValidation('New password and confirm password do not match.');
+                    return false;
+                }
+
+                if (showMessage) setEmployeePasswordValidation('');
+                return true;
+            }
+
             // ---------- load profile ----------
             async function loadProfile() {
                 try {
@@ -663,6 +731,11 @@
                     document.getElementById('editBankName').value = data.bank_name || '';
                     document.getElementById('editAccount').value = data.account_number || '';
                     document.getElementById('editIfsc').value = data.ifsc_code || '';
+                    document.getElementById('editCurrentPassword').value = '';
+                    document.getElementById('editNewPassword').value = '';
+                    document.getElementById('editConfirmPassword').value = '';
+                    setEmployeeCurrentPasswordError('');
+                    setEmployeePasswordValidation('');
 
                 } catch (err) {
                     console.error('loadProfile error:', err);
@@ -681,11 +754,33 @@
                 bankEdit.style.display = showEdit ? 'grid' : 'none';
                 editBtn.style.display = showEdit ? 'none' : 'inline-flex';
                 saveBtn.style.display = showEdit ? 'inline-flex' : 'none';
+                if (!showEdit) {
+                    document.getElementById('editCurrentPassword').value = '';
+                    document.getElementById('editNewPassword').value = '';
+                    document.getElementById('editConfirmPassword').value = '';
+                    setEmployeeCurrentPasswordError('');
+                    setEmployeePasswordValidation('');
+                }
             }
 
             editBtn.addEventListener('click', () => enableEditMode(true));
 
             saveBtn.addEventListener('click', async () => {
+                const newPassword = document.getElementById('editNewPassword')?.value || '';
+                const confirmPassword = document.getElementById('editConfirmPassword')?.value || '';
+                const currentPassword = document.getElementById('editCurrentPassword')?.value || '';
+                setEmployeeCurrentPasswordError('');
+
+                if (newPassword || confirmPassword) {
+                    if (!validateEmployeePasswords(true)) {
+                        return;
+                    }
+                    if (!currentPassword.trim()) {
+                        setEmployeeCurrentPasswordError('Current password is required.');
+                        return;
+                    }
+                }
+
                 // build payload with only editable fields
                 const payload = {
                     phone: (() => {
@@ -709,6 +804,11 @@
                     ifsc_code: document.getElementById('editIfsc').value || null,
                 };
 
+                if (newPassword) {
+                    payload.current_password = currentPassword;
+                    payload.new_password = newPassword;
+                }
+
                 try {
                     const api = await waitForAPI();
                     await api.updateProfile(payload);
@@ -717,8 +817,24 @@
                     showMessage('Profile updated successfully.', 'success');
                 } catch (err) {
                     console.error('save failed', err);
-                    showMessage(err.message || 'Update failed. Please try again.', 'error');
+                    const msg = String(err.message || 'Update failed. Please try again.');
+                    if (msg.toLowerCase().includes('current password')) {
+                        setEmployeeCurrentPasswordError('Current password does not match.');
+                    } else {
+                        showMessage(msg, 'error');
+                    }
                 }
+            });
+
+            const editCurrentPasswordEl = document.getElementById('editCurrentPassword');
+            if (editCurrentPasswordEl) {
+                editCurrentPasswordEl.addEventListener('input', () => setEmployeeCurrentPasswordError(''));
+            }
+
+            ['editNewPassword', 'editConfirmPassword'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => validateEmployeePasswords(true));
             });
 
             // image upload

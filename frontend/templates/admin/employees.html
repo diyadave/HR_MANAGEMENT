@@ -366,6 +366,26 @@
             gap: 2px;
         }
 
+        .view-btn {
+            border: 1px solid var(--gray-200);
+            background: #fff;
+            color: var(--gray-700);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            background: var(--gray-50);
+        }
+
         .employee-name {
             font-weight: 600;
             color: var(--gray-900);
@@ -937,10 +957,12 @@
                 <table class="employee-table">
                     <thead>
                         <tr>
-                            <th>Employee</th>
+                            <th>Name</th>
+                            <th>Employee ID</th>
                             <th>Department</th>
-                            <th>Designation</th>
+                            <th>Position</th>
                             <th>Status</th>
+                            <th>View</th>
                             <th>Account Access</th>
                         </tr>
                     </thead>
@@ -1067,7 +1089,7 @@
             if (!employees.length) {
                 tbody.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align:center;padding:30px;color:#64748b">
+        <td colspan="7" style="text-align:center;padding:30px;color:#64748b">
           No employees found
         </td>
       </tr>`;
@@ -1076,31 +1098,39 @@
 
             employees.forEach(emp => {
                 const photoUrl = getProfileImageUrl(emp.profile_image);
+                const displayName = escapeHtml(emp.name || "-");
+                const displayEmployeeId = escapeHtml(emp.employee_id || `EMP-${emp.id}`);
+                const displayDepartment = escapeHtml(emp.department || "-");
+                const displayDesignation = escapeHtml(emp.designation || "-");
+                const initials = escapeHtml(String(emp.name || "?").slice(0, 2).toUpperCase());
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
       <td>
         <div class="employee-cell">
-          <button class="employee-avatar-btn" title="View employee details" data-emp-id="${emp.id}">
-            <div class="employee-avatar">
-              ${photoUrl
-                        ? `<img src="${photoUrl}" alt="${escapeHtml(emp.name)}" onerror="this.parentElement.innerHTML='${escapeHtml(emp.name.slice(0, 2).toUpperCase())}'">`
-                        : `${emp.name.slice(0, 2).toUpperCase()}`
+          <div class="employee-avatar">
+            ${photoUrl
+                        ? `<img src="${photoUrl}" alt="${displayName}" onerror="this.parentElement.innerHTML='${initials}'">`
+                        : `${initials}`
                     }
-            </div>
-          </button>
+          </div>
           <div class="employee-info">
-            <div class="employee-name">${emp.name}</div>
-            <div class="employee-id">${emp.employee_id || "EMP-" + emp.id}</div>
+            <div class="employee-name">${displayName}</div>
           </div>
         </div>
       </td>
-      <td>${emp.department || "-"}</td>
-      <td>${emp.designation || "-"}</td>
+      <td>${displayEmployeeId}</td>
+      <td>${displayDepartment}</td>
+      <td>${displayDesignation}</td>
       <td>
         <span class="status-badge ${emp.is_active ? "status-active" : "status-inactive"
                     }">
           ${emp.is_active ? "Active" : "Inactive"}
         </span>
+      </td>
+      <td>
+        <button class="view-btn employee-view-btn" type="button" title="View employee details" data-emp-id="${emp.id}">
+          <i class="fas fa-eye"></i>
+        </button>
       </td>
       <td>
         <div class="account-toggle">
@@ -1118,7 +1148,7 @@
                 tbody.appendChild(tr);
             });
 
-            tbody.querySelectorAll(".employee-avatar-btn").forEach(btn => {
+            tbody.querySelectorAll(".employee-view-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const id = parseInt(btn.dataset.empId, 10);
                     openEmployeeDetail(id);
@@ -1140,13 +1170,17 @@
             const status = document.getElementById("statusFilter").value.toLowerCase();
 
             filteredEmployees = allEmployees.filter(emp => {
+                const name = String(emp.name || "").toLowerCase();
+                const email = String(emp.email || "").toLowerCase();
+                const employeeId = String(emp.employee_id || "").toLowerCase();
+                const department = String(emp.department || "").toLowerCase();
                 const matchSearch =
-                    emp.name.toLowerCase().includes(search) ||
-                    emp.email.toLowerCase().includes(search) ||
-                    (emp.employee_id || "").toLowerCase().includes(search);
+                    name.includes(search) ||
+                    email.includes(search) ||
+                    employeeId.includes(search);
 
                 const matchDept =
-                    !dept || (emp.department || "").toLowerCase().includes(dept);
+                    !dept || department.includes(dept);
 
                 const matchStatus =
                     !status ||
@@ -1185,7 +1219,8 @@
             if (!path) return "";
             if (path.startsWith("http://") || path.startsWith("https://")) return path;
             const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "");
-            return `${API_BASE}/${normalized}`;
+            const baseUrl = String(window.BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+            return `${baseUrl}/${normalized}`;
         }
 
         function getAttendancePercent(employeeId) {

@@ -179,6 +179,8 @@ class ProfileUpdateSchema(BaseModel):
     account_number: Optional[str] = None
     ifsc_code: Optional[str] = None
     profile_image: Optional[str] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
 
     @field_validator("*", mode="before")
     @classmethod

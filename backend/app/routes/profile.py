@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.core.dependencies import get_current_user
+from app.core.security import verify_password, hash_password
 from app.models.user import User
 from app.schemas.user import ProfileUpdateSchema, ProfileResponse
 from fastapi import UploadFile, File
@@ -34,6 +35,17 @@ def update_profile(
     current_user: User = Depends(get_current_user)
 ):
     updates = data.model_dump(exclude_unset=True)
+    current_password = updates.pop("current_password", None)
+    new_password = updates.pop("new_password", None)
+
+    if new_password:
+        if not current_password:
+            raise HTTPException(status_code=400, detail="Current password is required")
+        if not verify_password(current_password, current_user.password_hash):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        current_user.password_hash = hash_password(new_password)
+        current_user.force_password_change = False
+
     for field, value in updates.items():
         setattr(current_user, field, value)
 

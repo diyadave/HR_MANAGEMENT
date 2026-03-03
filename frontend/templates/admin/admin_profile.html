@@ -662,10 +662,12 @@
                         <div class="form-group">
                             <label class="form-label">Current Password</label>
                             <input type="password" id="currentPassword" class="form-input">
+                            <div class="field-error" id="currentPasswordError"></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">New Password</label>
                             <input type="password" id="newPassword" class="form-input">
+                            <div class="field-error" id="profilePasswordValidation"></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Confirm New Password</label>
@@ -878,6 +880,57 @@
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
+            setCurrentPasswordError('');
+            setProfilePasswordValidation('');
+        }
+
+        function setCurrentPasswordError(message) {
+            const currentPasswordEl = document.getElementById('currentPassword');
+            const errorEl = document.getElementById('currentPasswordError');
+            if (!currentPasswordEl || !errorEl) return;
+            errorEl.textContent = message || '';
+            errorEl.classList.toggle('show', Boolean(message));
+            currentPasswordEl.classList.toggle('input-error', Boolean(message));
+        }
+
+        function setProfilePasswordValidation(message) {
+            const el = document.getElementById('profilePasswordValidation');
+            if (!el) return;
+            el.textContent = message || '';
+            el.classList.toggle('show', Boolean(message));
+        }
+
+        function validateProfilePasswords(showMessage = false) {
+            const newPassword = (document.getElementById('newPassword')?.value || '').trim();
+            const confirmPassword = (document.getElementById('confirmPassword')?.value || '').trim();
+
+            if (!newPassword && !confirmPassword) {
+                if (showMessage) setProfilePasswordValidation('');
+                return true;
+            }
+
+            if (newPassword.length < 6) {
+                if (showMessage) setProfilePasswordValidation('Password must be at least 6 characters.');
+                return false;
+            }
+
+            if (!/[A-Z]/.test(newPassword)) {
+                if (showMessage) setProfilePasswordValidation('Password must include at least one uppercase letter.');
+                return false;
+            }
+
+            if (!/[^A-Za-z0-9]/.test(newPassword)) {
+                if (showMessage) setProfilePasswordValidation('Password must include at least one special character.');
+                return false;
+            }
+
+            if (confirmPassword && newPassword !== confirmPassword) {
+                if (showMessage) setProfilePasswordValidation('New password and confirm password do not match.');
+                return false;
+            }
+
+            if (showMessage) setProfilePasswordValidation('');
+            return true;
         }
 
         // Load admin profile
@@ -1014,14 +1067,15 @@
             // Validate passwords if changing
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const currentPassword = (document.getElementById('currentPassword')?.value || '').trim();
+            setCurrentPasswordError('');
             
             if (newPassword || confirmPassword) {
-                if (newPassword !== confirmPassword) {
-                    showAlert('New passwords do not match', 'error');
+                if (!validateProfilePasswords(true)) {
                     return;
                 }
-                if (newPassword.length < 6) {
-                    showAlert('Password must be at least 6 characters', 'error');
+                if (!currentPassword) {
+                    setCurrentPasswordError('Current password is required.');
                     return;
                 }
             }
@@ -1041,7 +1095,7 @@
             formData.append('designation', document.getElementById('editDesignation').value);
             
             if (newPassword) {
-                formData.append('current_password', document.getElementById('currentPassword').value);
+                formData.append('current_password', currentPassword);
                 formData.append('new_password', newPassword);
             }
             
@@ -1067,12 +1121,31 @@
                 await loadAdminProfile(); // Reload profile
                 
             } catch (err) {
-                showAlert(err.message || 'Failed to update profile', 'error');
+                const msg = String(err.message || 'Failed to update profile');
+                const lowerMsg = msg.toLowerCase();
+                if (lowerMsg.includes('current password')) {
+                    setCurrentPasswordError('Current password does not match.');
+                } else {
+                    showAlert(msg, 'error');
+                }
             } finally {
                 btnText.classList.remove('hidden');
                 btnLoader.classList.add('hidden');
                 saveBtn.disabled = false;
             }
+        });
+
+        const currentPasswordEl = document.getElementById('currentPassword');
+        if (currentPasswordEl) {
+            currentPasswordEl.addEventListener('input', () => setCurrentPasswordError(''));
+        }
+
+        ['newPassword', 'confirmPassword'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                validateProfilePasswords(true);
+            });
         });
 
         // Modal functions
