@@ -660,7 +660,29 @@ function notificationTimeLabel(iso) {
     });
 }
 
+const NOTIFICATION_SOUND_PREF_KEY = "notification_sound_enabled";
+
+function isNotificationSoundEnabled() {
+    try {
+        const raw = localStorage.getItem(NOTIFICATION_SOUND_PREF_KEY);
+        if (raw === null) return true;
+        const value = String(raw).trim().toLowerCase();
+        return !["0", "false", "off", "no"].includes(value);
+    } catch {
+        return true;
+    }
+}
+
+function setNotificationSoundEnabled(enabled) {
+    try {
+        localStorage.setItem(NOTIFICATION_SOUND_PREF_KEY, enabled ? "true" : "false");
+    } catch {
+        // Ignore storage failures (private mode/restrictions).
+    }
+}
+
 function playNotificationSound() {
+    if (!isNotificationSoundEnabled()) return;
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
@@ -683,6 +705,8 @@ function playNotificationSound() {
 }
 
 window.playNotificationSound = playNotificationSound;
+window.isNotificationSoundEnabled = isNotificationSoundEnabled;
+window.setNotificationSoundEnabled = setNotificationSoundEnabled;
 
 function renderEmployeeNotificationBell() {
     const badgeEl = document.getElementById("employeeNotificationBadge");

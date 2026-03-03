@@ -457,6 +457,7 @@
         activeConversationId: null,
         socket: null,
         messageIds: new Set(),
+        activeMessages: [],
         loadedOnce: false
     };
 
@@ -609,6 +610,7 @@
     }
 
     function renderMessages(messages) {
+        state.activeMessages = Array.isArray(messages) ? messages.slice() : [];
         if (!messages.length) {
             messagesEl.innerHTML = '<div class="hr-chat-empty">No messages yet</div>';
             return;
@@ -623,6 +625,28 @@
             );
         }).join("");
         messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function appendMessage(message) {
+        if (!message) return;
+        var id = message.id;
+        if (id !== undefined && id !== null && state.messageIds.has(id)) return;
+        if (id !== undefined && id !== null) state.messageIds.add(id);
+        state.activeMessages.push(message);
+        renderMessages(state.activeMessages);
+    }
+
+    function replaceMessage(tempId, actualMessage) {
+        if (!actualMessage) return;
+        var idx = state.activeMessages.findIndex(function (m) { return m.id === tempId; });
+        if (idx >= 0) {
+            state.messageIds.delete(tempId);
+            state.activeMessages[idx] = actualMessage;
+            if (actualMessage.id !== undefined && actualMessage.id !== null) state.messageIds.add(actualMessage.id);
+            renderMessages(state.activeMessages);
+            return;
+        }
+        appendMessage(actualMessage);
     }
 
     async function loadConversations() {
@@ -649,6 +673,7 @@
 
     async function openConversation(conversationId) {
         state.activeConversationId = Number(conversationId);
+        state.activeMessages = [];
         renderConversations();
         var conv = activeConversation();
         updateMainHeader(conv);
@@ -683,14 +708,39 @@
         var text = inputEl.value.trim();
         if (!text || !state.activeConversationId) return;
         inputEl.value = "";
-        var sent = await api.sendChatMessage(state.activeConversationId, text);
-        state.messageIds.add(sent.id);
         var conv = state.conversations.find(function (c) { return c.id === state.activeConversationId; });
         if (conv) {
-            conv.last_message = sent.message;
-            conv.last_message_timestamp = sent.timestamp;
+            conv.last_message = text;
+            conv.last_message_timestamp = new Date().toISOString();
+            conv.unread_count = 0;
         }
-        await openConversation(state.activeConversationId);
+        renderConversations();
+        updateFabBadge();
+
+        var tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+        appendMessage({
+            id: tempId,
+            sender_id: currentUserId,
+            message: text,
+            timestamp: new Date().toISOString()
+        });
+
+        try {
+            var sent = await api.sendChatMessage(state.activeConversationId, text);
+            replaceMessage(tempId, sent);
+            if (conv) {
+                conv.last_message = sent.message;
+                conv.last_message_timestamp = sent.timestamp;
+            }
+            renderConversations();
+        } catch (err) {
+            state.activeMessages = state.activeMessages.filter(function (m) { return m.id !== tempId; });
+            state.messageIds.delete(tempId);
+            renderMessages(state.activeMessages);
+            if (typeof window.showUIPopup === "function") {
+                window.showUIPopup((err && err.message) || "Failed to send message", "error");
+            }
+        }
     }
 
     function websocketUrl() {
@@ -709,9 +759,23 @@
                 var data = null;
                 try { data = JSON.parse(event.data); } catch (_) { return; }
                 if (!data || !data.conversation_id || !data.id) return;
+                var incomingConversationId = Number(data.conversation_id);
+                if (!incomingConversationId) return;
 
-                var conv = state.conversations.find(function (c) { return c.id === data.conversation_id; });
+                var conv = state.conversations.find(function (c) { return Number(c.id) === incomingConversationId; });
                 if (!conv) {
+                    var optimisticConversation = {
+                        id: incomingConversationId,
+                        name: data.conversation_name || data.sender_name || "New conversation",
+                        is_group: Boolean(data.is_group),
+                        members: [],
+                        last_message: data.message || "",
+                        last_message_timestamp: data.timestamp || new Date().toISOString(),
+                        unread_count: Number(data.sender_id) !== currentUserId ? 1 : 0
+                    };
+                    state.conversations.unshift(optimisticConversation);
+                    renderConversations();
+                    updateFabBadge();
                     loadConversations().catch(function () {});
                     return;
                 }
@@ -720,7 +784,7 @@
                 conv.last_message_timestamp = data.timestamp;
                 if (Number(data.sender_id) !== currentUserId) {
                     playIncomingChatSound();
-                    var shouldCountUnread = !isChatOpen() || state.activeConversationId !== data.conversation_id;
+                    var shouldCountUnread = !isChatOpen() || Number(state.activeConversationId) !== incomingConversationId;
                     if (shouldCountUnread) {
                         conv.unread_count = Number(conv.unread_count || 0) + 1;
                     }
@@ -728,8 +792,24 @@
                 renderConversations();
                 updateFabBadge();
 
-                if (state.activeConversationId === data.conversation_id && !state.messageIds.has(data.id)) {
-                    openConversation(state.activeConversationId).catch(function () {});
+                if (Number(state.activeConversationId) === incomingConversationId && !state.messageIds.has(data.id)) {
+                    var pendingIdx = -1;
+                    if (Number(data.sender_id) === currentUserId) {
+                        pendingIdx = state.activeMessages.findIndex(function (m) {
+                            return String(m.id || "").indexOf("temp-") === 0 &&
+                                Number(m.sender_id) === currentUserId &&
+                                m.message === data.message;
+                        });
+                    }
+                    if (pendingIdx >= 0) {
+                        var tempId = state.activeMessages[pendingIdx].id;
+                        state.messageIds.delete(tempId);
+                        state.activeMessages[pendingIdx] = data;
+                        state.messageIds.add(data.id);
+                        renderMessages(state.activeMessages);
+                    } else {
+                        appendMessage(data);
+                    }
                 }
             };
 
