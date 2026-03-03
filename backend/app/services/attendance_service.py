@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import IntegrityError
 
 from app.core.attendance_ws_manager import attendance_ws_manager
 from app.models.attendance import Attendance
@@ -583,10 +584,23 @@ def clock_in(current_user, db):
             overtime_hours=0,
         )
         db.add(attendance)
-        db.commit()
-        db.refresh(attendance)
-        _notify_attendance_state_change(current_user.id)
-        return attendance
+        try:
+            db.commit()
+            db.refresh(attendance)
+            _notify_attendance_state_change(current_user.id)
+            return attendance
+        except IntegrityError:
+            # Concurrent clock-in for same user/day can race on unique(user_id, date).
+            # Resolve gracefully instead of returning 500.
+            db.rollback()
+            attendance = db.query(Attendance).filter(
+                Attendance.user_id == current_user.id,
+                Attendance.date == today
+            ).first()
+            if attendance and attendance.clock_in_time is not None:
+                raise HTTPException(status_code=400, detail="Already clocked in")
+            if not attendance:
+                raise HTTPException(status_code=409, detail="Concurrent clock-in conflict. Please retry.")
 
     if attendance.clock_in_time is not None:
         raise HTTPException(status_code=400, detail="Already clocked in")
