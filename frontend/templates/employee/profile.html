@@ -200,8 +200,8 @@
         /* info sections */
         .info-section {
             background: white;
-            border-radius: 12px;
-            padding: 20px 24px;
+            border-radius: 14px;
+            padding: 22px 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
             border: 1px solid #e9edf2;
             margin-bottom: 20px;
@@ -254,8 +254,8 @@
         }
 
         .contact-grid {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 16px 20px;
+            grid-template-columns: 1fr;
+            gap: 14px 18px;
         }
 
         .info-item {
@@ -436,15 +436,14 @@
                 </div>
                 <div id="contactView" class="info-grid contact-grid">
                     <!-- static view mode for contact (populated later) -->
-                    <div class="info-item"><span class="info-label">Email</span><span class="info-value" id="viewEmail">-</span></div>
+                    <div class="info-item full-width"><span class="info-label">Email</span><span class="info-value" id="viewEmail">-</span></div>
                     <div class="info-item"><span class="info-label">Phone</span><span class="info-value" id="viewPhone">-</span></div>
-                    <div class="info-item"><span class="info-label">Emergency name</span><span class="info-value" id="viewEmergencyName">-</span></div>
                     <div class="info-item"><span class="info-label">Emergency phone</span><span class="info-value" id="viewEmergencyPhone">-</span></div>
                     <div class="info-item full-width"><span class="info-label">Address</span><span class="info-value" id="viewAddress">-</span></div>
                 </div>
                 <!-- edit mode contact form (hidden initially) -->
                 <div id="contactEdit" style="display:none;" class="info-grid contact-grid">
-                    <div class="info-item"><span class="info-label">Email (read only)</span><input class="editable-input" id="editEmail" readonly disabled></div>
+                    <div class="info-item full-width"><span class="info-label">Email (read only)</span><input class="editable-input" id="editEmail" readonly disabled></div>
                     <div class="info-item">
                         <span class="info-label">Phone</span>
                         <div class="phone-input-group">
@@ -459,7 +458,6 @@
                             <input type="text" class="editable-input phone-local-input" id="editPhoneLocal" placeholder="Phone number">
                         </div>
                     </div>
-                    <div class="info-item"><span class="info-label">Emergency name</span><input class="editable-input" id="editEmergencyName"></div>
                     <div class="info-item">
                         <span class="info-label">Emergency phone</span>
                         <div class="phone-input-group">
@@ -693,7 +691,6 @@
                     // --- contact view ---
                     document.getElementById('viewEmail').innerText = data.email || '-';
                     document.getElementById('viewPhone').innerText = data.phone || '-';
-                    document.getElementById('viewEmergencyName').innerText = data.emergency_contact_name || '-';
                     document.getElementById('viewEmergencyPhone').innerText = data.emergency_contact_phone || '-';
                     document.getElementById('viewAddress').innerText = data.address || '-';
 
@@ -720,7 +717,6 @@
                     const emergencyPhoneParts = parsePhoneParts(data.emergency_contact_phone || '');
                     document.getElementById('editPhoneCountry').value = phoneParts.code;
                     document.getElementById('editPhoneLocal').value = phoneParts.local;
-                    document.getElementById('editEmergencyName').value = data.emergency_contact_name || '';
                     document.getElementById('editEmergencyPhoneCountry').value = emergencyPhoneParts.code;
                     document.getElementById('editEmergencyPhoneLocal').value = emergencyPhoneParts.local;
                     document.getElementById('editAddress').value = data.address || '';
@@ -793,7 +789,7 @@
                     gender: document.getElementById('editGender').value || null,
                     marital_status: document.getElementById('editMarital').value || null,
                     blood_group: document.getElementById('editBlood').value || null,
-                    emergency_contact_name: document.getElementById('editEmergencyName').value || null,
+                    emergency_contact_name: currentProfile.emergency_contact_name || null,
                     emergency_contact_phone: (() => {
                         const code = (document.getElementById('editEmergencyPhoneCountry')?.value || DEFAULT_PHONE_CODE).trim();
                         const local = (document.getElementById('editEmergencyPhoneLocal')?.value || '').replace(/\D/g, '');
