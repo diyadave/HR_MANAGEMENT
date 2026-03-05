@@ -186,6 +186,9 @@ def _leave_status_for_date(db, user_id: int, target_date: date, target_time: tim
         if is_hourly:
             return "hourly_leave" if _is_time_within_hourly_window(leave=leave, target_time=target_time) else None
         return "leave"
+    if leave.status == "rejected":
+        # Rejected leave should never block attendance or show as pending.
+        return None
     if is_hourly:
         # Unapproved hourly leave should not block clock-in; user will be marked late by time.
         return None
