@@ -942,8 +942,11 @@ def mark_attendance(
         attendance.half_day_type = None if selected_status in {"present", "absent", "leave", "holiday"} else attendance.half_day_type
         attendance.is_late = False
 
-    auto_overtime_seconds = calculate_overtime_seconds(attendance, attendance.total_seconds, datetime.now(timezone.utc))
-    attendance.overtime_hours = manual_overtime_hours if overtime_supplied else round(auto_overtime_seconds / 3600, 2)
+    if overtime_supplied:
+        attendance.overtime_hours = manual_overtime_hours
+    else:
+        # Manual attendance marks should not auto-add overtime.
+        attendance.overtime_hours = 0.0
 
     try:
         db.flush()

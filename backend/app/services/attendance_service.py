@@ -296,8 +296,9 @@ def calculate_overtime_seconds(
         return 0
 
     manual_overtime = float(attendance.overtime_hours or 0)
-    if attendance.is_manual_edit and manual_overtime > 0:
-        return int(round(manual_overtime * 3600))
+    if attendance.is_manual_edit:
+        # For manual admin edits, overtime must follow the explicit stored value.
+        return max(0, int(round(manual_overtime * 3600)))
 
     current = _ensure_aware_utc(now or datetime.now(timezone.utc))
     reference_out = _ensure_aware_utc(attendance.clock_out_time) if attendance.clock_out_time else None
